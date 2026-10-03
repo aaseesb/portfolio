@@ -1,0 +1,403 @@
+:root,
+:root[data-theme="light"] {
+  --bg: #faf7f2;
+  --surface: #f1ece3;
+  --surface-2: #e7e0d4;
+  --text: #221e1a;
+  --muted: #6b6257;
+  --border: #ded5c7;
+  --accent: #a4642a;
+  --accent-text: #ffffff;
+  --bunny: #fbf7f0;
+  --bunny-inner: #e3b2a2;
+  --bunny-eye: #2b2b2b;
+}
+
+:root[data-theme="dark"] {
+  --bg: #16130f;
+  --surface: #1f1b16;
+  --surface-2: #272118;
+  --text: #ece6dc;
+  --muted: #a1978a;
+  --border: #342c23;
+  --accent: #d79a5b;
+  --accent-text: #16130f;
+  --bunny: #e8ddcb;
+  --bunny-inner: #b98775;
+  --bunny-eye: #221e1a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+a:hover { color: var(--accent); }
+.muted { color: var(--muted); }
+
+/* ---------- Page shell: two columns, each with one job ---------- */
+.page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 72px 32px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 64px;
+  align-items: start;
+}
+
+.theme-toggle {
+  position: fixed; top: 20px; right: 20px; z-index: 10;
+  width: 34px; height: 30px;
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px;
+  cursor: pointer; font-size: 0.9rem;
+}
+.theme-toggle:hover { border-color: var(--accent); }
+
+/* ---------- Left column ---------- */
+.col-left h1 { font-size: 2.1rem; line-height: 1.15; letter-spacing: -0.01em; }
+.tagline { color: var(--muted); margin-top: 4px; }
+.summary { margin-top: 24px; max-width: 46ch; }
+
+.tech-line {
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: var(--muted);
+  max-width: 46ch;
+}
+
+.links {
+  margin-top: 24px; font-size: 0.95rem;
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+}
+.resume-btn { text-decoration: none; }
+.resume-btn:hover { color: var(--accent-text); }
+
+/* A small caps label so the two lists below don't run together. */
+.col-heading {
+  font-size: 0.72rem; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ---------- Education: its own card, not another job row ---------- */
+.education {
+  margin-top: 32px; padding: 16px 18px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.education .col-heading { margin-bottom: 8px; }
+.edu-degree { font-size: 0.98rem; font-weight: 500; }
+.edu-meta { font-size: 0.86rem; color: var(--muted); }
+.edu-details {
+  list-style: none; margin-top: 10px;
+  font-size: 0.86rem; color: var(--muted);
+}
+.edu-details li { padding-left: 14px; position: relative; }
+.edu-details li::before {
+  content: ""; position: absolute; left: 0; top: 0.68em;
+  width: 4px; height: 4px; border-radius: 50%; background: var(--accent);
+}
+
+.exp-heading { margin-top: 32px; margin-bottom: 4px; }
+
+.experience { list-style: none; }
+.exp-row {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+}
+.exp-row:last-child { border-bottom: 1px solid var(--border); }
+.exp-title { font-size: 0.95rem; font-weight: 500; }
+.exp-meta { font-size: 0.85rem; color: var(--muted); }
+
+/* ---------- Experience rows that unfold ---------- */
+.exp-chevron {
+  position: absolute; right: 0; top: 2px;
+  color: var(--muted); font-size: 1.1rem; line-height: 1;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+.exp-button[aria-expanded] { position: relative; padding-right: 22px; }
+.exp-button:hover .exp-chevron { color: var(--accent); }
+.exp-row.is-open .exp-chevron { transform: rotate(90deg); color: var(--accent); }
+
+.exp-points {
+  list-style: none; margin-top: 10px;
+  font-size: 0.88rem; color: var(--muted); max-width: 46ch;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.exp-points li { padding-left: 14px; position: relative; }
+.exp-points li::before {
+  content: ""; position: absolute; left: 0; top: 0.62em;
+  width: 4px; height: 4px; border-radius: 50%; background: var(--accent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes unfold {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .exp-points { animation: unfold 0.22s ease-out; }
+}
+
+/* ---------- Right column: the diorama ---------- */
+.diorama {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 32px; max-width: 420px; margin: 0 auto;
+}
+.hero-slot { display: flex; justify-content: center; }
+
+/* The tilt lives on the slot, driven by CSS vars the parallax sets. The float
+   animation stays on the inner wrapper, so the two never fight. */
+.hero-parallax { perspective: 700px; width: 100%; }
+.hero-parallax .hero-slot {
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.25s ease-out;
+}
+
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  width: 100%;
+}
+
+.project-block {
+  display: flex; flex-direction: column; gap: 8px;
+  background: none; border: none; padding: 0; margin: 0;
+  font: inherit; color: inherit; text-align: left; cursor: pointer;
+}
+.project-block:focus-visible,
+.exp-button:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px;
+}
+.project-name { font-size: 0.92rem; font-weight: 500; }
+.project-badge { font-size: 0.8rem; color: var(--muted); margin-top: -6px; }
+
+/* ---------- ProjectVisual: real image and placeholder share a box ---------- */
+.visual {
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  overflow: hidden;
+}
+.visual img,
+.visual video { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.visual-hero { width: 190px; height: 190px; }
+.visual-clip { width: 100%; max-width: 420px; aspect-ratio: 16 / 9; }
+/* Clips and screenshots come in whatever shape they were captured in — show
+   all of it rather than cropping into the frame. */
+.visual-clip video,
+.visual-clip img { object-fit: contain; background: var(--bg); }
+.visual-thumb { width: 100%; aspect-ratio: 1 / 1; }
+
+/* The placeholder has to read as deliberate, not broken. */
+.visual-empty {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 4px; padding: 12px; text-align: center;
+  background:
+    radial-gradient(circle at 50% 38%, var(--surface-2) 0%, var(--surface) 72%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+}
+.visual-name { font-size: 0.86rem; font-weight: 500; color: var(--text); }
+.visual-label {
+  font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--muted);
+}
+/* The thumb already has the project name printed under the block, so the
+   placeholder shows the label alone. The hero has no caption, so it keeps both. */
+.visual-thumb .visual-name { display: none; }
+.visual-hero .visual-name { font-size: 1rem; }
+
+
+/* ---------- Clickable experience rows ---------- */
+.exp-button {
+  display: flex; flex-direction: column; gap: 2px;
+  background: none; border: none; padding: 0; margin: 0;
+  font: inherit; color: inherit; text-align: left; cursor: pointer; width: 100%;
+}
+.exp-button:hover .exp-title { color: var(--accent); }
+.exp-row.is-selected { box-shadow: inset 2px 0 0 var(--accent); padding-left: 12px; }
+
+/* ---------- Tech-line highlighting ---------- */
+/* Selecting a project emphasises the tech it uses and dims the rest, so the
+   two columns visibly connect without any extra copy. */
+.tech-item { transition: color 0.25s ease, opacity 0.25s ease; }
+.tech-line.is-filtered .tech-item { opacity: 0.4; }
+.tech-line.is-filtered .tech-item.is-on {
+  opacity: 1; color: var(--text); font-weight: 500;
+}
+
+/* ---------- Detail panel ---------- */
+.panel { position: relative; max-width: 420px; margin: 0 auto; }
+.panel-close {
+  position: absolute; top: -6px; right: 0;
+  background: none; border: none; color: var(--muted);
+  font-size: 1.4rem; line-height: 1; cursor: pointer; padding: 4px 6px;
+}
+.panel-close:hover { color: var(--text); }
+.panel-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+/* The visual sits on a surface with a soft contact shadow, as if set down. */
+.panel-stage {
+  display: flex; justify-content: center;
+  padding: 24px 0 28px;
+  background: radial-gradient(ellipse 58% 18% at 50% 92%, rgb(0 0 0 / 0.16), transparent 70%);
+}
+
+.clip-steps { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.clip-step {
+  font: inherit; font-size: 0.78rem; cursor: pointer;
+  padding: 5px 11px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+  transition: color 0.18s ease, border-color 0.18s ease;
+}
+.clip-step:hover { color: var(--text); }
+.clip-step.is-on { color: var(--accent-text); background: var(--accent); border-color: var(--accent); }
+
+.panel-name { font-size: 1.35rem; margin-top: 4px; }
+.panel-badge { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+
+/* The engagement line carries the weight the badge can't. */
+.panel-engagement { font-size: 0.85rem; margin-top: 4px; }
+.engagement-role { color: var(--accent); font-weight: 500; }
+.panel-description { margin-top: 14px; max-width: 46ch; }
+
+.panel-tech {
+  list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px;
+}
+.panel-tech li {
+  font-size: 0.78rem; padding: 3px 10px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+}
+
+.panel-actions { display: flex; gap: 10px; margin-top: 22px; }
+.btn {
+  padding: 9px 18px; border-radius: 8px; text-decoration: none;
+  border: 1px solid var(--border); color: var(--text); font-size: 0.9rem;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+.btn.primary:hover { color: var(--accent-text); opacity: 0.9; }
+
+/* ---------- Staggered float ---------- */
+/* Transform only, so it stays on the compositor. Each block gets its own
+   duration and delay; nothing is ever in phase with anything else. */
+.float { display: block; }
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes drift {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-9px); }
+  }
+  .float { animation: drift 7s ease-in-out infinite; will-change: transform; }
+  .float-hero { animation-duration: 8s; }
+  .project-block:nth-child(1) .float { animation-duration: 6.4s; animation-delay: -0.8s; }
+  .project-block:nth-child(2) .float { animation-duration: 7.6s; animation-delay: -2.3s; }
+  .project-block:nth-child(3) .float { animation-duration: 6.9s; animation-delay: -4.1s; }
+  .project-block:nth-child(4) .float { animation-duration: 8.2s; animation-delay: -1.5s; }
+
+  /* Hover reads as a physical nudge, not a web-card lift. */
+  .project-block .float { transition: transform 0.2s ease; }
+  .project-block:hover .float {
+    animation-play-state: paused;
+    transform: rotate(-1.6deg) scale(1.03);
+  }
+}
+
+/* ---------- The toy bunny ---------- */
+.toy-bunny {
+  position: fixed; bottom: 20px; left: 20px; z-index: 20;
+  display: flex; align-items: flex-end; gap: 4px;
+  pointer-events: none;
+}
+.bunny-bubble {
+  pointer-events: auto;
+  position: relative; max-width: 240px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 10px 14px;
+  font-size: 0.84rem; line-height: 1.45; color: var(--text);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.12);
+}
+.bunny-bubble::after {
+  content: ""; position: absolute; right: 16px; bottom: -7px;
+  width: 12px; height: 12px; background: var(--surface);
+  border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  transform: rotate(45deg);
+}
+.bunny-button {
+  pointer-events: auto;
+  background: none; border: none; padding: 0; cursor: pointer; flex-shrink: 0;
+}
+.bunny-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 8px; }
+.bunny-svg { width: 62px; height: auto; overflow: visible; display: block; }
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes hop {
+    0%   { transform: translateY(0); }
+    30%  { transform: translateY(-16px); }
+    55%  { transform: translateY(0); }
+    75%  { transform: translateY(-7px); }
+    100% { transform: translateY(0); }
+  }
+  @keyframes earwiggle {
+    0%, 100% { transform: rotate(0deg); }
+    33%      { transform: rotate(5deg); }
+    66%      { transform: rotate(-5deg); }
+  }
+  @keyframes bubble-in {
+    from { opacity: 0; transform: translateY(5px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .bunny-svg { animation: hop 0.75s ease-out; }
+  .bunny-ears { transform-origin: 0 0; animation: earwiggle 3s ease-in-out infinite; }
+  .bunny-bubble { animation: bubble-in 0.3s ease-out; }
+}
+
+/* ---------- Responsive: one column, spec order ---------- */
+/* `display: contents` dissolves both column wrappers so every item becomes a
+   direct flex child of .page — the only way to interleave the hero and the
+   projects between the links and the education line. */
+@media (max-width: 768px) {
+  .page {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 56px 20px;
+  }
+  .col-left, .col-right { display: contents; }
+
+  .col-left header { order: 1; }
+  .summary        { order: 2; }
+  .tech-line      { order: 3; }
+  .links          { order: 4; }
+  .diorama,
+  .panel          { order: 5; margin-top: 36px; }
+  .diorama        { gap: 28px; }
+  .education      { order: 6; margin-top: 36px; }
+  .exp-heading    { order: 7; }
+  .experience     { order: 8; }
+
+  .visual-hero { width: 160px; height: 160px; }
+
+  /* The bunny shouldn't cover a phone screen. */
+  .toy-bunny { position: static; margin-top: 40px; order: 9; justify-content: center; }
+  .bunny-bubble { max-width: 260px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
