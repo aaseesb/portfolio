@@ -115,6 +115,7 @@ export const leadership = [
 export const projects = [
   {
     slug: "argm",
+    icon: "chess",
     name: "ARGM Chess Arm",
     badge: "personal project",
     blurb: "A camera watches a chessboard and plays back.",
@@ -132,6 +133,7 @@ export const projects = [
   },
   {
     slug: "books-galore",
+    icon: "book",
     name: "Books Galore",
     badge: "client work",
     engagement: {
@@ -150,6 +152,7 @@ export const projects = [
   },
   {
     slug: "shea-tree",
+    icon: "leaf",
     name: "Save the Shea Tree",
     badge: "client work",
     engagement: {
@@ -173,6 +176,7 @@ export const projects = [
   },
   {
     slug: "swipeflix",
+    icon: "film",
     name: "SwipeFlix",
     badge: "hackathon",
     blurb: "Tinder for movies, learning as you swipe.",
@@ -186,6 +190,7 @@ export const projects = [
   },
   {
     slug: "seat-alert",
+    icon: "bell",
     name: "McGill Seat Alert",
     badge: "open source",
     blurb: "Watches for a seat in a full class and tells you.",
@@ -199,6 +204,7 @@ export const projects = [
   },
   {
     slug: "tic-tac-toe-ml",
+    icon: "grid",
     name: "Tic-Tac-Toe Q-Learning",
     badge: "personal project",
     blurb: "An agent that teaches itself tic-tac-toe.",
@@ -212,10 +218,12 @@ export const projects = [
   },
 ];
 
-// The piece at the top of the right column. Left empty, it shows the drawn
+// The piece at the top of the right column. `islandCount` is how many projects
+// float above the island as blocks — the rest still appear in the grid below.
+// Reorder `projects` to change which ones get the spotlight (max 4). Left empty, it shows the drawn
 // chibi-at-a-laptop-with-the-bunny (src/components/HeroSvg.jsx). Put a path
 // here — e.g. "/images/me.jpg" — and that picture replaces the drawing.
-export const hero = { label: "Aasees", image: "" };
+export const hero = { label: "Aasees", image: "", islandCount: 4 };
 
 // What the bunny says. `idle` is the default; the rest are keyed by project slug.
 export const bunnyLines = {

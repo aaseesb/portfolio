@@ -8,17 +8,22 @@
   --border: #ded5c7;
   --accent: #a4642a;
   --accent-text: #ffffff;
-  --bunny: #e2d2b4;
-  --bunny-blaze: #fbf6ec;
-  --bunny-inner: #e3b2a2;
+  --bunny: #caa272;
+  --bunny-belly: #efe3d0;
+  --bunny-blaze: #fdfaf4;
+  --bunny-inner: #dba898;
   --bunny-eye: #2b2b2b;
   /* The hero drawing. Tweak these to match yourself — nothing else uses them. */
-  --hero-skin: #e8bd97;
-  --hero-hair: #2f2621;
+  --hero-skin: #d8a97e;
+  --hero-hair: #17120f;
   --hero-shirt: #a4642a;
   --hero-jeans: #4a5a6b;
   --hero-wood: #c89a62;
   --hero-wood-top: #ddb584;
+  --grass: #7fa65c;
+  --grass-light: #9bc273;
+  --soil: #9c7850;
+  --soil-dark: #7d5e3c;
 }
 
 :root[data-theme="dark"] {
@@ -30,16 +35,21 @@
   --border: #342c23;
   --accent: #d79a5b;
   --accent-text: #16130f;
-  --bunny: #cdb892;
-  --bunny-blaze: #f0e7d6;
+  --bunny: #b08a5d;
+  --bunny-belly: #ddcdb6;
+  --bunny-blaze: #f3ecdf;
   --bunny-inner: #b98775;
   --bunny-eye: #221e1a;
-  --hero-skin: #cfa07c;
-  --hero-hair: #221c18;
+  --hero-skin: #c0906a;
+  --hero-hair: #130f0d;
   --hero-shirt: #b6753a;
   --hero-jeans: #3b4854;
   --hero-wood: #6d5436;
   --hero-wood-top: #8a6b45;
+  --grass: #5c7f43;
+  --grass-light: #76a158;
+  --soil: #6f5436;
+  --soil-dark: #56402a;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -169,6 +179,28 @@ a:hover { color: var(--accent); }
 }
 .hero-slot { display: flex; justify-content: center; }
 
+/* ---------- The island ---------- */
+/* The stage is the positioning context for the floating blocks, which sit on
+   top of the island drawing rather than inside it. */
+.island-stage { position: relative; width: 100%; aspect-ratio: 1 / 1; }
+.island-svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+.island-block {
+  position: absolute; width: 74px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 8px 6px;
+  background: var(--surface); color: var(--accent);
+  border: 1px solid var(--border); border-radius: 10px;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.14);
+  cursor: pointer;
+}
+.island-block:hover { border-color: var(--accent); }
+.island-block:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.project-icon { width: 22px; height: 22px; display: block; }
+.island-block-name {
+  font-size: 0.62rem; line-height: 1.2; text-align: center; color: var(--muted);
+}
+
 /* The tilt lives on the slot, driven by CSS vars the parallax sets. The float
    animation stays on the inner wrapper, so the two never fight. */
 .hero-parallax { perspective: 700px; width: 100%; }
@@ -214,9 +246,6 @@ a:hover { color: var(--accent); }
 .visual-clip img { object-fit: contain; background: var(--bg); }
 .visual-thumb { width: 100%; aspect-ratio: 1 / 1; }
 
-/* A drawn visual fills its box exactly like an image would. */
-.visual-art { display: block; }
-.visual-art svg { width: 100%; height: 100%; display: block; }
 
 /* The placeholder has to read as deliberate, not broken. */
 .visual-empty {
@@ -320,6 +349,17 @@ a:hover { color: var(--accent); }
   }
   .float { animation: drift 7s ease-in-out infinite; will-change: transform; }
   .float-hero { animation-duration: 8s; }
+  @keyframes islandhop {
+    0%, 62%, 100% { transform: translateY(0); }
+    70%           { transform: translateY(-7px); }
+    78%           { transform: translateY(0); }
+    86%           { transform: translateY(-3px); }
+    92%           { transform: translateY(0); }
+  }
+  /* She sits still most of the cycle, then hops — a constant bob reads wrong. */
+  .island-bunny { animation: islandhop 5s ease-in-out infinite; }
+  .island-block { transition: transform 0.2s ease; }
+  .island-block:hover { animation-play-state: paused; transform: scale(1.06); }
   .project-block:nth-child(1) .float { animation-duration: 6.4s; animation-delay: -0.8s; }
   .project-block:nth-child(2) .float { animation-duration: 7.6s; animation-delay: -2.3s; }
   .project-block:nth-child(3) .float { animation-duration: 6.9s; animation-delay: -4.1s; }

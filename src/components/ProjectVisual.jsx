@@ -2,8 +2,8 @@
 //
 // With a `clip` it plays the demo (muted, looping, no controls) using `image`
 // as the poster. With only an `image` it renders the still. Without either it
-// renders `art` if it was given one, and otherwise a deliberate placeholder —
-// same box, same dimensions, so swapping one in never reflows anything. Never pass a hardcoded path or name here; it all
+// renders a deliberate placeholder — same box, same dimensions, so swapping one
+// in never reflows anything. Never pass a hardcoded path or name here; it all
 // comes from content.js.
 import { useEffect, useRef } from "react";
 
@@ -11,7 +11,6 @@ export default function ProjectVisual({
   name,
   image,
   clip,
-  art,
   variant = "thumb",
   label = "render pending",
 }) {
@@ -56,15 +55,6 @@ export default function ProjectVisual({
     return (
       <div className={className}>
         <img src={image} alt={`${name} visual`} loading="lazy" />
-      </div>
-    );
-  }
-
-  // Hand-drawn stand-in: a real picture in `image` always wins over it.
-  if (art) {
-    return (
-      <div className={`${className} visual-art`} role="img" aria-label={name}>
-        {art}
       </div>
     );
   }

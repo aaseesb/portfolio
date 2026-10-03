@@ -13,6 +13,10 @@ export default function BunnySvg() {
       </g>
       <circle cx="22" cy="16" r="7" fill="var(--bunny)" {...outline} />
       <ellipse cx="0" cy="10" rx="24" ry="18" fill="var(--bunny)" {...outline} />
+      {/* Cream underside and front feet, like hers. */}
+      <ellipse cx="-2" cy="20" rx="18" ry="8" fill="var(--bunny-belly)" />
+      <ellipse cx="-14" cy="25" rx="7" ry="4" fill="var(--bunny-belly)" {...outline} />
+      <ellipse cx="4" cy="26" rx="7" ry="4" fill="var(--bunny-belly)" {...outline} />
       <circle cx="0" cy="0" r="16" fill="var(--bunny)" {...outline} />
       {/* The diamond on her forehead. */}
       <path d="M0 -14 l3.5 5 l-3.5 5 l-3.5 -5 z" fill="var(--bunny-blaze)" />
