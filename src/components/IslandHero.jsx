@@ -54,17 +54,49 @@ export default function IslandHero({ projects, onSelect }) {
           </g>
         </g>
 
-        {/* The chibi, sitting on the island with a laptop. */}
+        {/* The chibi, sitting on the island with a laptop.
+            The hair is three pieces in a deliberate order: the long mass behind
+            her, then the face, then the fringe and the two strands that fall in
+            front of her shoulders. The fringe has to be drawn as a cap that
+            follows the skull's own arc — an arc-and-chord crescent leaves the
+            crown bare, which is how the first version ended up with a bald
+            spot. Nothing here is interactive; it is one drawing. */}
         <g transform="translate(82 104) scale(0.8)">
+          {/* Hair behind the head, falling past the shoulders. Wider than the
+              skull (r 16.5 against 14) so it frames the face on both sides. */}
+          <path d="M0 -34.5 a16.5 16.5 0 0 1 16.5 16.5 v19 q0 5 -4 5 h-25 q-4 0 -4 -5 v-19 A16.5 16.5 0 0 1 0 -34.5 z"
+                fill="var(--hero-hair)" {...line} />
+
           <ellipse cx="0" cy="18" rx="17" ry="6" fill="var(--hero-jeans)" {...line} />
           <path d="M-12 16 v-16 a12 12 0 0 1 24 0 v16 z" fill="var(--hero-shirt)" {...line} />
+
           <circle cx="0" cy="-18" r="14" fill="var(--hero-skin)" {...line} />
-          <path d="M-14 -18 a14 14 0 0 1 28 0 q0 -4 -3 -6 h-22 q-3 2 -3 6 z" fill="var(--hero-hair)" />
-          <path d="M-14 -20 q-4 16 -1 26 q5 -13 4 -26 z" fill="var(--hero-hair)" />
-          <path d="M14 -20 q4 16 1 26 q-5 -13 -4 -26 z" fill="var(--hero-hair)" />
-          <circle cx="-5" cy="-17" r="2" fill="var(--bunny-eye)" />
-          <circle cx="5" cy="-17" r="2" fill="var(--bunny-eye)" />
-          <path d="M-3 -12 q3 2.5 6 0" fill="none" stroke="var(--bunny-eye)" strokeWidth="1.4" strokeLinecap="round" />
+
+          {/* The fringe: over the crown along the skull's arc, then back across
+              the forehead with a part just left of centre. */}
+          <path d="M-14 -18 a14 14 0 0 1 28 0 L13 -23 C6 -19 1 -21 -3 -26 C-7 -21 -11 -20 -13 -23 z"
+                fill="var(--hero-hair)" />
+          {/* One lit strand, so the black doesn't read as a flat silhouette. */}
+          <path d="M-3 -26 C1 -22 6 -20 12 -23 l1 1 C7 -18 1 -20 -3 -24 z"
+                fill="var(--hero-hair-shine)" />
+
+          {/* Strands in front of the shoulders. */}
+          <path d="M-14 -21 q-5 15 -3 29 q4 2 7 0 q-4 -14 -2 -28 z" fill="var(--hero-hair)" {...line} />
+          <path d="M14 -21 q5 15 3 29 q-4 2 -7 0 q4 -14 2 -28 z" fill="var(--hero-hair)" {...line} />
+
+          <ellipse cx="-9" cy="-13" rx="2.6" ry="1.6" fill="var(--hero-blush)" />
+          <ellipse cx="9" cy="-13" rx="2.6" ry="1.6" fill="var(--hero-blush)" />
+
+          {/* Brows, then eyes with a glint — the glint is what makes a chibi
+              face read as looking at you rather than as two dots. */}
+          <path d="M-8 -21.5 q3 -1.5 6 -0.5" fill="none" stroke="var(--hero-hair)" strokeWidth="1.1" strokeLinecap="round" />
+          <path d="M8 -21.5 q-3 -1.5 -6 -0.5" fill="none" stroke="var(--hero-hair)" strokeWidth="1.1" strokeLinecap="round" />
+          <ellipse cx="-5" cy="-16.5" rx="2.5" ry="2.9" fill="var(--bunny-eye)" />
+          <ellipse cx="5" cy="-16.5" rx="2.5" ry="2.9" fill="var(--bunny-eye)" />
+          <circle cx="-5.9" cy="-17.6" r="0.9" fill="var(--surface)" />
+          <circle cx="4.1" cy="-17.6" r="0.9" fill="var(--surface)" />
+          <path d="M-2.5 -10.5 q2.5 2.2 5 0" fill="none" stroke="var(--bunny-eye)" strokeWidth="1.2" strokeLinecap="round" />
+
           <path d="M-10 2 h20 l3.5 13 h-27 z" fill="var(--surface)" {...line} />
           <path d="M-8 4 h16 l2.5 9.5 h-21 z" fill="var(--accent)" />
           <rect x="-16" y="14.5" width="32" height="4.5" rx="2.2" fill="var(--hero-wood-top)" {...line} />

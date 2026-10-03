@@ -16,6 +16,8 @@
   /* The hero drawing. Tweak these to match yourself — nothing else uses them. */
   --hero-skin: #d8a97e;
   --hero-hair: #17120f;
+  --hero-hair-shine: #3b2f28;
+  --hero-blush: #e79a8a;
   --hero-shirt: #a4642a;
   --hero-jeans: #4a5a6b;
   --hero-wood: #c89a62;
@@ -42,6 +44,8 @@
   --bunny-eye: #221e1a;
   --hero-skin: #c0906a;
   --hero-hair: #130f0d;
+  --hero-hair-shine: #342a24;
+  --hero-blush: #c07e71;
   --hero-shirt: #b6753a;
   --hero-jeans: #3b4854;
   --hero-wood: #6d5436;
