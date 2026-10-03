@@ -61,7 +61,8 @@ the URL so projects are linkable and the back button works.
 | `src/components/HeroParallax.jsx` | Cursor tilt on the hero piece. |
 | `src/components/ToyBunny.jsx` | The bunny and its speech bubble. |
 | `src/components/BunnySvg.jsx` | The bunny artwork. |
-| `src/components/HeroSvg.jsx` | The drawn hero piece. |
+| `src/components/IslandHero.jsx` | The hero: the drawn grass island, with a floating button per spotlighted project. |
+| `src/components/ProjectIcon.jsx` | The glyphs the floating blocks use, keyed by each project's `icon` field. |
 | `src/styles.css` | Theme colors, layout, and all the motion. |
 
 Both themes are supported; the toggle is top-right and the choice is

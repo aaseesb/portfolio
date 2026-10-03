@@ -218,12 +218,12 @@ export const projects = [
   },
 ];
 
-// The piece at the top of the right column. `islandCount` is how many projects
-// float above the island as blocks — the rest still appear in the grid below.
-// Reorder `projects` to change which ones get the spotlight (max 4). Left empty, it shows the drawn
-// chibi-at-a-laptop-with-the-bunny (src/components/HeroSvg.jsx). Put a path
-// here — e.g. "/images/me.jpg" — and that picture replaces the drawing.
-export const hero = { label: "Aasees", image: "", islandCount: 4 };
+// The piece at the top of the right column: the drawn grass island
+// (src/components/IslandHero.jsx). `islandCount` is how many projects float
+// above it as blocks — the rest still appear in the grid below. Reorder
+// `projects` to change which ones get the spotlight; four is the most that fit.
+// Which glyph a block shows comes from that project's `icon` field.
+export const hero = { islandCount: 4 };
 
 // What the bunny says. `idle` is the default; the rest are keyed by project slug.
 export const bunnyLines = {
