@@ -3,6 +3,7 @@ import { profile, education, experience, leadership, projects, hero } from "./co
 import ProjectVisual from "./components/ProjectVisual.jsx";
 import ToyBunny from "./components/ToyBunny.jsx";
 import HeroParallax from "./components/HeroParallax.jsx";
+import HeroSvg from "./components/HeroSvg.jsx";
 
 const slugFromUrl = () => new URLSearchParams(window.location.search).get("p");
 const findProject = (slug) => projects.find((p) => p.slug === slug) || null;
@@ -268,7 +269,12 @@ export default function App() {
             <HeroParallax>
               <div className="hero-slot">
                 <div className="float float-hero">
-                  <ProjectVisual name={hero.label} image={hero.image} variant="hero" />
+                  <ProjectVisual
+                    name={hero.label}
+                    image={hero.image}
+                    art={<HeroSvg />}
+                    variant="hero"
+                  />
                 </div>
               </div>
             </HeroParallax>

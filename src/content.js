@@ -212,6 +212,9 @@ export const projects = [
   },
 ];
 
+// The piece at the top of the right column. Left empty, it shows the drawn
+// chibi-at-a-laptop-with-the-bunny (src/components/HeroSvg.jsx). Put a path
+// here — e.g. "/images/me.jpg" — and that picture replaces the drawing.
 export const hero = { label: "Aasees", image: "" };
 
 // What the bunny says. `idle` is the default; the rest are keyed by project slug.
