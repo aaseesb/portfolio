@@ -1,5 +1,6 @@
 // Origin-centred so it can be dropped anywhere with a translate().
-// The outline keeps a white bunny visible against a light background.
+// Beige, with the diamond blaze on her forehead. The outline keeps her visible
+// against a light background. Her colours are the --bunny* variables.
 export default function BunnySvg() {
   const outline = { stroke: "var(--border)", strokeWidth: 1.5 };
   return (
@@ -13,6 +14,8 @@ export default function BunnySvg() {
       <circle cx="22" cy="16" r="7" fill="var(--bunny)" {...outline} />
       <ellipse cx="0" cy="10" rx="24" ry="18" fill="var(--bunny)" {...outline} />
       <circle cx="0" cy="0" r="16" fill="var(--bunny)" {...outline} />
+      {/* The diamond on her forehead. */}
+      <path d="M0 -14 l3.5 5 l-3.5 5 l-3.5 -5 z" fill="var(--bunny-blaze)" />
       <circle cx="-6" cy="-2" r="3" fill="var(--bunny-eye)" />
       <circle cx="6" cy="-2" r="3" fill="var(--bunny-eye)" />
       <path d="M0 4 l-3 3 h6 z" fill="var(--bunny-inner)" />

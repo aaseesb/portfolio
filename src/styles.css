@@ -8,7 +8,8 @@
   --border: #ded5c7;
   --accent: #a4642a;
   --accent-text: #ffffff;
-  --bunny: #fbf7f0;
+  --bunny: #e2d2b4;
+  --bunny-blaze: #fbf6ec;
   --bunny-inner: #e3b2a2;
   --bunny-eye: #2b2b2b;
   /* The hero drawing. Tweak these to match yourself — nothing else uses them. */
@@ -29,7 +30,8 @@
   --border: #342c23;
   --accent: #d79a5b;
   --accent-text: #16130f;
-  --bunny: #e8ddcb;
+  --bunny: #cdb892;
+  --bunny-blaze: #f0e7d6;
   --bunny-inner: #b98775;
   --bunny-eye: #221e1a;
   --hero-skin: #cfa07c;
@@ -333,7 +335,7 @@ a:hover { color: var(--accent); }
 
 /* ---------- The toy bunny ---------- */
 .toy-bunny {
-  position: fixed; bottom: 20px; left: 20px; z-index: 20;
+  position: fixed; bottom: 20px; right: 20px; z-index: 20;
   display: flex; align-items: flex-end; gap: 4px;
   pointer-events: none;
 }
