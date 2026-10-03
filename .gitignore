@@ -2,3 +2,9 @@ node_modules
 dist
 .DS_Store
 *.local
+
+# Local env files — never commit these. Anything a Vite build needs at
+# build time goes in Vercel's Environment Variables panel instead.
+.env
+.env.*
+!.env.example
