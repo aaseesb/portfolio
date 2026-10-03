@@ -11,9 +11,9 @@ export const profile = {
 
   // The resume gets its own button — it's the thing a recruiter is here for.
   // Put resume.pdf in public/. Leave href empty to hide the button entirely.
-  // Put resume.pdf in public/ and set this back to "/resume.pdf" — the button
-  // only renders when this is non-empty, so there's no dead link in the meantime.
-  resume: "",
+  // The web copy of the resume — no phone number, since a PDF on a public URL
+  // gets scraped. Keep the phone on the version you send to employers.
+  resume: "/resume.pdf",
 
   links: [
     { label: "GitHub", href: "https://github.com/aaseesb" },
