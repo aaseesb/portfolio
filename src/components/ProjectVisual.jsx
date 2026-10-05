@@ -31,6 +31,20 @@ export default function ProjectVisual({
   };
   useEffect(nudge, [clip, autoplay]);
 
+  // Browsers stop a muted autoplaying clip once it scrolls out of view and
+  // don't always restart it on the way back, which leaves a frozen frame where
+  // the demo should be. Nudge it again whenever it re-enters the viewport.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v || !clip || !autoplay) return;
+    const io = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) v.play().catch(() => {}); },
+      { threshold: 0.2 }
+    );
+    io.observe(v);
+    return () => io.disconnect();
+  }, [clip, autoplay]);
+
   if (clip) {
     return (
       <div className={className}>

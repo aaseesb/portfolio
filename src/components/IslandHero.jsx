@@ -1,121 +1,341 @@
-// The hero: a blocky grass island with the chibi and the bunny on it, and a
-// project block floating above each corner.
+// The hero: a blocky grass island you can turn, with the bunnies on it and a
+// project block orbiting above it.
 //
-// Two layers. The island itself is one SVG — fixed artwork, no interaction.
-// The floating blocks on top of it are real HTML buttons, so they tab, focus
-// and announce like the project grid below does; drawing them inside the SVG
-// would have cost all of that. Which projects float up here comes from
-// content.js (the first `islandCount` of them) — never hardcode a project.
+// Two layers. The island drawing is one SVG; the project blocks on top of it
+// are real HTML buttons, so they tab, focus and announce like the project grid
+// below does — drawing them inside the SVG would have cost all of that. Which
+// projects orbit up here is whatever the caller passes in, which comes from
+// content.js — never hardcode a project.
+//
+// The whole thing is a lazy Susan. Drag it and one angle, `turn`, drives
+// everything: where each prop sits on the grass, where each block sits in its
+// orbit, and which project is at the front. Let go and it snaps to the nearest
+// project. Arrow keys turn it one project per press, and focusing a block
+// brings it round, so none of this needs a pointer.
+import { useCallback, useEffect, useRef, useState } from "react";
 import BunnySvg from "./BunnySvg.jsx";
 import ProjectIcon from "./ProjectIcon.jsx";
 
-// Where each floating block sits, as a percentage of the stage. Four spots,
-// spread around the island so they read as orbiting it rather than stacked.
-const spots = [
-  { left: "6%", top: "6%" },
-  { left: "66%", top: "2%" },
-  { left: "1%", top: "44%" },
-  { left: "72%", top: "38%" },
+const TAU = Math.PI * 2;
+// The front of the turntable: the angle where a thing is nearest the viewer.
+const FRONT = Math.PI / 2;
+
+// The island's top face is a diamond centred on (100 114) spanning 72 x 22, so
+// anything standing on the grass orbits that same ellipse. `r` is how far out
+// from the middle, 0 to 1; `a` is where it starts.
+const ISLE = { cx: 100, cy: 114, rx: 72, ry: 22 };
+
+// The scenery. Depth-sorted every frame, so a bunny at the front overlaps the
+// sapling behind her instead of the other way round.
+const scenery = [
+  // She needs a radius of her own: at r 0.08 she sat almost exactly on the axis
+  // the island turns about, so she hopped in place while everything else swung
+  // round her. The small two are different colours, and only she wears the blaze.
+  { kind: "bunny", a: 0.0, r: 0.3, s: 0.5 },
+  { kind: "bunny", a: 2.3, r: 0.5, s: 0.3, fur: "var(--bunny-alt-a)", blaze: false },
+  { kind: "bunny", a: 4.4, r: 0.56, s: 0.28, fur: "var(--bunny-alt-b)", blaze: false, patch: true },
+  { kind: "sapling", a: 3.5, r: 0.74 },
+  { kind: "tuft", a: 0.8, r: 0.68 },
+  { kind: "tuft", a: 1.55, r: 0.3 },
+  { kind: "flower", a: 1.3, r: 0.6, c: "var(--flower-a)" },
+  { kind: "flower", a: 2.9, r: 0.3, c: "var(--flower-b)" },
+  { kind: "flower", a: 4.0, r: 0.66, c: "var(--flower-b)" },
+  { kind: "flower", a: 5.9, r: 0.52, c: "var(--flower-a)" },
 ];
 
-export default function IslandHero({ projects, onSelect }) {
+// The pond. One point on the grass like everything else, so it turns with the
+// island; it's drawn as a flat ellipse on the same 72:22 slope as the ground,
+// which is what the earlier stream never managed — strung between six turned
+// points it just read as a wandering line.
+const pond = { a: 5.0, r: 0.4 };
+
+// The two lighter ground tiles turn with the island too, or the grass reads as
+// sliding underneath its own scenery.
+const tiles = [
+  { a: 1.9, r: 0.34, s: 1 },
+  { a: 4.8, r: 0.42, s: 0.8 },
+];
+
+// How far a drag turns the island: about 520px of travel per full revolution.
+const DRAG_TO_RAD = 0.012;
+
+// `static` draws the island and nothing else: no floating blocks, no drag, no
+// keyboard. The one-page summary uses it as a picture, because that view is
+// meant to be read rather than played with.
+export default function IslandHero({ projects, onSelect, onFront, controls, static: isStatic }) {
   const line = { stroke: "var(--border)", strokeWidth: 1.2 };
+  const n = Math.max(projects.length, 1);
+  const step = TAU / n;
+
+  // Start with the first project facing front.
+  const [turn, setTurn] = useState(FRONT);
+  const [dragging, setDragging] = useState(false);
+  const [touched, setTouched] = useState(false);
+  const drag = useRef(null);
+
+  // Snap to whichever project is closest to the front, so the turntable never
+  // rests between two of them.
+  const snap = useCallback(
+    (from) => {
+      const i = Math.round((FRONT - from) / step);
+      setTurn(FRONT - i * step);
+    },
+    [step]
+  );
+
+  const faceProject = useCallback(
+    (i) => {
+      // Go the short way round from where we are, so bringing block 0 forward
+      // from block 3 turns one step rather than three.
+      setTurn((t) => {
+        const target = FRONT - i * step;
+        return t + ((((target - t) % TAU) + TAU * 1.5) % TAU) - Math.PI;
+      });
+    },
+    [step]
+  );
+
+  const onPointerDown = (e) => {
+    // Let a real click on a block through; only the island itself drags.
+    drag.current = { x: e.clientX, from: turn, moved: 0 };
+    setDragging(true);
+    setTouched(true);
+    // Deliberately no setPointerCapture here. Capturing from the first
+    // pointerdown retargets everything that follows at the turntable, which
+    // costs the blocks their click; a drag doesn't need it to work.
+    
+  };
+
+  const onPointerMove = (e) => {
+    if (!drag.current) return;
+    const dx = e.clientX - drag.current.x;
+    drag.current.moved = Math.max(drag.current.moved, Math.abs(dx));
+    setTurn(drag.current.from + dx * DRAG_TO_RAD);
+  };
+
+  const endDrag = () => {
+    if (!drag.current) return;
+    const { from, moved } = drag.current;
+    drag.current = null;
+    setDragging(false);
+    // A drag that went nowhere is a click; put it back where it was.
+    snap(moved < 4 ? from : turn);
+  };
+
+  const onKeyDown = (e) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    setTouched(true);
+    setTurn((t) => {
+      const next = t + (e.key === "ArrowRight" ? -step : step);
+      const i = Math.round((FRONT - next) / step);
+      return FRONT - i * step;
+    });
+  };
+
+  // Which project is facing us. Everything visual keys off this.
+  const front = ((Math.round((FRONT - turn) / step) % n) + n) % n;
+
+  // Tell whoever is wrapping us which project is up, so a panel beside the
+  // island can follow it.
+  useEffect(() => {
+    onFront?.(front);
+  }, [front, onFront]);
+
+  // And hand them the controls, so their own prev/next buttons turn this
+  // island rather than each of us keeping a separate idea of the angle.
+  useEffect(() => {
+    if (!controls) return;
+    controls.current = {
+      prev: () => setTurn((t) => t + step),
+      next: () => setTurn((t) => t - step),
+      face: faceProject,
+    };
+  }, [controls, step, faceProject]);
+
+  useEffect(() => {
+    const stop = () => endDrag();
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+    return () => {
+      window.removeEventListener("pointerup", stop);
+      window.removeEventListener("pointercancel", stop);
+    };
+  });
+
+  // Where a thing standing on the grass ends up, plus how near the front it is
+  // (-1 behind, 1 in front) for depth sorting and scale.
+  const place = ({ a, r }) => {
+    const t = a + turn;
+    return {
+      x: ISLE.cx + r * ISLE.rx * Math.cos(t),
+      y: ISLE.cy + r * ISLE.ry * Math.sin(t),
+      depth: Math.sin(t),
+    };
+  };
+
+  const placed = scenery
+    .map((item) => ({ ...item, ...place(item) }))
+    .sort((p, q) => p.y - q.y);
+
   return (
     <div className="island-stage">
-      <svg viewBox="22 58 156 156" className="island-svg" role="img" aria-label="A grass island with a bunny on it">
-        {/* Grass top, then the two visible dirt faces below it. The island is
-            drawn in isometric, so every face is a sheared diamond. */}
-        <g className="island-body">
-          <path d="M100 150 L28 114 L28 136 L100 172 z" fill="var(--soil-dark)" {...line} />
-          <path d="M100 150 L172 114 L172 136 L100 172 z" fill="var(--soil)" {...line} />
-          {/* The ragged underside, so it reads as torn out of the ground. */}
-          <path d="M28 136 L44 160 L58 142 L72 170 L86 150 L100 186 L114 150 L128 172 L142 144 L156 162 L172 136 L100 172 z"
-                fill="var(--soil-dark)" />
-          <path d="M100 114 L172 114 L100 150 L28 114 z" fill="none" />
-          <path d="M100 92 L172 114 L100 136 L28 114 z" fill="var(--grass)" {...line} />
-          {/* A couple of lighter tiles so the top doesn't read as flat. */}
-          <path d="M100 100 L124 107 L100 114 L76 107 z" fill="var(--grass-light)" />
-          <path d="M64 114 L88 121 L64 128 L40 121 z" fill="var(--grass-light)" />
-        </g>
-
-        {/* A tuft and a sapling, for scale. */}
-        <path d="M150 112 l0 -8 M147 112 l-2 -6 M153 112 l2 -6" stroke="var(--grass-light)" strokeWidth="2" fill="none" strokeLinecap="round" />
-        <g>
-          <rect x="43" y="98" width="3" height="12" fill="var(--hero-wood)" />
-          <circle cx="44.5" cy="96" r="7" fill="var(--grass-light)" {...line} />
-        </g>
-
-        {/* The bunny, hopping. Same artwork as the one in the corner. */}
-        {/* The hop is a CSS animation on the outer group — a CSS transform would
-            otherwise overwrite the transform attribute that places her. */}
-        <g className="island-bunny">
-          <g transform="translate(130 110) scale(0.42)">
-            <BunnySvg />
+      <div
+        className={`island-turntable${dragging ? " is-dragging" : ""}${isStatic ? " is-static" : ""}`}
+        onPointerDown={isStatic ? undefined : onPointerDown}
+        onPointerMove={isStatic ? undefined : onPointerMove}
+        onKeyDown={isStatic ? undefined : onKeyDown}
+        role={isStatic ? undefined : "group"}
+        aria-hidden={isStatic || undefined}
+        aria-label={
+          isStatic
+            ? undefined
+            : "The island. Drag it, or use the left and right arrow keys, to turn it and bring each project to the front."
+        }
+      >
+        <svg viewBox="26 62 148 114" className="island-svg" aria-hidden="true">
+          {/* One diamond, one depth. The top face is the diamond centred on
+              (100 114) with a 72x22 half-span; both side faces hang 22 straight
+              down from its lower edges, so every piece meets on the same two
+              lines. Getting those two numbers out of step is what left a wedge
+              of background showing between the grass and the soil. */}
+          <g className="island-body">
+            <path d="M28 114 L100 136 L100 158 L28 136 z" fill="var(--soil-dark)" {...line} />
+            <path d="M172 114 L100 136 L100 158 L172 136 z" fill="var(--soil)" {...line} />
+            {/* The ragged underside, so it reads as torn out of the ground. The
+                teeth hang off the same V the two faces end on. */}
+            <path d="M28 136 L37 152 L46 141.5 L55 158 L64 147 L73 164 L82 153 L91 170 L100 158
+                     L109 170 L118 153 L127 164 L136 147 L145 158 L154 141.5 L163 152 L172 136 L100 158 z"
+                  fill="var(--soil-dark)" />
+            <path d="M100 92 L172 114 L100 136 L28 114 z" fill="var(--grass)" {...line} />
           </g>
-        </g>
 
-        {/* The chibi, sitting on the island with a laptop.
-            The hair is three pieces in a deliberate order: the long mass behind
-            her, then the face, then the fringe and the two strands that fall in
-            front of her shoulders. The fringe has to be drawn as a cap that
-            follows the skull's own arc — an arc-and-chord crescent leaves the
-            crown bare, which is how the first version ended up with a bald
-            spot. Nothing here is interactive; it is one drawing. */}
-        <g transform="translate(82 104) scale(0.8)">
-          {/* Hair behind the head, falling past the shoulders. Wider than the
-              skull (r 16.5 against 14) so it frames the face on both sides. */}
-          <path d="M0 -34.5 a16.5 16.5 0 0 1 16.5 16.5 v19 q0 5 -4 5 h-25 q-4 0 -4 -5 v-19 A16.5 16.5 0 0 1 0 -34.5 z"
-                fill="var(--hero-hair)" {...line} />
+          {/* Lighter patches of ground. Same 72:22 slope as the face, or they
+              look pasted on rather than lying flat. */}
+          {tiles.map((tile, i) => {
+            const { x, y } = place(tile);
+            return (
+              <path
+                key={i}
+                transform={`translate(${x} ${y}) scale(${tile.s})`}
+                d="M0 -7.3 L24 0 L0 7.3 L-24 0 z"
+                fill="var(--grass-light)"
+              />
+            );
+          })}
 
-          <ellipse cx="0" cy="18" rx="17" ry="6" fill="var(--hero-jeans)" {...line} />
-          <path d="M-12 16 v-16 a12 12 0 0 1 24 0 v16 z" fill="var(--hero-shirt)" {...line} />
+          {/* The pond, lying flat in the grass with a pale rim where the
+              water meets the bank and a highlight across the top of it. */}
+          {(() => {
+            const { x, y } = place(pond);
+            return (
+              <g className="island-pond" transform={`translate(${x} ${y})`}>
+                <ellipse rx="21" ry="6.4" fill="var(--pond-rim)" />
+                <ellipse rx="18" ry="5" fill="var(--pond)" />
+                <ellipse cx="-4" cy="-1.4" rx="7" ry="1.5" fill="var(--pond-light)" opacity="0.8" />
+              </g>
+            );
+          })()}
 
-          <circle cx="0" cy="-18" r="14" fill="var(--hero-skin)" {...line} />
+          {placed.map((item, i) => {
+            // Things further forward are nearer, so a little larger.
+            const k = 1 + 0.1 * item.depth;
+            const at = `translate(${item.x} ${item.y})`;
+            if (item.kind === "bunny") {
+              return (
+                // The hop is a CSS animation on the outer group — a CSS
+                // transform would otherwise overwrite the transform attribute
+                // that places her. They hop off the beat from one another so
+                // the three don't move in lockstep.
+                <g key={i} className="island-bunny" style={{ animationDelay: `${item.a * 0.7}s` }}>
+                  <g transform={`${at} scale(${item.s * k})`}>
+                    <BunnySvg fur={item.fur} blaze={item.blaze} patch={item.patch} />
+                  </g>
+                </g>
+              );
+            }
+            if (item.kind === "sapling") {
+              return (
+                <g key={i} transform={`${at} scale(${k})`}>
+                  <rect x="-1.5" y="-12" width="3" height="12" fill="var(--hero-wood)" />
+                  <circle cx="0" cy="-14" r="7" fill="var(--grass-light)" {...line} />
+                </g>
+              );
+            }
+            if (item.kind === "tuft") {
+              return (
+                <path
+                  key={i}
+                  transform={`${at} scale(${k})`}
+                  d="M0 0 l0 -8 M-3 0 l-2 -6 M3 0 l2 -6"
+                  stroke="var(--grass-light)" strokeWidth="2" fill="none" strokeLinecap="round"
+                />
+              );
+            }
+            // A flower: a stem and four petals round a centre. No outline — at
+            // this size a 1.2 stroke would swallow the petal it edges.
+            return (
+              <g key={i} transform={`${at} scale(${k})`}>
+                <path d="M0 0 v-5" stroke="var(--grass-light)" strokeWidth="1.2" strokeLinecap="round" fill="none" />
+                <circle cx="0" cy="-7" r="1.7" fill={item.c} />
+                <circle cx="-2.4" cy="-5.6" r="1.7" fill={item.c} />
+                <circle cx="2.4" cy="-5.6" r="1.7" fill={item.c} />
+                <circle cx="0" cy="-4.2" r="1.7" fill={item.c} />
+                <circle cx="0" cy="-5.6" r="1.1" fill="var(--grass-light)" />
+              </g>
+            );
+          })}
+        </svg>
 
-          {/* The fringe: over the crown along the skull's arc, then back across
-              the forehead with a part just left of centre. */}
-          <path d="M-14 -18 a14 14 0 0 1 28 0 L13 -23 C6 -19 1 -21 -3 -26 C-7 -21 -11 -20 -13 -23 z"
-                fill="var(--hero-hair)" />
-          {/* One lit strand, so the black doesn't read as a flat silhouette. */}
-          <path d="M-3 -26 C1 -22 6 -20 12 -23 l1 1 C7 -18 1 -20 -3 -24 z"
-                fill="var(--hero-hair-shine)" />
+        {/* The blocks orbit a wider ellipse than the island itself, in percent
+            of the stage, so they read as circling it. */}
+        {!isStatic && projects.map((p, i) => {
+          const t = i * step + turn;
+          const depth = Math.sin(t);
+          const isFront = i === front;
+          return (
+            <div
+              key={p.slug}
+              className="island-orbit"
+              style={{
+                left: `${50 + 48 * Math.cos(t)}%`,
+                top: `${40 + 34 * depth}%`,
+                transform: `translate(-50%, -50%) scale(${0.76 + 0.26 * ((depth + 1) / 2)})`,
+                opacity: 0.5 + 0.5 * ((depth + 1) / 2),
+                zIndex: 10 + Math.round(depth * 10),
+              }}
+            >
+              <button
+                className={`island-block float${isFront ? " is-front" : ""}`}
+                style={{ animationDelay: `${i * 0.6}s` }}
+                onClick={() => {
+                  // Turning it is not selecting it; a drag must not open a
+                  // project just because it ended over one.
+                  if (drag.current && drag.current.moved >= 4) return;
+                  if (!isFront) faceProject(i);
+                  else onSelect(p.slug);
+                }}
+                onFocus={() => faceProject(i)}
+                aria-label={
+                  isFront
+                    ? `View the ${p.name} project`
+                    : `Turn the island to ${p.name}`
+                }
+              >
+                <ProjectIcon name={p.icon} />
+                <span className="island-block-name">{p.name}</span>
+              </button>
+            </div>
+          );
+        })}
+      </div>
 
-          {/* Strands in front of the shoulders. */}
-          <path d="M-14 -21 q-5 15 -3 29 q4 2 7 0 q-4 -14 -2 -28 z" fill="var(--hero-hair)" {...line} />
-          <path d="M14 -21 q5 15 3 29 q-4 2 -7 0 q4 -14 2 -28 z" fill="var(--hero-hair)" {...line} />
-
-          <ellipse cx="-9" cy="-13" rx="2.6" ry="1.6" fill="var(--hero-blush)" />
-          <ellipse cx="9" cy="-13" rx="2.6" ry="1.6" fill="var(--hero-blush)" />
-
-          {/* Brows, then eyes with a glint — the glint is what makes a chibi
-              face read as looking at you rather than as two dots. */}
-          <path d="M-8 -21.5 q3 -1.5 6 -0.5" fill="none" stroke="var(--hero-hair)" strokeWidth="1.1" strokeLinecap="round" />
-          <path d="M8 -21.5 q-3 -1.5 -6 -0.5" fill="none" stroke="var(--hero-hair)" strokeWidth="1.1" strokeLinecap="round" />
-          <ellipse cx="-5" cy="-16.5" rx="2.5" ry="2.9" fill="var(--bunny-eye)" />
-          <ellipse cx="5" cy="-16.5" rx="2.5" ry="2.9" fill="var(--bunny-eye)" />
-          <circle cx="-5.9" cy="-17.6" r="0.9" fill="var(--surface)" />
-          <circle cx="4.1" cy="-17.6" r="0.9" fill="var(--surface)" />
-          <path d="M-2.5 -10.5 q2.5 2.2 5 0" fill="none" stroke="var(--bunny-eye)" strokeWidth="1.2" strokeLinecap="round" />
-
-          <path d="M-10 2 h20 l3.5 13 h-27 z" fill="var(--surface)" {...line} />
-          <path d="M-8 4 h16 l2.5 9.5 h-21 z" fill="var(--accent)" />
-          <rect x="-16" y="14.5" width="32" height="4.5" rx="2.2" fill="var(--hero-wood-top)" {...line} />
-        </g>
-      </svg>
-
-      {/* One floating block per project, in the same order as content.js. */}
-      {projects.map((p, i) => (
-        <button
-          key={p.slug}
-          className="island-block float"
-          style={{ ...spots[i], animationDelay: `${i * 0.6}s` }}
-          onClick={() => onSelect(p.slug)}
-          aria-label={`View the ${p.name} project`}
-        >
-          <ProjectIcon name={p.icon} />
-          <span className="island-block-name">{p.name}</span>
-        </button>
-      ))}
+      {/* The hint retires once they've worked out that it turns. */}
+      {!isStatic && (
+        <p className={`island-hint${touched ? " is-done" : ""}`} aria-hidden="true">
+          ‹ drag to turn ›
+        </p>
+      )}
     </div>
   );
 }
