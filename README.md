@@ -48,21 +48,29 @@ shouldn't need to touch any other file to keep the site up to date.
 
 ## How it works
 
-The whole page runs on one piece of state: which project is selected. Selecting
-one swaps the right column for a detail panel, lights up that project's
-technologies in the tech line, changes the bunny's line, and puts `?p=<slug>` in
-the URL so projects are linkable and the back button works.
+There are two views onto the same content. The main page is the long scrolling
+one: an intro, the island with a project window beside it, a rail of project
+cards, and a timeline of experience. The toggle in the corner switches to the
+one-page summary — everything at once, in two columns, the way a recruiter
+skimming for thirty seconds wants it.
+
+Both views run on one piece of state: which project is selected. It drives the
+island, the detail panel, the bunny's line, and `?p=<slug>` in the URL, so
+projects are linkable and the back button works. `?view=summary` links the
+summary view.
 
 | File | Purpose |
 | --- | --- |
 | `src/content.js` | All your content. Edit this. |
-| `src/App.jsx` | Layout, selection state, URL sync. |
-| `src/components/ProjectVisual.jsx` | One visual box — real image or placeholder. |
-| `src/components/HeroParallax.jsx` | Cursor tilt on the hero piece. |
+| `src/App.jsx` | The two views, selection state, URL sync. |
+| `src/components/LandingPage.jsx` | The main page: intro, island + project window, card rail, timeline. |
+| `src/components/OnePage.jsx` | The one-page summary: two columns, everything at once. |
+| `src/components/IslandHero.jsx` | The grass island you can drag to turn, with a floating button per project. |
+| `src/components/ProjectVisual.jsx` | One visual box — demo clip, still image, or placeholder. |
+| `src/components/ProjectIcon.jsx` | The glyphs the floating blocks use, keyed by each project's `icon` field. |
+| `src/components/Reveal.jsx` | Fades a block in the first time you scroll to it. |
 | `src/components/ToyBunny.jsx` | The bunny and its speech bubble. |
 | `src/components/BunnySvg.jsx` | The bunny artwork. |
-| `src/components/IslandHero.jsx` | The hero: the drawn grass island, with a floating button per spotlighted project. |
-| `src/components/ProjectIcon.jsx` | The glyphs the floating blocks use, keyed by each project's `icon` field. |
 | `src/styles.css` | Theme colors, layout, and all the motion. |
 
 Both themes are supported; the toggle is top-right and the choice is
