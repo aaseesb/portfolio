@@ -730,8 +730,13 @@ a:hover { color: var(--accent); }
    buttons do not move as you turn the island. */
 .lp-card-foot {
   margin-top: auto; padding-top: 22px;
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; justify-content: space-between;
   gap: 16px; flex-wrap: wrap;
+  /* Bottom-aligned, not centre-aligned. The row sits on the floor of the
+     window, so aligning to its bottom edge is what actually holds the arrows
+     still: centring them left them riding a few pixels up and down with the
+     height of whatever buttons the project happens to have. */
+  align-items: flex-end;
 }
 .lp-card-foot .panel-actions { margin-top: 0; }
 .lp-window-nav {
