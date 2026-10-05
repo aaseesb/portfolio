@@ -95,7 +95,11 @@ export default function IslandHero({ projects, onSelect, onFront, controls, stat
     [step]
   );
 
+  // How far the last gesture travelled, read by the blocks' click handler.
+  const lastDrag = useRef(0);
+
   const onPointerDown = (e) => {
+    lastDrag.current = 0;
     // Let a real click on a block through; only the island itself drags.
     drag.current = { x: e.clientX, from: turn, moved: 0 };
     setDragging(true);
@@ -117,6 +121,10 @@ export default function IslandHero({ projects, onSelect, onFront, controls, stat
     if (!drag.current) return;
     const { from, moved } = drag.current;
     drag.current = null;
+    // pointerup runs before click, so by the time a block's onClick asks
+    // "was this a drag?" drag.current is already gone. Keep the distance
+    // here instead, or a drag that happens to end over a tile opens it.
+    lastDrag.current = moved;
     setDragging(false);
     // A drag that went nowhere is a click; put it back where it was.
     snap(moved < 4 ? from : turn);
@@ -311,7 +319,7 @@ export default function IslandHero({ projects, onSelect, onFront, controls, stat
                 onClick={() => {
                   // Turning it is not selecting it; a drag must not open a
                   // project just because it ended over one.
-                  if (drag.current && drag.current.moved >= 4) return;
+                  if (lastDrag.current >= 4) return;
                   if (!isFront) faceProject(i);
                   else onSelect(p.slug);
                 }}

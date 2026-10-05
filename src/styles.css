@@ -674,18 +674,25 @@ a:hover { color: var(--accent); }
 .lp-arrow:hover { border-color: var(--accent); }
 .lp-arrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .lp-counter { color: var(--muted); font-size: 0.78rem; letter-spacing: 0.08em; }
-/* Only where the panel is stacked under the island: side by side there is
-   nothing below it to scroll to, so the button would be noise. */
 /* Visible at every width. It started out as a stacked-only control, but a
    fold is just as useful beside the island — the description is the tallest
-   thing in the section either way. */
+   thing in the section either way. It is drawn in the accent rather than the
+   muted grey it started as: a grey pill in the far corner of a wide screen
+   is a control nobody finds. */
 .lp-fold {
-  display: block; margin-left: auto;
-  font: inherit; font-size: 0.8rem; color: var(--muted);
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 999px; padding: 5px 12px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 7px; margin-left: auto;
+  font: inherit; font-size: 0.82rem; font-weight: 600;
+  color: var(--accent); background: var(--surface);
+  border: 1px solid var(--accent); border-radius: 999px;
+  padding: 6px 14px; cursor: pointer;
 }
-.lp-fold:hover { border-color: var(--accent); color: var(--text); }
+/* Points down to the text it hides, and up once it is away. */
+.lp-fold::after {
+  content: "\25B4"; font-size: 0.72rem; line-height: 1;
+  transition: transform 0.2s ease;
+}
+.lp-window.is-folded .lp-fold::after { transform: rotate(180deg); }
+.lp-fold:hover { background: var(--accent); color: var(--accent-text); }
 .lp-fold:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .lp-window.is-folded .lp-card { display: none; }
 .lp-window.is-folded .lp-window-nav { margin-bottom: 0; }
