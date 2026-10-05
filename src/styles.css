@@ -291,15 +291,6 @@ a:hover { color: var(--accent); }
 /* The summary's island is a drawing, not a control. */
 .island-turntable.is-static { cursor: default; }
 
-/* One wrapper per block, carrying its place in the orbit. The block's own
-   float animation sits inside it, so the drift and the orbit never fight over
-   the same transform. */
-.island-orbit {
-  position: absolute;
-  transition: left 0.3s ease, top 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
-}
-.island-turntable.is-dragging .island-orbit { transition: none; }
-
 .island-hint {
   position: absolute; left: 0; right: 0; bottom: -6px;
   text-align: center; font-size: 0.68rem; letter-spacing: 0.08em;
@@ -309,26 +300,7 @@ a:hover { color: var(--accent); }
 }
 .island-hint.is-done { opacity: 0; }
 
-.island-block {
-  width: 74px;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 8px 6px;
-  background: var(--surface); color: var(--accent);
-  border: 1px solid var(--border); border-radius: 10px;
-  box-shadow: 0 6px 16px rgb(0 0 0 / 0.14);
-  cursor: pointer;
-}
-.island-block:hover { border-color: var(--accent); }
-/* The one facing front is the one a click opens, so it has to look different
-   from the three that a click merely turns towards. */
-.island-block.is-front { border-color: var(--accent); box-shadow: 0 8px 20px rgb(0 0 0 / 0.2); }
-.island-block.is-front .island-block-name { color: var(--accent); }
-.island-block:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .project-icon { width: 22px; height: 22px; display: block; }
-.island-block-name {
-  font-size: 0.62rem; line-height: 1.2; text-align: center; color: var(--muted);
-}
-
 .project-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -515,8 +487,6 @@ a:hover { color: var(--accent); }
   }
   /* She sits still most of the cycle, then hops — a constant bob reads wrong. */
   .island-bunny { animation: islandhop 5s ease-in-out infinite; }
-  .island-block { transition: transform 0.2s ease; }
-  .island-block:hover { animation-play-state: paused; transform: scale(1.06); }
   .project-block:nth-child(1) .float { animation-duration: 6.4s; animation-delay: -0.8s; }
   .project-block:nth-child(2) .float { animation-duration: 7.6s; animation-delay: -2.3s; }
   .project-block:nth-child(3) .float { animation-duration: 6.9s; animation-delay: -4.1s; }
@@ -654,14 +624,6 @@ a:hover { color: var(--accent); }
 .lp-stage-left { min-width: 0; }
 .lp-island { width: 100%; }
 .lp-window { min-height: 800px; }
-/* Clicking the block already at the front flashes the panel, so the click is
-   acknowledged even on a wide screen where nothing needs to scroll. */
-.lp-window.is-pulsing .lp-card-stage {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
-}
-.lp-window .lp-card-stage { transition: border-color 0.25s ease, box-shadow 0.25s ease; }
-
 .lp-window-nav {
   display: flex; align-items: center; gap: 14px; margin-bottom: 16px;
 }
@@ -691,15 +653,27 @@ a:hover { color: var(--accent); }
   content: "\25B4"; font-size: 0.72rem; line-height: 1;
   transition: transform 0.2s ease;
 }
-.lp-window.is-folded .lp-fold::after { transform: rotate(180deg); }
+.lp-window.is-compact .lp-fold::after { transform: rotate(180deg); }
 .lp-fold:hover { background: var(--accent); color: var(--accent-text); }
 .lp-fold:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.lp-window.is-folded .lp-card { display: none; }
-.lp-window.is-folded .lp-window-nav { margin-bottom: 0; }
+/* Compact, not hidden. The card keeps its picture, its name, its tags and
+   its links — enough to know what the project is — and loses the paragraph,
+   which is the only part long enough to be in the way. Everything that stays
+   is drawn down a size so the whole card shrinks rather than just losing a
+   block out of its middle. */
+.lp-window.is-compact .lp-card-text { display: none; }
+.lp-window.is-compact .lp-card-stage { margin-bottom: 12px; }
+.lp-window.is-compact .lp-card-stage .visual { aspect-ratio: 16 / 7; }
+.lp-window.is-compact .lp-card-name { font-size: 1.1rem; }
+.lp-window.is-compact .panel-tech { gap: 5px; margin-top: 10px; }
+.lp-window.is-compact .panel-tech li { font-size: 0.66rem; padding: 2px 7px; }
+.lp-window.is-compact .clip-steps { display: none; }
+.lp-window.is-compact .panel-actions { margin-top: 12px; }
+.lp-window.is-compact .panel-actions .btn { font-size: 0.78rem; padding: 7px 14px; }
 /* The window holds a tall floor so the island does not jump as you turn
-   between projects of different lengths. Folded, that floor is the one thing
+   between projects of different lengths. Compact, that floor is the one thing
    you were trying to get rid of. */
-.lp-window.is-folded { min-height: 0; }
+.lp-window.is-compact { min-height: 0; }
 
 .lp-card { min-width: 0; }
 .lp-card-stage {

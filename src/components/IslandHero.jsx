@@ -59,10 +59,15 @@ const tiles = [
 // How far a drag turns the island: about 520px of travel per full revolution.
 const DRAG_TO_RAD = 0.012;
 
-// `static` draws the island and nothing else: no floating blocks, no drag, no
-// keyboard. The one-page summary uses it as a picture, because that view is
-// meant to be read rather than played with.
-export default function IslandHero({ projects, onSelect, onFront, controls, static: isStatic }) {
+// `static` draws the island and nothing else: no drag, no keyboard. The
+// one-page summary uses it as a picture, because that view is meant to be
+// read rather than played with.
+//
+// There used to be a ring of floating project tiles orbiting the island, a
+// third way to pick a project alongside the rail and the arrows. Three
+// controls for one job, and the one hardest to hit — small, moving, and
+// half of them behind the island — so it is the one that went.
+export default function IslandHero({ projects, onFront, controls, static: isStatic }) {
   const line = { stroke: "var(--border)", strokeWidth: 1.2 };
   const n = Math.max(projects.length, 1);
   const step = TAU / n;
@@ -95,11 +100,7 @@ export default function IslandHero({ projects, onSelect, onFront, controls, stat
     [step]
   );
 
-  // How far the last gesture travelled, read by the blocks' click handler.
-  const lastDrag = useRef(0);
-
   const onPointerDown = (e) => {
-    lastDrag.current = 0;
     // Let a real click on a block through; only the island itself drags.
     drag.current = { x: e.clientX, from: turn, moved: 0 };
     setDragging(true);
@@ -121,10 +122,6 @@ export default function IslandHero({ projects, onSelect, onFront, controls, stat
     if (!drag.current) return;
     const { from, moved } = drag.current;
     drag.current = null;
-    // pointerup runs before click, so by the time a block's onClick asks
-    // "was this a drag?" drag.current is already gone. Keep the distance
-    // here instead, or a drag that happens to end over a tile opens it.
-    lastDrag.current = moved;
     setDragging(false);
     // A drag that went nowhere is a click; put it back where it was.
     snap(moved < 4 ? from : turn);
@@ -295,47 +292,6 @@ export default function IslandHero({ projects, onSelect, onFront, controls, stat
           })}
         </svg>
 
-        {/* The blocks orbit a wider ellipse than the island itself, in percent
-            of the stage, so they read as circling it. */}
-        {!isStatic && projects.map((p, i) => {
-          const t = i * step + turn;
-          const depth = Math.sin(t);
-          const isFront = i === front;
-          return (
-            <div
-              key={p.slug}
-              className="island-orbit"
-              style={{
-                left: `${50 + 48 * Math.cos(t)}%`,
-                top: `${40 + 34 * depth}%`,
-                transform: `translate(-50%, -50%) scale(${0.76 + 0.26 * ((depth + 1) / 2)})`,
-                opacity: 0.5 + 0.5 * ((depth + 1) / 2),
-                zIndex: 10 + Math.round(depth * 10),
-              }}
-            >
-              <button
-                className={`island-block float${isFront ? " is-front" : ""}`}
-                style={{ animationDelay: `${i * 0.6}s` }}
-                onClick={() => {
-                  // Turning it is not selecting it; a drag must not open a
-                  // project just because it ended over one.
-                  if (lastDrag.current >= 4) return;
-                  if (!isFront) faceProject(i);
-                  else onSelect(p.slug);
-                }}
-                onFocus={() => faceProject(i)}
-                aria-label={
-                  isFront
-                    ? `View the ${p.name} project`
-                    : `Turn the island to ${p.name}`
-                }
-              >
-                <ProjectIcon name={p.icon} />
-                <span className="island-block-name">{p.name}</span>
-              </button>
-            </div>
-          );
-        })}
       </div>
 
       {/* The hint retires once they've worked out that it turns. */}

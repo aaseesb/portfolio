@@ -56,10 +56,10 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
   const island = useRef(null);
   const railRef = useRef(null);
   const windowRef = useRef(null);
-  const [pulse, setPulse] = useState(false);
-  // Stacked on a narrow screen, the description is a screenful of text sitting
-  // between the island and the rest of the page. Folding it away is the quick
-  // way past it. Only stacked — side by side there is nothing to scroll past.
+  // Collapsed, the card keeps everything that identifies the project —
+  // picture, name, tags, links — and drops only the paragraph, with the rest
+  // drawn smaller. Hiding the whole panel was no better than scrolling past
+  // it; this leaves something to scan on the way down.
   const [openCard, setOpenCard] = useState(true);
 
   const project = projects[front] || projects[0];
@@ -155,21 +155,6 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
             <div className="lp-island">
               <IslandHero
                 projects={projects}
-                // Clicking the block already facing us means "tell me about this
-                // one". Its description is already in the panel, so say so: bring
-                // the panel into view (it's below the island on a narrow screen)
-                // and flash it, or the click looks like it did nothing at all.
-                onSelect={() => {
-                  // Only scroll if the panel isn't already on screen — it's
-                  // taller than the viewport, so an unconditional scrollIntoView
-                  // aligns its bottom edge and throws you past the whole section.
-                  const top = windowRef.current?.getBoundingClientRect().top ?? 0;
-                  if (top < 0 || top > window.innerHeight - 120) {
-                    windowRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }
-                  setPulse(true);
-                  setTimeout(() => setPulse(false), 700);
-                }}
                 onFront={handleFront}
                 controls={island}
               />
@@ -197,7 +182,7 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
           {/* The window beside it. Swapping `key` on the card restarts its
               entrance animation, so turning the island reads as a change of
               page rather than text quietly rewriting itself. */}
-          <div className={`lp-window${pulse ? " is-pulsing" : ""}${openCard ? "" : " is-folded"}`} ref={windowRef}>
+          <div className={`lp-window${openCard ? "" : " is-compact"}`} ref={windowRef}>
             <div className="lp-window-nav">
               <button
                 className="lp-arrow"
@@ -220,9 +205,9 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
                 className="lp-fold"
                 onClick={() => setOpenCard((v) => !v)}
                 aria-expanded={openCard}
-                aria-controls="lp-card"
+                aria-controls="lp-card-text"
               >
-                {openCard ? "Hide details" : "Show details"}
+                {openCard ? "Collapse" : "Expand"}
               </button>
             </div>
 
@@ -267,7 +252,7 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
                 project.badge && <p className="lp-card-meta muted">{project.badge}</p>
               )}
 
-              <p className="lp-card-text">{project.description}</p>
+              <p className="lp-card-text" id="lp-card-text">{project.description}</p>
 
               <ul className="panel-tech">
                 {project.tech.map((t) => <li key={t}>{t}</li>)}
