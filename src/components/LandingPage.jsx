@@ -9,7 +9,7 @@
 //
 // Every word here comes from content.js. The other view (OnePage.jsx) is the
 // same content with none of the theatre.
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { profile, education, experience, leadership, projects } from "../content.js";
 import IslandHero from "./IslandHero.jsx";
 import ProjectVisual from "./ProjectVisual.jsx";
@@ -55,9 +55,10 @@ const entryRow = (e, i) => (
   </Reveal>
 );
 
-// How much of a description survives a collapsed card: enough for the first
-// sentence of most of them, so the cut reads as a summary and not a glitch.
-const SUMMARY_CHARS = 180;
+// A description is only worth folding if it runs long enough to take over the
+// card. Eight lines is about where a paragraph stops reading as a paragraph;
+// under that the whole thing shows and there is no control at all.
+const MAX_LINES = 8;
 
 export default function LandingPage({ selectedSlug, onFrontChange }) {
   const [front, setFront] = useState(0);
@@ -65,6 +66,7 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
   const island = useRef(null);
   const railRef = useRef(null);
   const windowRef = useRef(null);
+  const textRef = useRef(null);
   // Starts collapsed. The description is the only thing that collapses — the
   // picture, the demo steps, the name, the tags and the links are all drawn at
   // full size either way. Shrinking those too made the card look like a
@@ -108,16 +110,67 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
   // asked for the long version once, you probably want it for the next one.
   const handleFront = useCallback((i) => setFront(i), []);
 
-  // The collapsed description: cut at the last word inside the budget rather
-  // than mid-word, and only if there is enough left over to be worth hiding —
-  // a two-word ellipsis is worse than the whole sentence.
-  const summary = (() => {
+  // The collapsed description, or null when the full text already fits inside
+  // the line budget — then nothing is cut and no control is drawn.
+  //
+  // Measured, not counted in characters. A character budget cuts the same words
+  // whatever the paragraph is doing, so the same 180 characters is three lines
+  // in a wide window and seven in a narrow one: descriptions that were never
+  // too long got folded, and long ones got folded too hard.
+  const [summary, setSummary] = useState(null);
+
+  useLayoutEffect(() => {
+    const el = textRef.current;
     const full = project?.description || "";
-    if (full.length <= SUMMARY_CHARS + 24) return full;
-    const cut = full.slice(0, SUMMARY_CHARS);
-    const stop = cut.lastIndexOf(" ");
-    return `${(stop > 0 ? cut.slice(0, stop) : cut).replace(/[,;:.\s]+$/, "")}…`;
-  })();
+    if (!el) return;
+
+    const measure = () => {
+      const cs = getComputedStyle(el);
+      const line = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.6;
+      const budget = line * MAX_LINES + 1;
+
+      // A hidden twin of the paragraph. The text has to be tried at a few
+      // lengths to find the cut, and doing that in the real one would flicker
+      // every attempt onto the screen.
+      const probe = document.createElement("p");
+      probe.className = el.className;
+      probe.setAttribute(
+        "style",
+        "position:absolute;visibility:hidden;pointer-events:none;height:auto;" +
+          `width:${el.clientWidth}px;max-width:none;`
+      );
+      el.parentNode.appendChild(probe);
+      const fits = (t) => {
+        probe.textContent = t;
+        return probe.scrollHeight <= budget;
+      };
+
+      let cut = null;
+      if (!fits(full)) {
+        // The longest prefix that still leaves the ellipsis and the control
+        // room on the last line, then backed up to the nearest word.
+        const tail = "… Read more";
+        let lo = 0;
+        let hi = full.length;
+        while (lo < hi) {
+          const mid = Math.ceil((lo + hi) / 2);
+          if (fits(full.slice(0, mid) + tail)) lo = mid;
+          else hi = mid - 1;
+        }
+        const head = full.slice(0, lo);
+        const stop = head.lastIndexOf(" ");
+        cut = `${(stop > 0 ? head.slice(0, stop) : head).replace(/[,;:.\s]+$/, "")}…`;
+      }
+      probe.remove();
+      setSummary(cut);
+    };
+
+    // Run before paint, so a long description is never briefly drawn in full.
+    measure();
+    // The budget is a number of lines, so it moves with the column width.
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [project]);
 
   // A project carries either one `clip` or a list of them; normalise so the
   // panel only has one case to render.
@@ -269,9 +322,9 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
                   the ellipsis has just told you there is more. It used to be a
                   pill up in the nav row, which is a long way from the text it
                   acts on and easy to miss entirely. */}
-              <p className="lp-card-text" id="lp-card-text">
-                {openCard ? project.description : summary}
-                {summary !== project.description && (
+              <p className="lp-card-text" id="lp-card-text" ref={textRef}>
+                {openCard || !summary ? project.description : summary}
+                {summary && (
                   <button
                     className="lp-more"
                     onClick={() => setOpenCard((v) => !v)}
