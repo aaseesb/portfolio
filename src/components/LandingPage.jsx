@@ -68,7 +68,7 @@ const entryRow = (e, i, setFront) => (
 // A description is only worth folding if it runs long enough to take over the
 // card. Eight lines is about where a paragraph stops reading as a paragraph;
 // under that the whole thing shows and there is no control at all.
-const MAX_LINES = 8;
+const MAX_LINES = 6;
 
 export default function LandingPage({ selectedSlug, onFrontChange }) {
   const [front, setFront] = useState(0);
@@ -338,7 +338,13 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
                 {project.tech.map((t) => <li key={t}>{t}</li>)}
               </ul>
 
-              {(project.demo || project.repo) && (
+              {/* The links and the arrows share one row at the foot of the
+                  card: where you go next, whether that is into this project or
+                  on to the following one. The row is pinned to the bottom of
+                  the window, so it lands in the same place for a short project
+                  and a long one instead of walking up and down the page as you
+                  turn. */}
+              <div className="lp-card-foot">
                 <div className="panel-actions">
                   {project.demo && (
                     <a className="btn primary" href={project.demo} target="_blank" rel="noopener">Visit site ↗</a>
@@ -347,34 +353,28 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
                     <a className="btn" href={project.repo} target="_blank" rel="noopener">Code</a>
                   )}
                 </div>
-              )}
-            </article>
 
-            {/* The arrows live with the card, but under it rather than over it.
-                Above the card they were the one thing showing below the fold on
-                the front page — a pair of arrows and a counter with nothing
-                visible to act on, reading like a slideshow already scrolled
-                past. At the foot of the card they are where you are when you
-                have finished reading one and want the next. */}
-            <div className="lp-window-nav">
-              <button
-                className="lp-arrow"
-                onClick={() => island.current?.prev()}
-                aria-label="Previous project"
-              >
-                ‹
-              </button>
-              <span className="lp-counter">
-                {front + 1} / {projects.length}
-              </span>
-              <button
-                className="lp-arrow"
-                onClick={() => island.current?.next()}
-                aria-label="Next project"
-              >
-                ›
-              </button>
-            </div>
+                <div className="lp-window-nav">
+                  <button
+                    className="lp-arrow"
+                    onClick={() => island.current?.prev()}
+                    aria-label="Previous project"
+                  >
+                    ‹
+                  </button>
+                  <span className="lp-counter">
+                    {front + 1} / {projects.length}
+                  </span>
+                  <button
+                    className="lp-arrow"
+                    onClick={() => island.current?.next()}
+                    aria-label="Next project"
+                  >
+                    ›
+                  </button>
+                </div>
+              </div>
+            </article>
           </div>
         </div>
 

@@ -697,7 +697,7 @@ a:hover { color: var(--accent); }
    them — clears a 768px-tall window without scrolling, with less air
    underneath than above so the next heading follows on rather than sitting
    a screen away. */
-.lp-work { padding: 56px 0 32px; }
+.lp-work { padding: 48px 0 24px; }
 /* `start`, not `center`: centring made the island drift up and down as the
    panel beside it changed height from one project to the next, and took the
    rail underneath with it. The panel also holds a floor, so a short
@@ -723,11 +723,19 @@ a:hover { color: var(--accent); }
 }
 /* Only as tall as the longest card needs when it is open; the collapsed card
    sets the height the rest of the time. */
-.lp-window { min-height: 620px; }
-/* Under the card, not over it. The card holds a floor, so this sits at a
-   fixed place however short the project's description is. */
+.lp-window { min-height: 620px; display: flex; flex-direction: column; }
+/* Links on the left, arrows on the right, both on the floor of the window.
+   `margin-top: auto` is what fixes it there: the gap above the row absorbs the
+   difference between a four-line description and a twelve-line one, so the
+   buttons do not move as you turn the island. */
+.lp-card-foot {
+  margin-top: auto; padding-top: 22px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+}
+.lp-card-foot .panel-actions { margin-top: 0; }
 .lp-window-nav {
-  display: flex; align-items: center; gap: 14px; margin-top: 24px;
+  display: flex; align-items: center; gap: 14px; margin-left: auto;
 }
 .lp-arrow {
   width: 34px; height: 34px;
@@ -751,12 +759,15 @@ a:hover { color: var(--accent); }
 }
 .lp-more:hover { text-decoration-thickness: 2px; }
 .lp-more:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-/* The floor keeps the island still as you turn between projects of different
-   lengths. Collapsed, the card is short by design and the floor is the only
-   thing left making the section taller than a screen. */
-.lp-window.is-compact { min-height: 0; }
+/* Collapsed, the card is short by design, so the floor comes down — but it
+   does not go away. Something has to hold the foot of the card in one place
+   as you turn between a four-line project and a twelve-line one, and this is
+   it. 660px is as tall as the column on the left, so it costs the section
+   nothing: the island and the rail were already setting the height. */
+.lp-window.is-compact { min-height: 660px; }
 
-.lp-card { min-width: 0; }
+/* A column, so the foot can be pushed to the bottom of the window. */
+.lp-card { min-width: 0; display: flex; flex-direction: column; flex: 1; }
 .lp-card-stage {
   border: 1px solid var(--border); border-radius: 14px;
   background: var(--surface); overflow: hidden; margin-bottom: 18px;
