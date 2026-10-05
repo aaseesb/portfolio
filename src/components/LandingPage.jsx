@@ -50,17 +50,22 @@ const entryRow = (e, i) => (
   </Reveal>
 );
 
+// How much of a description survives a collapsed card: enough for the first
+// sentence of most of them, so the cut reads as a summary and not a glitch.
+const SUMMARY_CHARS = 180;
+
 export default function LandingPage({ selectedSlug, onFrontChange }) {
   const [front, setFront] = useState(0);
   const [clipIndex, setClipIndex] = useState(0);
   const island = useRef(null);
   const railRef = useRef(null);
   const windowRef = useRef(null);
-  // Collapsed, the card keeps everything that identifies the project —
-  // picture, name, tags, links — and drops only the paragraph, with the rest
-  // drawn smaller. Hiding the whole panel was no better than scrolling past
-  // it; this leaves something to scan on the way down.
-  const [openCard, setOpenCard] = useState(true);
+  // Starts collapsed. The card keeps everything that identifies the project —
+  // picture, name, tags, links — and shows the description cut to its first
+  // sentence or so, with the rest a click away. Opening every project to a
+  // screenful of prose is what made this section heavy to scroll; this way
+  // the long version is something you ask for.
+  const [openCard, setOpenCard] = useState(false);
 
   const project = projects[front] || projects[0];
 
@@ -94,12 +99,20 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
     });
   }, [front]);
 
-  // Picking another project means you want to read it, so a folded panel
-  // comes back open rather than leaving you looking at a closed one.
-  const handleFront = useCallback((i) => {
-    setFront(i);
-    setOpenCard(true);
-  }, []);
+  // Turning to another project leaves the card however you had it: if you
+  // asked for the long version once, you probably want it for the next one.
+  const handleFront = useCallback((i) => setFront(i), []);
+
+  // The collapsed description: cut at the last word inside the budget rather
+  // than mid-word, and only if there is enough left over to be worth hiding —
+  // a two-word ellipsis is worse than the whole sentence.
+  const summary = (() => {
+    const full = project?.description || "";
+    if (full.length <= SUMMARY_CHARS + 24) return full;
+    const cut = full.slice(0, SUMMARY_CHARS);
+    const stop = cut.lastIndexOf(" ");
+    return `${(stop > 0 ? cut.slice(0, stop) : cut).replace(/[,;:.\s]+$/, "")}…`;
+  })();
 
   // A project carries either one `clip` or a list of them; normalise so the
   // panel only has one case to render.
@@ -252,7 +265,9 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
                 project.badge && <p className="lp-card-meta muted">{project.badge}</p>
               )}
 
-              <p className="lp-card-text" id="lp-card-text">{project.description}</p>
+              <p className="lp-card-text" id="lp-card-text">
+                {openCard ? project.description : summary}
+              </p>
 
               <ul className="panel-tech">
                 {project.tech.map((t) => <li key={t}>{t}</li>)}

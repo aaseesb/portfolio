@@ -656,12 +656,13 @@ a:hover { color: var(--accent); }
 .lp-window.is-compact .lp-fold::after { transform: rotate(180deg); }
 .lp-fold:hover { background: var(--accent); color: var(--accent-text); }
 .lp-fold:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-/* Compact, not hidden. The card keeps its picture, its name, its tags and
-   its links — enough to know what the project is — and loses the paragraph,
-   which is the only part long enough to be in the way. Everything that stays
-   is drawn down a size so the whole card shrinks rather than just losing a
-   block out of its middle. */
-.lp-window.is-compact .lp-card-text { display: none; }
+/* Compact, not hidden. Every part of the card is still here, the description
+   included — it is cut to its first sentence or so in the markup and drawn a
+   size down, so the card reads as a shorter version of itself rather than one
+   with a block missing from the middle. */
+.lp-window.is-compact .lp-card-text {
+  font-size: 0.88rem; margin-top: 8px; color: var(--muted);
+}
 .lp-window.is-compact .lp-card-stage { margin-bottom: 12px; }
 .lp-window.is-compact .lp-card-stage .visual { aspect-ratio: 16 / 7; }
 .lp-window.is-compact .lp-card-name { font-size: 1.1rem; }
