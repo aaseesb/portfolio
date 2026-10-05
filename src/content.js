@@ -56,6 +56,11 @@ export const education = {
 // "Student team". It renders as a small pill beside the role, never as part of
 // the employer's name, so the title can stay the title.
 //
+// `aside: true` moves a row out of the main timeline and into the side column
+// on the main page, under "Other roles". It's for work that isn't engineering
+// work: a recent one sitting at the top of the timeline would be the first
+// thing a recruiter reads, ahead of the roles that actually make the case.
+//
 // Give a row `points` and it becomes clickable: the bullets unfold underneath.
 // A row with no `points` stays plain text.
 // `projectSlug` instead makes the row open the matching project's panel.
@@ -85,6 +90,9 @@ export const experience = [
     ],
   },
   {
+    // Side column: the work here is content and markup upkeep rather than
+    // engineering, so it reads better beside school than above Xsolla.
+    aside: true,
     title: "Web Systems Assistant",
     org: "McGill Desautels",
     orgNote: "Part-time",

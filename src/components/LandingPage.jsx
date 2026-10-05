@@ -24,6 +24,11 @@ import { byRecency } from "../dates.js";
 // under the timeline now, where it's clearly something else.
 // Education isn't in here either: a degree isn't a job.
 const timeline = experience.slice().sort(byRecency);
+// A row flagged `aside` in content.js comes out of the main column: see the
+// note there. The side column is where the things that aren't engineering jobs
+// live, so it is the right home for one.
+const mainRoles = timeline.filter((e) => !e.aside);
+const asideRoles = timeline.filter((e) => e.aside);
 const leadRoles = leadership.slice().sort(byRecency);
 
 // One row of either timeline. The two lists render identically — the only
@@ -60,11 +65,11 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
   const island = useRef(null);
   const railRef = useRef(null);
   const windowRef = useRef(null);
-  // Starts collapsed. The card keeps everything that identifies the project —
-  // picture, name, tags, links — and shows the description cut to its first
-  // sentence or so, with the rest a click away. Opening every project to a
-  // screenful of prose is what made this section heavy to scroll; this way
-  // the long version is something you ask for.
+  // Starts collapsed. The description is the only thing that collapses — the
+  // picture, the demo steps, the name, the tags and the links are all drawn at
+  // full size either way. Shrinking those too made the card look like a
+  // different, lesser card rather than the same one with its prose folded.
+  // The whole section has to fit one screen, and the prose is what overflows.
   const [openCard, setOpenCard] = useState(false);
 
   const project = projects[front] || projects[0];
@@ -152,19 +157,22 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
 
       {/* ---------- The work ---------- */}
       <section className="lp-work" id="work">
-        <Reveal as="header" className="lp-section-head">
-          <h2>Things I've built</h2>
-          <p className="lp-section-note">
-            Turn the island, or use the arrows — whatever comes round is what you'll read.
-          </p>
-        </Reveal>
-
+        {/* The heading sits inside the left column rather than across the top,
+            so the panel on the right starts level with "Things I've built"
+            instead of a heading's worth of empty space below it. */}
         <div className="lp-stage">
           {/* Left column: the island, with the rail of projects underneath it.
               The rail used to run the full width below both columns, which put
               the list of projects below the description of the one you are
               already reading — it belongs under the thing it drives. */}
           <div className="lp-stage-left">
+            <Reveal as="header" className="lp-section-head">
+              <h2>Things I've built</h2>
+              <p className="lp-section-note">
+                Turn the island, or use the arrows — whatever comes round is what you'll read.
+              </p>
+            </Reveal>
+
             <div className="lp-island">
               <IslandHero
                 projects={projects}
@@ -214,14 +222,6 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
               >
                 ›
               </button>
-              <button
-                className="lp-fold"
-                onClick={() => setOpenCard((v) => !v)}
-                aria-expanded={openCard}
-                aria-controls="lp-card-text"
-              >
-                {openCard ? "Collapse" : "Expand"}
-              </button>
             </div>
 
             {/* Announced politely, so a screen reader is told what turned up
@@ -265,8 +265,21 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
                 project.badge && <p className="lp-card-meta muted">{project.badge}</p>
               )}
 
+              {/* The control sits at the end of the sentence it cuts off, where
+                  the ellipsis has just told you there is more. It used to be a
+                  pill up in the nav row, which is a long way from the text it
+                  acts on and easy to miss entirely. */}
               <p className="lp-card-text" id="lp-card-text">
                 {openCard ? project.description : summary}
+                {summary !== project.description && (
+                  <button
+                    className="lp-more"
+                    onClick={() => setOpenCard((v) => !v)}
+                    aria-expanded={openCard}
+                  >
+                    {openCard ? "Read less" : "Read more"}
+                  </button>
+                )}
               </p>
 
               <ul className="panel-tech">
@@ -276,7 +289,7 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
               {(project.demo || project.repo) && (
                 <div className="panel-actions">
                   {project.demo && (
-                    <a className="btn primary" href={project.demo} target="_blank" rel="noopener">Demo</a>
+                    <a className="btn primary" href={project.demo} target="_blank" rel="noopener">Visit site ↗</a>
                   )}
                   {project.repo && (
                     <a className="btn" href={project.repo} target="_blank" rel="noopener">Code</a>
@@ -303,7 +316,7 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
           <div className="lp-path-main">
             <Reveal as="h3" className="lp-subhead">Experience</Reveal>
             <ol className="lp-timeline">
-              {timeline.map(entryRow)}
+              {mainRoles.map(entryRow)}
             </ol>
           </div>
 
@@ -321,6 +334,15 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
                 </ul>
               )}
             </Reveal>
+
+            {asideRoles.length > 0 && (
+              <>
+                <Reveal as="h3" className="lp-subhead">Other roles</Reveal>
+                <ol className="lp-timeline lp-timeline-lead">
+                  {asideRoles.map(entryRow)}
+                </ol>
+              </>
+            )}
 
             {leadRoles.length > 0 && (
               <>
