@@ -283,9 +283,17 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
               <div className="lp-card-stage">
                 <ProjectVisual
                   name={project.name}
+                  icon={project.icon}
                   image={clips[clipIndex]?.poster || project.image}
                   clip={clips[clipIndex]?.src}
-                  variant={clips.length || project.wide ? "clip" : "hero"}
+                  // With nothing to show yet, the cover takes the wide frame
+                  // rather than the small square: a 230px plate adrift in a
+                  // full-width stage reads as a picture that failed to load.
+                  variant={
+                    clips.length || project.wide || !project.image
+                      ? "clip"
+                      : "hero"
+                  }
                 />
               </div>
 

@@ -238,7 +238,7 @@ export default function OnePage({ selectedSlug, onSelect }) {
               >
                 {/* The float lives on an inner wrapper so the focus ring stays put. */}
                 <span className="float">
-                  <ProjectVisual name={p.name} image={p.image} />
+                  <ProjectVisual name={p.name} icon={p.icon} image={p.image} />
                 </span>
                 <span className="project-name">{p.name}</span>
                 <span className="project-badge">{p.badge || " "}</span>
@@ -264,6 +264,7 @@ export default function OnePage({ selectedSlug, onSelect }) {
                   the still. More than one and you get a row of step buttons. */}
               <ProjectVisual
                 name={selected.name}
+                icon={selected.icon}
                 image={clips[clipIndex]?.poster || selected.image}
                 clip={clips[clipIndex]?.src}
                 variant={clips.length || selected.wide ? "clip" : "hero"}

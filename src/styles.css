@@ -350,24 +350,47 @@ a:hover { color: var(--accent); }
 .visual-thumb { width: 100%; aspect-ratio: 4 / 3; }
 
 
-/* The placeholder has to read as deliberate, not broken. */
+/* A cover, not a placeholder. The project's own glyph on ruled paper, which is
+   the same drawing the rail and the one-page grid use for it — so a project
+   waiting on a screenshot still has a face, and the one it already had. */
 .visual-empty {
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  gap: 4px; padding: 12px; text-align: center;
+  gap: 10px; padding: 16px; text-align: center;
   background:
-    radial-gradient(circle at 50% 38%, var(--surface-2) 0%, var(--surface) 72%);
+    radial-gradient(circle at 50% 36%, var(--surface-2) 0%, var(--surface) 70%),
+    repeating-linear-gradient(
+      -45deg,
+      color-mix(in srgb, var(--border) 55%, transparent) 0 1px,
+      transparent 1px 11px
+    );
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
 }
+/* The glyph sits on a disc so the ruling doesn't run through it. */
+.visual-plate {
+  display: grid; place-items: center;
+  width: 30%; max-width: 92px; aspect-ratio: 1;
+  border-radius: 50%;
+  color: var(--accent);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 0 rgb(0 0 0 / 0.04);
+}
+.visual-plate .project-icon { width: 46%; height: 46%; }
 .visual-name { font-size: 0.86rem; font-weight: 500; color: var(--text); }
 .visual-label {
-  font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase;
+  font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase;
   color: var(--muted);
 }
 /* The thumb already has the project name printed under the block, so the
-   placeholder shows the label alone. The hero has no caption, so it keeps both. */
+   cover shows the glyph and the label alone. The hero has no caption. */
 .visual-thumb .visual-name { display: none; }
+.visual-thumb .visual-plate { width: 34%; }
 .visual-hero .visual-name { font-size: 1rem; }
+/* The big one on the main card: a wide frame wants a bigger face in it. */
+.visual-clip.visual-empty { gap: 14px; }
+.visual-clip .visual-plate { width: 22%; }
+.visual-clip .visual-name { font-size: 1.05rem; }
 
 
 /* ---------- Clickable experience rows ---------- */

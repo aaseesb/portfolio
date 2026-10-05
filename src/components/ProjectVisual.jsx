@@ -2,17 +2,23 @@
 //
 // With a `clip` it plays the demo (muted, looping, no controls) using `image`
 // as the poster. With only an `image` it renders the still. Without either it
-// renders a deliberate placeholder — same box, same dimensions, so swapping one
-// in never reflows anything. Never pass a hardcoded path or name here; it all
-// comes from content.js.
+// draws a cover: the project's own glyph on a tinted plate, same box and same
+// dimensions, so dropping a screenshot in later never reflows anything.
+//
+// The cover replaced a flat box with "render pending" printed in it, which at
+// the size of the main card was a slab of nothing — it read as a page that had
+// failed to load rather than a project whose screenshot isn't taken yet.
+// Never pass a hardcoded path or name here; it all comes from content.js.
 import { useEffect, useRef } from "react";
+import ProjectIcon from "./ProjectIcon.jsx";
 
 export default function ProjectVisual({
   name,
   image,
   clip,
+  icon,
   variant = "thumb",
-  label = "render pending",
+  label = "screenshot coming",
 }) {
   const className = `visual visual-${variant}`;
 
@@ -75,6 +81,9 @@ export default function ProjectVisual({
 
   return (
     <div className={`${className} visual-empty`} role="img" aria-label={`${name} — ${label}`}>
+      <span className="visual-plate">
+        <ProjectIcon name={icon} />
+      </span>
       <span className="visual-name">{name}</span>
       <span className="visual-label">{label}</span>
     </div>
