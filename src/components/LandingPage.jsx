@@ -245,6 +245,31 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
               />
             </div>
 
+            {/* The arrows turn the island, so they sit under it rather than on
+                top of the card. At the top of the right-hand column they were
+                the one thing showing below the fold on the front page — a pair
+                of arrows and a counter with nothing visible to act on, which
+                read like a slideshow someone had scrolled past. */}
+            <div className="lp-island-nav">
+              <button
+                className="lp-arrow"
+                onClick={() => island.current?.prev()}
+                aria-label="Previous project"
+              >
+                ‹
+              </button>
+              <span className="lp-counter">
+                {front + 1} / {projects.length}
+              </span>
+              <button
+                className="lp-arrow"
+                onClick={() => island.current?.next()}
+                aria-label="Next project"
+              >
+                ›
+              </button>
+            </div>
+
             {/* The rail: every project at a glance, and another way to drive the
                 island for anyone who would rather pick than turn. */}
             <div className="lp-rail" ref={railRef}>
@@ -268,26 +293,6 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
               entrance animation, so turning the island reads as a change of
               page rather than text quietly rewriting itself. */}
           <div className={`lp-window${openCard ? "" : " is-compact"}`} ref={windowRef}>
-            <div className="lp-window-nav">
-              <button
-                className="lp-arrow"
-                onClick={() => island.current?.prev()}
-                aria-label="Previous project"
-              >
-                ‹
-              </button>
-              <span className="lp-counter">
-                {front + 1} / {projects.length}
-              </span>
-              <button
-                className="lp-arrow"
-                onClick={() => island.current?.next()}
-                aria-label="Next project"
-              >
-                ›
-              </button>
-            </div>
-
             {/* Announced politely, so a screen reader is told what turned up
                 without having the current sentence cut off. */}
             <article className="lp-card" id="lp-card" key={project.slug} aria-live="polite">

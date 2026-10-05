@@ -724,8 +724,11 @@ a:hover { color: var(--accent); }
 /* Only as tall as the longest card needs when it is open; the collapsed card
    sets the height the rest of the time. */
 .lp-window { min-height: 620px; }
-.lp-window-nav {
-  display: flex; align-items: center; gap: 14px; margin-bottom: 16px;
+/* Centred under the island, clear of the "drag to turn" hint that overlaps
+   its bottom edge. */
+.lp-island-nav {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  margin-top: 26px;
 }
 .lp-arrow {
   width: 34px; height: 34px;
