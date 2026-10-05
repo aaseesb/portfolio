@@ -13,19 +13,20 @@
   --bunny-blaze: #fdfaf4;
   --bunny-inner: #dba898;
   --bunny-eye: #2b2b2b;
+  /* The two small bunnies on the island, so the three of them aren't triplets. */
+  --bunny-alt-a: #9fa7b4;
+  --bunny-alt-b: #8d6b4f;
   /* The hero drawing. Tweak these to match yourself — nothing else uses them. */
-  --hero-skin: #d8a97e;
-  --hero-hair: #17120f;
-  --hero-hair-shine: #3b2f28;
-  --hero-blush: #e79a8a;
-  --hero-shirt: #a4642a;
-  --hero-jeans: #4a5a6b;
   --hero-wood: #c89a62;
-  --hero-wood-top: #ddb584;
+  --flower-a: #e0a0b4;
+  --flower-b: #efd48a;
   --grass: #7fa65c;
   --grass-light: #9bc273;
   --soil: #9c7850;
   --soil-dark: #7d5e3c;
+  --pond: #7db7dd;
+  --pond-rim: #a8d3ea;
+  --pond-light: #e4f3fc;
 }
 
 :root[data-theme="dark"] {
@@ -42,18 +43,18 @@
   --bunny-blaze: #f3ecdf;
   --bunny-inner: #b98775;
   --bunny-eye: #221e1a;
-  --hero-skin: #c0906a;
-  --hero-hair: #130f0d;
-  --hero-hair-shine: #342a24;
-  --hero-blush: #c07e71;
-  --hero-shirt: #b6753a;
-  --hero-jeans: #3b4854;
+  --bunny-alt-a: #7e8694;
+  --bunny-alt-b: #74563f;
   --hero-wood: #6d5436;
-  --hero-wood-top: #8a6b45;
+  --flower-a: #bf7d92;
+  --flower-b: #c7ad68;
   --grass: #5c7f43;
   --grass-light: #76a158;
   --soil: #6f5436;
   --soil-dark: #56402a;
+  --pond: #3d6e8e;
+  --pond-rim: #5587a6;
+  --pond-light: #9ec8dd;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -77,33 +78,78 @@ a:hover { color: var(--accent); }
   padding: 72px 32px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 64px;
+  /* Column gap only. A row gap here added 64px between every band on top of
+     whatever margin that band already had, which is why the space around the
+     skills list never came down as far as it was asked to — each band now
+     owns the space above it. */
+  gap: 0 64px;
   align-items: start;
 }
 
-.theme-toggle {
-  position: fixed; top: 20px; right: 20px; z-index: 10;
-  width: 34px; height: 30px;
+/* The two controls ride together in the corner so they read as one set of
+   page-level switches rather than two unrelated buttons. */
+.view-controls {
+  position: fixed; top: 20px; right: 20px; z-index: 30;
+  display: flex; gap: 8px; align-items: stretch;
+}
+.theme-toggle, .view-toggle {
+  height: 30px;
   background: var(--surface); color: var(--text);
   border: 1px solid var(--border); border-radius: 8px;
   cursor: pointer; font-size: 0.9rem;
 }
-.theme-toggle:hover { border-color: var(--accent); }
-
-/* ---------- Left column ---------- */
-.col-left h1 { font-size: 2.1rem; line-height: 1.15; letter-spacing: -0.01em; }
-.tagline { color: var(--muted); margin-top: 4px; }
-.summary { margin-top: 24px; max-width: 46ch; }
-
-.tech-line {
-  margin-top: 20px;
-  font-size: 0.9rem;
-  color: var(--muted);
-  max-width: 46ch;
+.theme-toggle { width: 34px; }
+.view-toggle { padding: 0 11px; font-size: 0.78rem; color: var(--accent); }
+.theme-toggle:hover, .view-toggle:hover { border-color: var(--accent); }
+.theme-toggle:focus-visible, .view-toggle:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
 }
 
+/* Printing is something people do with the one-page view. */
+@media print {
+  .view-controls { display: none; }
+  .page { padding: 0; }
+}
+
+/* ---------- The intro, across the top of the page ---------- */
+/* Spanning both columns. The intro used to be the top of the left column, which
+   left the column short and the page with a hole in it under the links. Full
+   width it reads in two or three lines and everything else starts level.
+   One column, not two: the links sat in a second column and left a patch of
+   nothing above them in the top corner. Under the paragraph they're just the
+   last line of the introduction, which is what they are. */
+.intro-band {
+  grid-column: 1 / -1;
+  padding-bottom: 28px; margin-bottom: 56px;
+  border-bottom: 1px solid var(--border);
+}
+.intro-band h1 { font-size: 2.3rem; line-height: 1.12; letter-spacing: -0.01em; }
+.tagline { color: var(--muted); margin-top: 4px; }
+.summary { margin-top: 16px; max-width: 62ch; }
+
+/* A band across the page, one column per group, each label sitting over its own
+   names. In a narrow column these were label-beside-names rows; across the full
+   width they get to be four short lists instead of four long ones. */
+/* The space sits above this band, not below it: skills and projects belong to
+   each other — clicking a project lights up this list — so the gap between the
+   two is small and the break from the columns above is the big one. The whole
+   pair still has to land in one screen, so the two gaps together stay modest. */
+.skills-band { grid-column: 1 / -1; margin-top: 96px; }
+.skills {
+  margin-top: 10px;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 32px;
+}
+.skill-group { display: grid; gap: 4px; align-content: start; }
+.skill-label {
+  font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted);
+}
+.skill-items { font-size: 0.9rem; color: var(--muted); }
+
+/* The last line of the intro. The resume button leads, so it's the first thing
+   in the row as well as the loudest. */
 .links {
-  margin-top: 24px; font-size: 0.95rem;
+  margin-top: 22px; font-size: 0.95rem;
   display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
 }
 .resume-btn { text-decoration: none; }
@@ -122,17 +168,25 @@ a:hover { color: var(--accent); }
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 12px;
 }
-.education .col-heading { margin-bottom: 8px; }
-.edu-degree { font-size: 0.98rem; font-weight: 500; }
-.edu-meta { font-size: 0.86rem; color: var(--muted); }
-.edu-details {
-  list-style: none; margin-top: 10px;
-  font-size: 0.86rem; color: var(--muted);
+.education .col-heading { margin-bottom: 10px; }
+/* School and dates on one line, pushed to opposite ends — the dates are a
+   column of their own in a resume, not a clause in a sentence. */
+.edu-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.edu-degree { font-size: 1rem; font-weight: 600; }
+.edu-dates {
+  font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted); white-space: nowrap;
 }
-.edu-details li { padding-left: 14px; position: relative; }
-.edu-details li::before {
-  content: ""; position: absolute; left: 0; top: 0.68em;
-  width: 4px; height: 4px; border-radius: 50%; background: var(--accent);
+.edu-meta { font-size: 0.88rem; color: var(--muted); margin-top: 2px; }
+/* Honours as chips. Two one-line facts read better side by side than as a
+   bulleted list of two. */
+.edu-details {
+  list-style: none; margin-top: 12px;
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.edu-details li {
+  font-size: 0.76rem; color: var(--muted);
+  border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px;
 }
 
 .exp-heading { margin-top: 32px; margin-bottom: 4px; }
@@ -145,7 +199,20 @@ a:hover { color: var(--accent); }
 }
 .exp-row:last-child { border-bottom: 1px solid var(--border); }
 .exp-title { font-size: 0.95rem; font-weight: 500; }
-.exp-meta { font-size: 0.85rem; color: var(--muted); }
+.exp-meta {
+  font-size: 0.85rem; color: var(--muted);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px;
+}
+/* The dates are separated by the gap, not by a middle dot: when the line wraps,
+   a dot ends up starting the second line with nothing in front of it. */
+.exp-dates { white-space: nowrap; }
+/* The same role flag as the timeline's, set small and in caps so it reads as a
+   label on the role rather than more of the job title. */
+.exp-flag, .lp-entry-note {
+  font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--border); border-radius: 999px; padding: 1px 7px;
+}
 
 /* ---------- Experience rows that unfold ---------- */
 .exp-chevron {
@@ -176,21 +243,74 @@ a:hover { color: var(--accent); }
   .exp-points { animation: unfold 0.22s ease-out; }
 }
 
-/* ---------- Right column: the diorama ---------- */
-.diorama {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 32px; max-width: 420px; margin: 0 auto;
+/* ---------- The two columns under the intro ---------- */
+/* Both columns start level with each other, so neither heading floats. */
+.col-left > .exp-heading:first-child { margin-top: 0; }
+.col-right > .education:first-child { margin-top: 0; }
+
+/* ---------- Underneath both columns: the projects ---------- */
+/* Spanning the grid rather than sitting in a column: six tiles in a 2-wide
+   column were a tall thin strip, and three across the page is one glance. */
+.projects-row { grid-column: 1 / -1; margin-top: 18px; }
+.projects-row > .col-heading { margin-bottom: 14px; }
+/* The grid and the open panel swap in here. There used to be a height floor
+   holding the slot at the grid's size so nothing moved when you opened a
+   project, but the panel is two columns now and much shorter than the tiles,
+   so the floor left a half-screen of nothing under an open project. The only
+   thing below this slot is the bunny strip, so letting it shrink costs
+   nothing — and the panel opens where the grid was, with the skills list
+   still on screen above it. */
+
+/* The three bunnies at the foot of the page — a small strip under everything,
+   not a scene. They're a signature, so they take about as much room as one. */
+.onepage-bunnies { grid-column: 1 / -1; margin-top: 64px; }
+.bunny-row { display: block; width: 100%; max-width: 300px; margin: 0 auto; overflow: visible; }
+
+/* Between the two: four skill columns get cramped before the page is a phone. */
+@media (max-width: 980px) {
+  .skills { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .panel-split { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .panel-media { position: static; }
 }
-.hero-slot { display: flex; justify-content: center; }
 
 /* ---------- The island ---------- */
 /* The stage is the positioning context for the floating blocks, which sit on
    top of the island drawing rather than inside it. */
-.island-stage { position: relative; width: 100%; aspect-ratio: 1 / 1; }
+/* Matches the SVG's viewBox so the drawing fills the stage instead of
+   sitting in a square with empty sky above and below it. */
+.island-stage { position: relative; width: 100%; aspect-ratio: 148 / 114; }
 .island-svg { width: 100%; height: 100%; display: block; overflow: visible; }
 
+/* The drag surface. `touch-action: pan-y` lets a phone keep scrolling the page
+   vertically while horizontal drags turn the island instead of fighting it. */
+.island-turntable {
+  position: absolute; inset: 0;
+  cursor: grab; touch-action: pan-y;
+}
+.island-turntable.is-dragging { cursor: grabbing; }
+/* The summary's island is a drawing, not a control. */
+.island-turntable.is-static { cursor: default; }
+
+/* One wrapper per block, carrying its place in the orbit. The block's own
+   float animation sits inside it, so the drift and the orbit never fight over
+   the same transform. */
+.island-orbit {
+  position: absolute;
+  transition: left 0.3s ease, top 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
+}
+.island-turntable.is-dragging .island-orbit { transition: none; }
+
+.island-hint {
+  position: absolute; left: 0; right: 0; bottom: -6px;
+  text-align: center; font-size: 0.68rem; letter-spacing: 0.08em;
+  color: var(--muted); opacity: 0.75;
+  transition: opacity 0.4s ease;
+  pointer-events: none; margin: 0;
+}
+.island-hint.is-done { opacity: 0; }
+
 .island-block {
-  position: absolute; width: 74px;
+  width: 74px;
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   padding: 8px 6px;
   background: var(--surface); color: var(--accent);
@@ -199,24 +319,20 @@ a:hover { color: var(--accent); }
   cursor: pointer;
 }
 .island-block:hover { border-color: var(--accent); }
+/* The one facing front is the one a click opens, so it has to look different
+   from the three that a click merely turns towards. */
+.island-block.is-front { border-color: var(--accent); box-shadow: 0 8px 20px rgb(0 0 0 / 0.2); }
+.island-block.is-front .island-block-name { color: var(--accent); }
 .island-block:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .project-icon { width: 22px; height: 22px; display: block; }
 .island-block-name {
   font-size: 0.62rem; line-height: 1.2; text-align: center; color: var(--muted);
 }
 
-/* The tilt lives on the slot, driven by CSS vars the parallax sets. The float
-   animation stays on the inner wrapper, so the two never fight. */
-.hero-parallax { perspective: 700px; width: 100%; }
-.hero-parallax .hero-slot {
-  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-  transition: transform 0.25s ease-out;
-}
-
 .project-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px 24px;
   width: 100%;
 }
 
@@ -229,6 +345,14 @@ a:hover { color: var(--accent); }
 .exp-button:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px;
 }
+/* The clicked tile stays marked while its panel is open below, so it's clear
+   which of the six you're reading. */
+.project-block .visual { transition: border-color 0.25s ease, box-shadow 0.25s ease; }
+.project-block.is-selected .visual {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+.project-block.is-selected .project-name { color: var(--accent); }
 .project-name { font-size: 0.92rem; font-weight: 500; }
 .project-badge { font-size: 0.8rem; color: var(--muted); margin-top: -6px; }
 
@@ -242,13 +366,16 @@ a:hover { color: var(--accent); }
 .visual img,
 .visual video { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-.visual-hero { width: 190px; height: 190px; }
-.visual-clip { width: 100%; max-width: 420px; aspect-ratio: 16 / 9; }
+.visual-hero { width: 230px; height: 230px; }
+.visual-clip { width: 100%; max-width: 520px; aspect-ratio: 16 / 9; }
 /* Clips and screenshots come in whatever shape they were captured in — show
    all of it rather than cropping into the frame. */
 .visual-clip video,
 .visual-clip img { object-fit: contain; background: var(--bg); }
-.visual-thumb { width: 100%; aspect-ratio: 1 / 1; }
+/* 4:3 rather than square: six square tiles across three columns made the
+   grid taller than a screen on its own, which pushed the skills list off the
+   top the moment you looked at the projects. */
+.visual-thumb { width: 100%; aspect-ratio: 4 / 3; }
 
 
 /* The placeholder has to read as deliberate, not broken. */
@@ -284,26 +411,52 @@ a:hover { color: var(--accent); }
 /* Selecting a project emphasises the tech it uses and dims the rest, so the
    two columns visibly connect without any extra copy. */
 .tech-item { transition: color 0.25s ease, opacity 0.25s ease; }
-.tech-line.is-filtered .tech-item { opacity: 0.4; }
-.tech-line.is-filtered .tech-item.is-on {
+.skills.is-filtered .tech-item { opacity: 0.4; }
+.skills.is-filtered .tech-item.is-on {
   opacity: 1; color: var(--text); font-weight: 500;
 }
 
 /* ---------- Detail panel ---------- */
-.panel { position: relative; max-width: 420px; margin: 0 auto; }
-.panel-close {
-  position: absolute; top: -6px; right: 0;
-  background: none; border: none; color: var(--muted);
-  font-size: 1.4rem; line-height: 1; cursor: pointer; padding: 4px 6px;
+/* Two columns, filling the band. The panel used to be a 560px column in the
+   middle of a 1000px page, which wasted most of the width it had been given —
+   the thing itself on the left now, and what it is on the right. */
+.panel { position: relative; }
+.panel-split {
+  display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 40px; align-items: start;
 }
-.panel-close:hover { color: var(--text); }
-.panel-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.panel-media { position: sticky; top: 24px; }
+.panel-body { padding-top: 4px; }
+/* Arrows, position, and a close — so the panel can be walked through without
+   going back up to the grid. */
+.panel-nav { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+.panel-count {
+  font-size: 0.75rem; letter-spacing: 0.06em; color: var(--muted);
+  min-width: 3.5em; text-align: center;
+}
+.panel-step, .panel-close {
+  background: none; border: 1px solid var(--border); border-radius: 999px;
+  color: var(--muted); line-height: 1; cursor: pointer;
+  width: 28px; height: 28px; display: grid; place-items: center;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.panel-step { font-size: 1.1rem; }
+/* A labelled way back to the grid, since the grid is what it replaced. Kept in
+   the left group: the fixed view controls own the top-right corner. */
+.panel-close {
+  width: auto; height: 28px; padding: 0 12px; margin-left: 6px;
+  font-size: 0.75rem; letter-spacing: 0.04em;
+}
+.panel-step:hover, .panel-close:hover { color: var(--text); border-color: var(--accent); }
+.panel-step:focus-visible, .panel-close:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
 
 /* The visual sits on a surface with a soft contact shadow, as if set down. */
+/* No drop shadow under the render: on a page this plain it read as a smudge. */
 .panel-stage {
   display: flex; justify-content: center;
-  padding: 24px 0 28px;
-  background: radial-gradient(ellipse 58% 18% at 50% 92%, rgb(0 0 0 / 0.16), transparent 70%);
+  padding: 8px 0 20px;
 }
 
 .clip-steps { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
@@ -377,53 +530,13 @@ a:hover { color: var(--accent); }
   }
 }
 
-/* ---------- The toy bunny ---------- */
-.toy-bunny {
-  position: fixed; bottom: 20px; right: 20px; z-index: 20;
-  display: flex; align-items: flex-end; gap: 4px;
-  pointer-events: none;
-}
-.bunny-bubble {
-  pointer-events: auto;
-  position: relative; max-width: 240px;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 14px; padding: 10px 14px;
-  font-size: 0.84rem; line-height: 1.45; color: var(--text);
-  box-shadow: 0 6px 20px rgb(0 0 0 / 0.12);
-}
-.bunny-bubble::after {
-  content: ""; position: absolute; right: 16px; bottom: -7px;
-  width: 12px; height: 12px; background: var(--surface);
-  border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
-  transform: rotate(45deg);
-}
-.bunny-button {
-  pointer-events: auto;
-  background: none; border: none; padding: 0; cursor: pointer; flex-shrink: 0;
-}
-.bunny-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 8px; }
-.bunny-svg { width: 62px; height: auto; overflow: visible; display: block; }
-
 @media (prefers-reduced-motion: no-preference) {
-  @keyframes hop {
-    0%   { transform: translateY(0); }
-    30%  { transform: translateY(-16px); }
-    55%  { transform: translateY(0); }
-    75%  { transform: translateY(-7px); }
-    100% { transform: translateY(0); }
-  }
   @keyframes earwiggle {
     0%, 100% { transform: rotate(0deg); }
     33%      { transform: rotate(5deg); }
     66%      { transform: rotate(-5deg); }
   }
-  @keyframes bubble-in {
-    from { opacity: 0; transform: translateY(5px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .bunny-svg { animation: hop 0.75s ease-out; }
   .bunny-ears { transform-origin: 0 0; animation: earwiggle 3s ease-in-out infinite; }
-  .bunny-bubble { animation: bubble-in 0.3s ease-out; }
 }
 
 /* ---------- Responsive: one column, spec order ---------- */
@@ -439,22 +552,30 @@ a:hover { color: var(--accent); }
   }
   .col-left, .col-right { display: contents; }
 
-  .col-left header { order: 1; }
-  .summary        { order: 2; }
-  .tech-line      { order: 3; }
-  .links          { order: 4; }
-  .diorama,
-  .panel          { order: 5; margin-top: 36px; }
-  .diorama        { gap: 28px; }
-  .education      { order: 6; margin-top: 36px; }
-  .exp-heading    { order: 7; }
-  .experience     { order: 8; }
+  /* The intro band keeps its own internal stacking; it's one child here. */
+  .page { row-gap: 32px; }
+  .intro-band { order: 1; grid-template-columns: minmax(0, 1fr); align-items: start; margin-bottom: 0; }
+
+  /* `display: contents` flattens both columns, so every block needs its own
+     order — including each heading-and-list pair, or a heading sorts in with
+     the other headings and ends up above a list it isn't labelling. */
+  .education      { order: 2; margin-top: 28px; }
+  .exp-heading    { order: 3; }
+  .experience     { order: 4; }
+  .lead-heading   { order: 5; }
+  .lead-list      { order: 6; }
+  .skills-band    { order: 7; margin-top: 44px; }
+  .projects-row   { order: 8; margin-top: 14px; }
+  .onepage-bunnies { order: 9; margin-top: 24px; }
+
+  /* Both of the wide layouts fold to one column on a phone. */
+  .skills { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .panel-split { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .panel-media { position: static; }
 
   .visual-hero { width: 160px; height: 160px; }
 
   /* The bunny shouldn't cover a phone screen. */
-  .toy-bunny { position: static; margin-top: 40px; order: 9; justify-content: center; }
-  .bunny-bubble { max-width: 260px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -464,3 +585,252 @@ a:hover { color: var(--accent); }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------- The landing page ---------- */
+/* The scrolling view. Full-width, section by section, as opposed to the
+   one-page view's two fixed columns. */
+.page-landing { width: 100%; }
+.lp { max-width: 1120px; margin: 0 auto; padding: 0 32px; }
+.lp section { scroll-margin-top: 40px; }
+
+/* Blocks arrive as you reach them. Only under no-preference: if the dimming
+   rule applied to everyone, the reduced-motion override would freeze the
+   content at opacity 0 and the page would be blank. */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0; transform: translateY(18px);
+    transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  .reveal.is-in { opacity: 1; transform: none; }
+}
+
+/* --- The landing --- */
+/* Nearly a full screen, so the first thing anyone gets is a name and a
+   sentence rather than the top of a resume. */
+.lp-intro {
+  min-height: 86vh;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 90px 0 40px;
+}
+.lp-eyebrow {
+  color: var(--accent); font-size: 0.8rem;
+  text-transform: uppercase; letter-spacing: 0.16em;
+}
+.lp-name {
+  font-size: clamp(2.6rem, 8vw, 5rem);
+  line-height: 1.02; letter-spacing: -0.03em; margin-top: 10px;
+}
+.lp-summary {
+  margin-top: 24px; max-width: 54ch;
+  font-size: clamp(1rem, 1.6vw, 1.18rem); color: var(--muted);
+}
+.lp-links { margin-top: 30px; display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; }
+
+.lp-scroll-cue {
+  margin-top: 56px; align-self: flex-start;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none;
+}
+.lp-scroll-cue:hover { color: var(--accent); }
+
+/* --- Section headings, shared --- */
+.lp-section-head { margin-bottom: 32px; }
+.lp-section-head h2 {
+  font-size: clamp(1.6rem, 3.6vw, 2.4rem); letter-spacing: -0.02em;
+}
+.lp-section-note { color: var(--muted); font-size: 0.92rem; margin-top: 8px; max-width: 48ch; }
+
+/* --- The work --- */
+.lp-work { padding: 80px 0; }
+/* `start`, not `center`: centring made the island drift up and down as the
+   panel beside it changed height from one project to the next, and took the
+   rail underneath with it. The panel also holds a floor, so a short
+   description doesn't pull everything below it upwards. */
+.lp-stage {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 48px; align-items: start;
+}
+.lp-stage-left { min-width: 0; }
+.lp-island { width: 100%; }
+.lp-window { min-height: 800px; }
+/* Clicking the block already at the front flashes the panel, so the click is
+   acknowledged even on a wide screen where nothing needs to scroll. */
+.lp-window.is-pulsing .lp-card-stage {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.lp-window .lp-card-stage { transition: border-color 0.25s ease, box-shadow 0.25s ease; }
+
+.lp-window-nav {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 16px;
+}
+.lp-arrow {
+  width: 34px; height: 34px;
+  background: var(--surface); color: var(--accent);
+  border: 1px solid var(--border); border-radius: 50%;
+  font-size: 1.1rem; line-height: 1; cursor: pointer;
+}
+.lp-arrow:hover { border-color: var(--accent); }
+.lp-arrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.lp-counter { color: var(--muted); font-size: 0.78rem; letter-spacing: 0.08em; }
+/* Only where the panel is stacked under the island: side by side there is
+   nothing below it to scroll to, so the button would be noise. */
+/* Visible at every width. It started out as a stacked-only control, but a
+   fold is just as useful beside the island — the description is the tallest
+   thing in the section either way. */
+.lp-fold {
+  display: block; margin-left: auto;
+  font: inherit; font-size: 0.8rem; color: var(--muted);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 999px; padding: 5px 12px; cursor: pointer;
+}
+.lp-fold:hover { border-color: var(--accent); color: var(--text); }
+.lp-fold:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.lp-window.is-folded .lp-card { display: none; }
+.lp-window.is-folded .lp-window-nav { margin-bottom: 0; }
+/* The window holds a tall floor so the island does not jump as you turn
+   between projects of different lengths. Folded, that floor is the one thing
+   you were trying to get rid of. */
+.lp-window.is-folded { min-height: 0; }
+
+.lp-card { min-width: 0; }
+.lp-card-stage {
+  border: 1px solid var(--border); border-radius: 14px;
+  background: var(--surface); overflow: hidden; margin-bottom: 18px;
+}
+.lp-card-name { font-size: 1.5rem; letter-spacing: -0.01em; }
+.lp-card-meta { margin-top: 4px; font-size: 0.86rem; }
+.lp-card-text { margin-top: 12px; color: var(--muted); font-size: 0.95rem; max-width: 60ch; }
+
+/* --- The rail --- */
+/* Scrolls sideways on its own, and snaps, so flicking through the cards on a
+   phone lands on one rather than between two. Narrower cards than before: it
+   sits in the left column under the island now, not across the whole page. */
+.lp-rail {
+  margin-top: 28px;
+  display: flex; gap: 14px;
+  overflow-x: auto; scroll-snap-type: x mandatory;
+  padding-bottom: 10px; scrollbar-width: thin;
+}
+.lp-rail-card {
+  flex: 0 0 175px; scroll-snap-align: center;
+  display: flex; flex-direction: column; gap: 6px; text-align: left;
+  padding: 16px;
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--border); border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.lp-rail-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+.lp-rail-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* The one the island is showing, so the rail and the island never disagree
+   about what you're reading. */
+.lp-rail-card.is-on { border-color: var(--accent); background: var(--surface-2); }
+.lp-rail-icon { color: var(--accent); }
+.lp-rail-name { font-weight: 600; font-size: 0.95rem; }
+.lp-rail-blurb { color: var(--muted); font-size: 0.8rem; line-height: 1.4; }
+
+/* --- The timeline --- */
+.lp-path { padding: 80px 0; }
+/* Two columns: jobs on the left, school and the club on the right. */
+.lp-path-grid {
+  display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 56px; align-items: start;
+}
+.lp-path-main, .lp-path-side { min-width: 0; }
+.lp-path-side .lp-subhead { margin-top: 26px; }
+.lp-timeline { list-style: none; position: relative; }
+/* The spine. Drawn on the list, behind the dots, rather than as a border on
+   each entry — a border would break at every gap. */
+.lp-timeline::before {
+  content: ""; position: absolute; left: 7px; top: 8px; bottom: 8px;
+  width: 2px; background: var(--border);
+}
+.lp-entry { position: relative; padding: 0 0 38px 38px; }
+.lp-dot {
+  position: absolute; left: 0; top: 7px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--bg); border: 3px solid var(--accent);
+}
+.lp-entry-dates {
+  color: var(--muted); font-size: 0.76rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.lp-entry-title { font-size: 1.1rem; margin-top: 3px; }
+.lp-entry-org {
+  color: var(--muted); font-size: 0.88rem; margin-top: 2px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+}
+.lp-entry-kind {
+  font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px;
+}
+/* Leadership, as a second list under the jobs. The heading gets the spine's
+   left padding so it lines up with the entries rather than with the dots. */
+.lp-subhead {
+  font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--muted); padding-left: 38px; margin: 6px 0 20px;
+}
+.lp-timeline-lead { margin-bottom: 0; }
+
+.lp-entry-points { list-style: disc; padding-left: 18px; margin-top: 10px; }
+.lp-entry-points li { margin-top: 5px; font-size: 0.92rem; max-width: 62ch; }
+
+/* --- The end --- */
+.lp-end { padding: 70px 0 110px; border-top: 1px solid var(--border); }
+.lp-end h2 { font-size: clamp(1.5rem, 3vw, 2.1rem); letter-spacing: -0.02em; }
+.lp-end-text { margin-top: 12px; color: var(--muted); max-width: 48ch; }
+
+@media (max-width: 860px) {
+  .lp { padding: 0 20px; }
+  /* The island above the text it drives, rather than beside it. */
+  .lp-stage { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  /* One column: the floor would just be empty space under the card. */
+  .lp-window { min-height: 0; }
+  .lp-path-grid { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+  .lp-work, .lp-path { padding: 56px 0; }
+  .lp-rail-card { flex-basis: 78%; }
+}
+
+/* ---------- The contact form ---------- */
+.contact { display: grid; gap: 14px; max-width: 540px; margin: 22px auto 0; text-align: left; }
+.contact-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.contact-field { display: grid; gap: 6px; font-size: 0.86rem; color: var(--muted); }
+.contact-field input,
+.contact-field textarea {
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  width: 100%;
+  resize: vertical;
+}
+.contact-field input:focus-visible,
+.contact-field textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* The honeypot. Off-screen rather than display:none, because some bots skip
+   fields they can tell are hidden. */
+.contact-trap { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.contact-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.contact-error { color: var(--danger, #c0392b); font-size: 0.86rem; }
+.contact-done { margin: 22px 0 0; font-weight: 600; }
+
+@media (max-width: 560px) {
+  .contact-row { grid-template-columns: 1fr; }
+}
+
+/* ---------- Education, above the timeline ---------- */
+/* Its own card rather than a timeline entry: a degree isn't a job, and giving
+   it a dot on the same line put it in the wrong place chronologically. */
+.lp-edu {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 28px;
+}
+.lp-edu .lp-entry-points { margin-bottom: 0; }
