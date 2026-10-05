@@ -15,6 +15,7 @@ import { useRef, useState } from "react";
 import { profile, education, experience, leadership, projects } from "../content.js";
 import { byRecency } from "../dates.js";
 import ProjectVisual from "./ProjectVisual.jsx";
+import ClientWork from "./ClientWork.jsx";
 import BunnySvg from "./BunnySvg.jsx";
 
 const findProject = (slug) => projects.find((p) => p.slug === slug) || null;
@@ -119,12 +120,10 @@ export default function OnePage({ selectedSlug, onSelect }) {
         {expandable && isOpen && (
           <ul className="exp-points">
             {e.points.map((pt) => <li key={pt}>{pt}</li>)}
-            {e.projectSlugs?.map((slug) => findProject(slug) && (
-              <li key={slug} className="exp-work">
-                <button onClick={() => select(slug)}>{findProject(slug).name} →</button>
-              </li>
-            ))}
           </ul>
+        )}
+        {expandable && isOpen && e.projectSlugs?.length > 0 && (
+          <ClientWork slugs={e.projectSlugs} onOpen={select} />
         )}
       </li>
     );

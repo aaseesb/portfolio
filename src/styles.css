@@ -724,11 +724,10 @@ a:hover { color: var(--accent); }
 /* Only as tall as the longest card needs when it is open; the collapsed card
    sets the height the rest of the time. */
 .lp-window { min-height: 620px; }
-/* Centred under the island, clear of the "drag to turn" hint that overlaps
-   its bottom edge. */
-.lp-island-nav {
-  display: flex; align-items: center; justify-content: center; gap: 14px;
-  margin-top: 26px;
+/* Under the card, not over it. The card holds a floor, so this sits at a
+   fixed place however short the project's description is. */
+.lp-window-nav {
+  display: flex; align-items: center; gap: 14px; margin-top: 24px;
 }
 .lp-arrow {
   width: 34px; height: 34px;
@@ -901,3 +900,35 @@ a:hover { color: var(--accent); }
   margin-bottom: 28px;
 }
 .lp-edu .lp-entry-points { margin-bottom: 0; }
+
+/* Dropdown of the projects a role produced. */
+.cw { margin-top: 10px; }
+.cw-toggle {
+  background: none; border: 0; padding: 0; font: inherit; font-size: 0.9rem;
+  color: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  /* A border rather than text-decoration, so the line stays put under the
+     whole control while the arrow turns above it. */
+  border-bottom: 1px solid currentColor; padding-bottom: 1px;
+}
+.cw-tag {
+  align-self: flex-start; font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px;
+}
+.cw-chevron { display: inline-block; transition: transform 0.2s; }
+.cw.is-open .cw-chevron { transform: rotate(90deg); }
+.cw-strip {
+  list-style: none; display: flex; gap: 12px; margin-top: 10px; padding-bottom: 8px;
+  overflow-x: auto; scroll-snap-type: x mandatory;
+}
+.cw-card {
+  flex: 0 0 min(220px, 80%); scroll-snap-align: start;
+  display: flex; flex-direction: column; gap: 4px;
+  border: 1px solid var(--border); border-radius: 10px; padding: 10px;
+}
+.cw-name { font-weight: 500; font-size: 0.92rem; margin-top: 4px; }
+.cw-meta, .cw-blurb { font-size: 0.8rem; color: var(--muted); }
+.cw-more {
+  align-self: flex-start; background: none; border: 0; padding: 0; margin-top: 4px;
+  font: inherit; font-size: 0.85rem; color: inherit; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px;
+}

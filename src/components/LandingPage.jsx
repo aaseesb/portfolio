@@ -16,6 +16,7 @@ import ProjectVisual from "./ProjectVisual.jsx";
 import ProjectIcon from "./ProjectIcon.jsx";
 import Reveal from "./Reveal.jsx";
 import ContactForm from "./ContactForm.jsx";
+import ClientWork from "./ClientWork.jsx";
 import { byRecency } from "../dates.js";
 
 // The jobs, newest first. Leadership used to be merged in here and sorted by
@@ -53,14 +54,13 @@ const entryRow = (e, i, setFront) => (
       </ul>
     )}
     {e.projectSlugs?.length > 0 && (
-      <p className="lp-entry-work">
-        {e.projectSlugs.map((slug) => {
-          const at = projects.findIndex((p) => p.slug === slug);
-          return at < 0 ? null : (
-            <a key={slug} href="#work" onClick={() => setFront(at)}>{projects[at].name} →</a>
-          );
-        })}
-      </p>
+      <ClientWork
+        slugs={e.projectSlugs}
+        onOpen={(slug) => {
+          setFront(projects.findIndex((p) => p.slug === slug));
+          document.getElementById("work")?.scrollIntoView({ behavior: "smooth" });
+        }}
+      />
     )}
   </Reveal>
 );
@@ -245,31 +245,6 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
               />
             </div>
 
-            {/* The arrows turn the island, so they sit under it rather than on
-                top of the card. At the top of the right-hand column they were
-                the one thing showing below the fold on the front page — a pair
-                of arrows and a counter with nothing visible to act on, which
-                read like a slideshow someone had scrolled past. */}
-            <div className="lp-island-nav">
-              <button
-                className="lp-arrow"
-                onClick={() => island.current?.prev()}
-                aria-label="Previous project"
-              >
-                ‹
-              </button>
-              <span className="lp-counter">
-                {front + 1} / {projects.length}
-              </span>
-              <button
-                className="lp-arrow"
-                onClick={() => island.current?.next()}
-                aria-label="Next project"
-              >
-                ›
-              </button>
-            </div>
-
             {/* The rail: every project at a glance, and another way to drive the
                 island for anyone who would rather pick than turn. */}
             <div className="lp-rail" ref={railRef}>
@@ -374,6 +349,32 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
                 </div>
               )}
             </article>
+
+            {/* The arrows live with the card, but under it rather than over it.
+                Above the card they were the one thing showing below the fold on
+                the front page — a pair of arrows and a counter with nothing
+                visible to act on, reading like a slideshow already scrolled
+                past. At the foot of the card they are where you are when you
+                have finished reading one and want the next. */}
+            <div className="lp-window-nav">
+              <button
+                className="lp-arrow"
+                onClick={() => island.current?.prev()}
+                aria-label="Previous project"
+              >
+                ‹
+              </button>
+              <span className="lp-counter">
+                {front + 1} / {projects.length}
+              </span>
+              <button
+                className="lp-arrow"
+                onClick={() => island.current?.next()}
+                aria-label="Next project"
+              >
+                ›
+              </button>
+            </div>
           </div>
         </div>
 

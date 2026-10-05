@@ -182,7 +182,7 @@ export const projects = [
     badge: "client work",
     engagement: {
       client: "Books Galore",
-      role: "Front-end developer — contract",
+      role: "Front-end developer",
       period: "May – Dec 2025",
     },
     blurb: "A bookstore's storefront, rebuilt and automated.",
@@ -201,7 +201,7 @@ export const projects = [
     badge: "client work",
     engagement: {
       client: "Save the Shea Tree",
-      role: "Full-stack engineer — freelance",
+      role: "Full-stack engineer",
       period: "Jun – Aug 2026",
     },
     blurb: "A non-profit's site, editable by the people who run it.",
