@@ -21,12 +21,24 @@ export const profile = {
   ],
   email: "aaseesbadesha13@gmail.com",
 
+  // The contact form at the bottom of the main page. Leave `formEndpoint` empty
+  // and the form isn't rendered at all — the email button stands in for it.
+  // To turn it on: make a free form at formspree.io (or web3forms.com), paste
+  // the endpoint URL it gives you here, and confirm the address it emails you.
+  // Nothing secret goes here; the endpoint is meant to be public.
+  formEndpoint: "",
+
+  // Grouped the way a resume groups them, so a recruiter scanning for one
+  // language isn't reading a single long comma list. Add, rename or reorder
+  // groups freely — the layout just renders whatever is here.
+  //
   // Selecting a project lights up the entries it used and dims the rest, so
   // these strings have to match the `tech` arrays below exactly.
-  techLine: [
-    "Python", "Java", "C++", "TypeScript", "JavaScript", "SQL",
-    "React", "Next.js", "Flask", "YOLO", "OpenCV",
-    "Tailwind CSS", "Sanity", "AWS", "Selenium", "Git",
+  skills: [
+    { group: "Languages", items: ["Python", "Java", "C++", "TypeScript", "JavaScript", "SQL"] },
+    { group: "Frameworks", items: ["React", "Next.js", "Flask", "Tailwind CSS"] },
+    { group: "Machine vision", items: ["YOLO", "OpenCV"] },
+    { group: "Platforms & tools", items: ["AWS", "Sanity", "Selenium", "Git"] },
   ],
 };
 
@@ -40,13 +52,32 @@ export const education = {
   ],
 };
 
+// `orgNote` is a short flag on the role — "Internship", "Part-time",
+// "Student team". It renders as a small pill beside the role, never as part of
+// the employer's name, so the title can stay the title.
+//
 // Give a row `points` and it becomes clickable: the bullets unfold underneath.
 // A row with no `points` stays plain text.
 // `projectSlug` instead makes the row open the matching project's panel.
 export const experience = [
   {
-    title: "Software Engineer Intern",
+    // Rows normally lead with the org. There's no employer here, so this one
+    // flips: `leadWithTitle` puts the role on the big line and "Independent"
+    // underneath where a company name would be.
+    leadWithTitle: true,
+    title: "Freelance Developer",
+    org: "Independent",
+    dates: "May 2025 – present",
+    points: [
+      "Build and ship production sites for small businesses and non-profits end to end — scoping, build, deploy, and handover.",
+      "Clients include Books Galore and Save the Shea Tree — both in the projects.",
+      "Available for freelance and contract work alongside full-time roles.",
+    ],
+  },
+  {
+    title: "Software Engineer (AI)",
     org: "Xsolla",
+    orgNote: "Internship",
     dates: "Aug 2026 – present",
     points: [
       "Build internal applications and integrations against the company's APIs and SDKs.",
@@ -56,7 +87,7 @@ export const experience = [
   {
     title: "Web Systems Assistant",
     org: "McGill Desautels",
-    orgNote: "part-time",
+    orgNote: "Part-time",
     dates: "May 2026 – present",
     points: [
       "Refactor legacy pages to clean, WCAG-compliant HTML.",
@@ -66,7 +97,7 @@ export const experience = [
   {
     title: "Computer Vision Engineer",
     org: "McGill Aerial Design",
-    orgNote: "student team",
+    orgNote: "Student team",
     dates: "Sep 2025 – May 2026",
     points: [
       "Built a YOLOv8 model in Python for autonomous target detection from the drone's camera.",
@@ -74,8 +105,9 @@ export const experience = [
     ],
   },
   {
-    title: "Software Engineering Intern",
+    title: "Software Engineer",
     org: "Anchor Repair Co.",
+    orgNote: "Internship",
     dates: "May – Aug 2025",
     points: [
       "Built a Flask, SQL and React application that replaced paper client and service records.",
@@ -94,12 +126,13 @@ export const experience = [
   },
 ];
 
-// Kept out of the experience list on purpose: a club role shouldn't compete
-// chronologically with your jobs. Same shape as an experience row.
+// A club role, kept as its own list so the one-page summary can label it as
+// leadership rather than filing it with the jobs. The main page's timeline
+// merges it back in by date, so it still lands where it actually happened.
 export const leadership = [
   {
     title: "Hackathon Director",
-    org: "McWiCS",
+    org: "McGill Women in Computer Science (McWiCS)",
     dates: "Sep 2026 – present",
     points: [
       "TODO — one line on what you're running and at what scale.",
@@ -218,12 +251,10 @@ export const projects = [
   },
 ];
 
-// The piece at the top of the right column: the drawn grass island
-// (src/components/IslandHero.jsx). `islandCount` is how many projects float
-// above it as blocks — the rest still appear in the grid below. Reorder
-// `projects` to change which ones get the spotlight; four is the most that fit.
-// Which glyph a block shows comes from that project's `icon` field.
-export const hero = { islandCount: 4 };
+// The grass island on the main page (src/components/IslandHero.jsx) floats one
+// block per project, in the order of `projects` above — reorder them and the
+// island reorders with them. Which glyph a block shows comes from that
+// project's `icon` field.
 
 // What the bunny says. `idle` is the default; the rest are keyed by project slug.
 export const bunnyLines = {
