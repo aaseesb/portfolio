@@ -606,13 +606,20 @@ a:hover { color: var(--accent); }
 
 /* --- Section headings, shared --- */
 .lp-section-head { margin-bottom: 32px; }
+/* In the work section the heading sits inside the left column, so the panel on
+   the right lines up with it rather than starting below it. */
+.lp-stage-left .lp-section-head { margin-bottom: 24px; }
 .lp-section-head h2 {
   font-size: clamp(1.6rem, 3.6vw, 2.4rem); letter-spacing: -0.02em;
 }
 .lp-section-note { color: var(--muted); font-size: 0.92rem; margin-top: 8px; max-width: 48ch; }
 
 /* --- The work --- */
-.lp-work { padding: 80px 0; }
+/* Tuned so the whole section — heading, island, rail, and the card beside
+   them — clears a 768px-tall window without scrolling, with less air
+   underneath than above so the next heading follows on rather than sitting
+   a screen away. */
+.lp-work { padding: 56px 0 32px; }
 /* `start`, not `center`: centring made the island drift up and down as the
    panel beside it changed height from one project to the next, and took the
    rail underneath with it. The panel also holds a floor, so a short
@@ -623,7 +630,9 @@ a:hover { color: var(--accent); }
 }
 .lp-stage-left { min-width: 0; }
 .lp-island { width: 100%; }
-.lp-window { min-height: 800px; }
+/* Only as tall as the longest card needs when it is open; the collapsed card
+   sets the height the rest of the time. */
+.lp-window { min-height: 620px; }
 .lp-window-nav {
   display: flex; align-items: center; gap: 14px; margin-bottom: 16px;
 }
@@ -636,44 +645,22 @@ a:hover { color: var(--accent); }
 .lp-arrow:hover { border-color: var(--accent); }
 .lp-arrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .lp-counter { color: var(--muted); font-size: 0.78rem; letter-spacing: 0.08em; }
-/* Visible at every width. It started out as a stacked-only control, but a
-   fold is just as useful beside the island — the description is the tallest
-   thing in the section either way. It is drawn in the accent rather than the
-   muted grey it started as: a grey pill in the far corner of a wide screen
-   is a control nobody finds. */
-.lp-fold {
-  display: inline-flex; align-items: center; gap: 7px; margin-left: auto;
-  font: inherit; font-size: 0.82rem; font-weight: 600;
-  color: var(--accent); background: var(--surface);
-  border: 1px solid var(--accent); border-radius: 999px;
-  padding: 6px 14px; cursor: pointer;
+/* Read more / Read less. It is the last word of the paragraph, not a control
+   in the corner: an earlier version was a pill up in the nav row, far from the
+   text it folds and easy to miss. Nothing else about the card changes between
+   the two states — the picture, the demo steps, the tags and the links are the
+   project's identity, and shrinking them to save a few pixels made the
+   collapsed card look like a worse card instead of a shorter one. */
+.lp-more {
+  font: inherit; font-weight: 600; color: var(--accent);
+  background: none; border: 0; padding: 0; margin-left: 6px;
+  cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
 }
-/* Points down to the text it hides, and up once it is away. */
-.lp-fold::after {
-  content: "\25B4"; font-size: 0.72rem; line-height: 1;
-  transition: transform 0.2s ease;
-}
-.lp-window.is-compact .lp-fold::after { transform: rotate(180deg); }
-.lp-fold:hover { background: var(--accent); color: var(--accent-text); }
-.lp-fold:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-/* Compact, not hidden. Every part of the card is still here, the description
-   included — it is cut to its first sentence or so in the markup and drawn a
-   size down, so the card reads as a shorter version of itself rather than one
-   with a block missing from the middle. */
-.lp-window.is-compact .lp-card-text {
-  font-size: 0.88rem; margin-top: 8px; color: var(--muted);
-}
-.lp-window.is-compact .lp-card-stage { margin-bottom: 12px; }
-.lp-window.is-compact .lp-card-stage .visual { aspect-ratio: 16 / 7; }
-.lp-window.is-compact .lp-card-name { font-size: 1.1rem; }
-.lp-window.is-compact .panel-tech { gap: 5px; margin-top: 10px; }
-.lp-window.is-compact .panel-tech li { font-size: 0.66rem; padding: 2px 7px; }
-.lp-window.is-compact .clip-steps { display: none; }
-.lp-window.is-compact .panel-actions { margin-top: 12px; }
-.lp-window.is-compact .panel-actions .btn { font-size: 0.78rem; padding: 7px 14px; }
-/* The window holds a tall floor so the island does not jump as you turn
-   between projects of different lengths. Compact, that floor is the one thing
-   you were trying to get rid of. */
+.lp-more:hover { text-decoration-thickness: 2px; }
+.lp-more:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* The floor keeps the island still as you turn between projects of different
+   lengths. Collapsed, the card is short by design and the floor is the only
+   thing left making the section taller than a screen. */
 .lp-window.is-compact { min-height: 0; }
 
 .lp-card { min-width: 0; }
@@ -714,7 +701,7 @@ a:hover { color: var(--accent); }
 .lp-rail-blurb { color: var(--muted); font-size: 0.8rem; line-height: 1.4; }
 
 /* --- The timeline --- */
-.lp-path { padding: 80px 0; }
+.lp-path { padding: 32px 0 80px; }
 /* Two columns: jobs on the left, school and the club on the right. */
 .lp-path-grid {
   display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);

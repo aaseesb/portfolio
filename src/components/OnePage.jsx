@@ -315,7 +315,7 @@ export default function OnePage({ selectedSlug, onSelect }) {
             {(selected.demo || selected.repo) && (
               <div className="panel-actions">
                 {selected.demo && (
-                  <a className="btn primary" href={selected.demo} target="_blank" rel="noopener">Demo</a>
+                  <a className="btn primary" href={selected.demo} target="_blank" rel="noopener">Visit site ↗</a>
                 )}
                 {selected.repo && (
                   <a className="btn" href={selected.repo} target="_blank" rel="noopener">Code</a>
