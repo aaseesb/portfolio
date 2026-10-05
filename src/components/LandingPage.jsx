@@ -33,7 +33,7 @@ const leadRoles = leadership.slice().sort(byRecency);
 
 // One row of either timeline. The two lists render identically — the only
 // difference is which heading they sit under.
-const entryRow = (e, i) => (
+const entryRow = (e, i, setFront) => (
   <Reveal as="li" className="lp-entry" key={e.org + e.dates} delay={Math.min(i, 4) * 60}>
     <span className="lp-dot" aria-hidden="true" />
     <p className="lp-entry-dates">{e.dates}</p>
@@ -51,6 +51,16 @@ const entryRow = (e, i) => (
       <ul className="lp-entry-points">
         {e.points.map((pt) => <li key={pt}>{pt}</li>)}
       </ul>
+    )}
+    {e.projectSlugs?.length > 0 && (
+      <p className="lp-entry-work">
+        {e.projectSlugs.map((slug) => {
+          const at = projects.findIndex((p) => p.slug === slug);
+          return at < 0 ? null : (
+            <a key={slug} href="#work" onClick={() => setFront(at)}>{projects[at].name} →</a>
+          );
+        })}
+      </p>
     )}
   </Reveal>
 );
@@ -220,6 +230,7 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
               already reading — it belongs under the thing it drives. */}
           <div className="lp-stage-left">
             <Reveal as="header" className="lp-section-head">
+              <p className="lp-sec-eyebrow"><b>01</b> The work</p>
               <h2>Things I've built</h2>
               <p className="lp-section-note">
                 Turn the island, or use the arrows — whatever comes round is what you'll read.
@@ -366,6 +377,7 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
       {/* ---------- The path ---------- */}
       <section className="lp-path" id="path">
         <Reveal as="header" className="lp-section-head">
+          <p className="lp-sec-eyebrow"><b>02</b> The path</p>
           <h2>How I got here</h2>
         </Reveal>
 
@@ -377,7 +389,7 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
           <div className="lp-path-main">
             <Reveal as="h3" className="lp-subhead">Experience</Reveal>
             <ol className="lp-timeline">
-              {mainRoles.map(entryRow)}
+              {mainRoles.map((e, i) => entryRow(e, i, setFront))}
             </ol>
           </div>
 
@@ -400,7 +412,7 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
               <>
                 <Reveal as="h3" className="lp-subhead">Other roles</Reveal>
                 <ol className="lp-timeline lp-timeline-lead">
-                  {asideRoles.map(entryRow)}
+                  {asideRoles.map((e, i) => entryRow(e, i, setFront))}
                 </ol>
               </>
             )}
@@ -409,7 +421,7 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
               <>
                 <Reveal as="h3" className="lp-subhead">Leadership</Reveal>
                 <ol className="lp-timeline lp-timeline-lead">
-                  {leadRoles.map(entryRow)}
+                  {leadRoles.map((e, i) => entryRow(e, i, setFront))}
                 </ol>
               </>
             )}

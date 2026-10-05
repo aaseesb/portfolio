@@ -23,6 +23,10 @@ const findProject = (slug) => projects.find((p) => p.slug === slug) || null;
 // nothing has to be slotted into the right place by hand, which is how the list
 // quietly stopped being chronological the last two times.
 const jobs = experience.slice().sort(byRecency);
+// A row flagged `aside` in content.js sits in the right column under "Other
+// roles", the same as on the exploring page — see the note there.
+const mainJobs = jobs.filter((e) => !e.aside);
+const asideJobs = jobs.filter((e) => e.aside);
 const leadRoles = leadership.slice().sort(byRecency);
 
 export default function OnePage({ selectedSlug, onSelect }) {
@@ -115,6 +119,11 @@ export default function OnePage({ selectedSlug, onSelect }) {
         {expandable && isOpen && (
           <ul className="exp-points">
             {e.points.map((pt) => <li key={pt}>{pt}</li>)}
+            {e.projectSlugs?.map((slug) => findProject(slug) && (
+              <li key={slug} className="exp-work">
+                <button onClick={() => select(slug)}>{findProject(slug).name} →</button>
+              </li>
+            ))}
           </ul>
         )}
       </li>
@@ -153,7 +162,7 @@ export default function OnePage({ selectedSlug, onSelect }) {
           first thing someone is looking for. */}
       <div className="col-left">
         <h2 className="col-heading exp-heading">Experience</h2>
-        <ul className="experience">{jobs.map(expRow)}</ul>
+        <ul className="experience">{mainJobs.map(expRow)}</ul>
       </div>
 
       {/* Beside it — the shorter facts: education and the leadership role. */}
@@ -175,6 +184,13 @@ export default function OnePage({ selectedSlug, onSelect }) {
             </ul>
           )}
         </section>
+
+        {asideJobs.length > 0 && (
+          <>
+            <h2 className="col-heading exp-heading aside-heading">Other roles</h2>
+            <ul className="experience aside-list">{asideJobs.map(expRow)}</ul>
+          </>
+        )}
 
         {/* Leadership is kept out of the job list on purpose — a club role
             shouldn't compete chronologically with employment, and over

@@ -63,6 +63,8 @@ export const education = {
 //
 // Give a row `points` and it becomes clickable: the bullets unfold underneath.
 // A row with no `points` stays plain text.
+// `projectSlugs` lists projects to link to from the row, for a role that
+// produced several of them (the freelance work).
 // `projectSlug` instead makes the row open the matching project's panel.
 export const experience = [
   {
@@ -73,6 +75,7 @@ export const experience = [
     title: "Freelance Developer",
     org: "Independent",
     dates: "May 2025 – present",
+    projectSlugs: ["books-galore", "shea-tree"],
     points: [
       "Build and ship production sites for small businesses and non-profits end to end — scoping, build, deploy, and handover.",
       "Clients include Books Galore and Save the Shea Tree — both in the projects.",

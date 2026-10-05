@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Portfolio</title>
     <meta name="description" content="Software developer portfolio: projects, experience, and skills." />
+    <!-- The one webfont on the site, and it is only ever used for headings.
+         Fraunces is a soft serif with a bit of wobble in it, which is the
+         closest type gets to the drawing on the front page. Body text stays
+         on the system stack: it loads instantly and reads better small.
+         `display=swap` so a slow font never blanks the headings. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div id="root"></div>

@@ -14,8 +14,9 @@ export function startOf(dates = "") {
   return Number(own ? own[0] : year || 0) * 12 + (m < 0 ? 0 : m);
 }
 
-// Newest first. Two things that started in the same month are tied, so the one
-// still running is listed first — "present" beats a range that has ended.
+// Whatever is still running comes first, newest start first within it, then the
+// finished things the same way. Sorting on start date alone put a job that began
+// in May and is still going underneath a team that began in September and ended.
 const ongoing = (d = "") => (/present|current|now/i.test(d) ? 1 : 0);
 export const byRecency = (a, b) =>
-  startOf(b.dates) - startOf(a.dates) || ongoing(b.dates) - ongoing(a.dates);
+  ongoing(b.dates) - ongoing(a.dates) || startOf(b.dates) - startOf(a.dates);
