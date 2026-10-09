@@ -1,0 +1,37 @@
+/* Game scenes. Colours all come from the site's tokens, so dark mode works. */
+.intro, .hub, .game-card, .lvl { max-width: 860px; margin: 0 auto; padding: 72px 20px 40px; text-align: center; }
+.intro { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; max-width: none; }
+.intro-curtain { position: absolute; inset: 0; background: var(--surface-2, var(--border)); transform: translateX(-100%); animation: curtain 2.6s 0.8s ease-out forwards; z-index: -1; }
+.intro-scene { width: min(480px, 90vw); margin: 0 auto; overflow: visible; }
+.intro-text { margin-top: 18px; }
+.intro-text p { color: var(--muted); margin: 8px 0 18px; }
+.intro-b { opacity: 0; }
+.intro-b1 { animation: hopin-l 2.4s 0.2s ease-out forwards; }
+.intro-b2 { animation: hopin-r 2.4s 0.5s ease-out forwards; }
+.intro-b3 { animation: hopin-l 2.4s 0.9s ease-out forwards; }
+@keyframes curtain { to { transform: translateX(0); } }
+@keyframes hopin-l { 0% { opacity: 0; transform: translate(-200px, 0); } 20% { opacity: 1; } 100% { opacity: 1; transform: translate(var(--tx, 80px), 0); } }
+@keyframes hopin-r { 0% { opacity: 0; transform: translate(200px, 0); } 20% { opacity: 1; } 100% { opacity: 1; transform: translate(var(--tx, 0px), 0); } }
+.intro-b1 { --tx: 90px; } .intro-b2 { --tx: 310px; } .intro-b3 { --tx: 200px; }
+.hub-gang { width: min(520px, 100%); overflow: visible; margin-top: 14px; }
+.hub-line, .hub-pouch { color: var(--muted); }
+.hub-doors { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 18px 0; padding: 0; }
+.hub-door { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--card, var(--bg)); color: var(--text); font: inherit; cursor: pointer; }
+.hub-door:hover:not(:disabled) { border-color: var(--accent); }
+.hub-door:disabled { opacity: 0.45; cursor: not-allowed; }
+.hub-door.is-done { border-color: var(--accent); }
+.hub-door svg { width: 28px; height: 28px; color: var(--accent); }
+.hub-door small { color: var(--muted); }
+.game-card { text-align: left; display: grid; gap: 12px; }
+.game-card-line { font-style: italic; color: var(--muted); }
+.lvl { padding-top: 64px; max-width: 900px; }
+.lvl-hud { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 8px; }
+.lvl-svg { width: 100%; height: auto; border: 1px solid var(--border); border-radius: 14px; touch-action: none; }
+.lvl-feed { margin-top: 12px; }
+.lvl-help { color: var(--muted); font-size: 0.85rem; margin-top: 10px; }
+.pad { display: none; }
+@media (hover: none) and (pointer: coarse), (max-width: 700px) {
+  .pad { display: flex; justify-content: space-between; margin-top: 14px; }
+  .pad-btn { width: 64px; height: 64px; border-radius: 50%; border: 1px solid var(--border); background: var(--card, var(--bg)); color: var(--text); font-size: 1.4rem; touch-action: none; user-select: none; }
+  .pad-l { order: 1; } .pad-r { order: 2; margin-right: auto; margin-left: 10px; } .pad-j { order: 3; }
+}

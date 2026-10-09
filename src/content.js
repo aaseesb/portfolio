@@ -277,3 +277,26 @@ export const bunnyLines = {
   "tic-tac-toe-ml": "It beat itself a few thousand times until it got good.",
   "seat-alert": "Someone drops the class, your phone buzzes. Go register.",
 };
+
+// The game. Each project's level is themed by a treat to collect, and the
+// gatekeeper bunny says a line when fed. Nothing about the game lives in the
+// components — add a project and give it a treat here.
+export const treats = {
+  argm: "🥕",
+  "books-galore": "📖",
+  "shea-tree": "🌿",
+  swipeflix: "🍿",
+  "seat-alert": "🔔",
+  "tic-tac-toe-ml": "🍪",
+};
+
+export const gameText = {
+  introTitle: "The bunnies are coming!",
+  introLine: "Help them find their treats and each project is yours to read.",
+  hubTitle: "Bunny burrow",
+  hubLine: "Pick a door. Treats you collect can be fed to the gang.",
+  levelHelp: "← → to run · Space or ↑ to jump · collect every treat, then feed the gatekeeper",
+  finaleTitle: "Everyone's fed!",
+  finaleLine: "Thanks for playing. Here's how to reach me.",
+  fed: "Yum!",
+};
