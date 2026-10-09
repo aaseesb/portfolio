@@ -1,97 +1,87 @@
-// The interactive tour. The bunnies drag the page in one section at a time
-// (intro, work, path, contact); to send them for the next, drag a treat onto
-// the bunny. Secret treats are hidden in each section. No progress is kept:
-// it's a short tour, not a save file.
-import { useRef, useState } from "react";
+// The interactive tour. Three bunnies (a Three.js scene, see stage.js) tow each
+// section of the page in like a slide; a hero bunny circles a treat begging for
+// it, you drag the treat to her, and they tow the slide away and fetch the next.
+// Golden eggs are hidden in the grass. No progress is kept: it's a short tour.
+import { useEffect, useRef, useState } from "react";
 import { tour } from "../content.js";
 import LandingPage from "../components/LandingPage.jsx";
-import BunnySvg from "../components/BunnySvg.jsx";
+import { createStage } from "./stage.js";
 import "./game.css";
 
 const steps = tour.steps;
-const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const OUT_MS = 650;
+const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export default function GameShell({ onExit }) {
+  const rootRef = useRef(null);
+  const canvasRef = useRef(null);
+  const slideRef = useRef(null);
+  const bubbleRef = useRef(null);
+  const stageRef = useRef(null);
   const [step, setStep] = useState(0);
-  const [phase, setPhase] = useState("in"); // in | idle | out
-  const [found, setFound] = useState([]);
+  const [text, setText] = useState(null);
+  const [finale, setFinale] = useState(false);
+  const [found, setFound] = useState(0);
   const [toast, setToast] = useState("");
-  const [drag, setDrag] = useState(null); // {x, y} while a treat is held
-  const bunnyRef = useRef(null);
-  const moved = useRef(false);
+  const [failed, setFailed] = useState(false);
+  const toastTimer = useRef(0);
   const s = steps[step];
-  const last = step === steps.length - 1;
-  const fast = reduced();
 
-  const feed = () => {
-    if (phase === "out") return;
-    setToast(tour.yum);
-    setPhase("out");
-    setTimeout(() => {
-      setToast("");
-      setStep((n) => n + 1);
-      setPhase("in");
-      window.scrollTo({ top: 0 });
-    }, fast ? 0 : OUT_MS);
-  };
+  useEffect(() => {
+    let stage;
+    const flash = (msg, ms) => { clearTimeout(toastTimer.current); setToast(msg); if (msg && ms) toastTimer.current = setTimeout(() => setToast(""), ms); };
+    try {
+      stage = createStage({
+        canvas: canvasRef.current, root: rootRef.current, slide: slideRef.current, bubble: bubbleRef.current,
+        steps, reduced: reducedMotion(),
+        hooks: {
+          text: tour,
+          onStep: (n) => { setStep(n); setFinale(false); setText(null); slideRef.current?.scrollTo({ top: 0 }); },
+          onText: setText,
+          onFinale: setFinale,
+          onToast: (m) => flash(m, 1400),
+          onFound: (n) => { setFound(n); flash(tour.found(n, steps.length), 2200); },
+        },
+      });
+    } catch {
+      setFailed(true);
+      return undefined;
+    }
+    stageRef.current = stage;
+    if (import.meta.env.DEV) window.__tour = stage;
+    return () => { stage.dispose(); clearTimeout(toastTimer.current); };
+  }, []);
 
-  const release = (e) => {
-    const r = bunnyRef.current?.getBoundingClientRect();
-    const hit = r && e.clientX > r.left - 30 && e.clientX < r.right + 30 && e.clientY > r.top - 30 && e.clientY < r.bottom + 30;
-    setDrag(null);
-    if (hit && moved.current) feed();
-  };
-
-  const findEgg = (key) => {
-    if (found.includes(key)) return;
-    const next = [...found, key];
-    setFound(next);
-    setToast(tour.found(next.length, steps.length));
-    setTimeout(() => setToast(""), 1800);
-  };
+  if (failed) {
+    return (
+      <div className="tour tour-plain">
+        <p>{tour.noGl}</p>
+        <button className="btn primary" onClick={onExit}>{tour.summary}</button>
+      </div>
+    );
+  }
 
   return (
-    <div className="tour">
-      <div className={`tour-page is-${phase}`} key={step} onAnimationEnd={() => phase === "in" && setPhase("idle")}>
-        <div className="tour-tow" aria-hidden="true">
-          {[0, 1].map((i) => (
-            <svg key={i} viewBox="-40 -50 80 90" className="tour-tow-bunny">
-              <BunnySvg fur={i ? "var(--bunny-alt-b)" : "var(--bunny-alt-a)"} blaze={false} />
-            </svg>
-          ))}
-        </div>
+    <div className="tour" ref={rootRef}>
+      <canvas ref={canvasRef} className="tour-canvas" aria-hidden="true" />
+      <div className="tour-slide" ref={slideRef}>
         <LandingPage only={s.key} />
-        {!found.includes(s.key) && (
-          <button className="tour-egg" style={{ left: `${s.egg.x}%`, top: `${s.egg.y}%` }}
-            aria-label="A hidden treat" onClick={() => findEgg(s.key)}>🥚</button>
+      </div>
+
+      <div className="tour-bubble" ref={bubbleRef} role="status" aria-live="polite">
+        {text && !finale && <p>{text}</p>}
+        {finale && (
+          <>
+            <p>{tour.done(found, steps.length)}</p>
+            <button className="btn primary" onClick={onExit}>{tour.summary}</button>
+          </>
         )}
       </div>
 
-      <div className="tour-bar">
-        {last ? (
-          <>
-            <p>{tour.done(found.length, steps.length)}</p>
-            <button className="btn primary" onClick={onExit}>{tour.summary}</button>
-          </>
-        ) : (
-          <>
-            <button className="tour-treat" aria-label={`Feed the bunny ${s.treat}`}
-              style={drag ? { transform: `translate(${drag.dx}px, ${drag.dy}px)`, zIndex: 20 } : undefined}
-              onClick={() => { if (!moved.current) feed(); moved.current = false; }}
-              onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); moved.current = false; setDrag({ sx: e.clientX, sy: e.clientY, dx: 0, dy: 0 }); }}
-              onPointerMove={(e) => { if (!drag) return; if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 6) moved.current = true; setDrag({ ...drag, dx: e.clientX - drag.sx, dy: e.clientY - drag.sy }); }}
-              onPointerUp={release}
-              onPointerCancel={() => setDrag(null)}>
-              {s.treat}
-            </button>
-            <p className="tour-ask">{s.ask}<small>{tour.drag}</small></p>
-            <svg ref={bunnyRef} viewBox="-40 -50 80 90" className="tour-bunny" role="img" aria-label="A hungry bunny">
-              <BunnySvg pose="wave" />
-            </svg>
-          </>
-        )}
+      <div className="tour-keys">
+        {!finale && s.treat && <button className="btn tour-give" onClick={() => stageRef.current?.give()}>{tour.give}</button>}
+        <button className="btn tour-hunt" onClick={() => stageRef.current?.collectEgg()}>{tour.hunt}</button>
       </div>
+      <p className="tour-hint">{tour.hint}</p>
       {toast && <div className="tour-toast" role="status">{toast}</div>}
     </div>
   );

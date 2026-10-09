@@ -286,14 +286,18 @@ export const bunnyLines = {
 // secret treat is hidden in that section (percent of the section).
 export const tour = {
   steps: [
-    { key: "intro", treat: "🥕", ask: "Hi! Feed me a carrot and I'll fetch the next bit.", egg: { x: 92, y: 78 } },
-    { key: "work", treat: "🍎", ask: "Ooh, an apple, please? Then you can see how I got here.", egg: { x: 4, y: 96 } },
-    { key: "path", treat: "🌿", ask: "A leaf for the road, and then we're nearly done.", egg: { x: 96, y: 40 } },
-    { key: "end", egg: { x: 50, y: 99 } },
+    { key: "intro", treat: "carrot", icon: "🥕", ask: "Hi! Is that a carrot? Can I have it? Please?", egg: { x: 0.9, z: -1.2 } },
+    { key: "work", treat: "apple", icon: "🍎", ask: "Ooh, an apple! Give it here and I'll fetch the next slide.", egg: { x: 0.06, z: 1.4 } },
+    { key: "path", treat: "leaf", icon: "🌿", ask: "A leaf for the road? Then we're nearly done.", egg: { x: 0.5, z: -2 } },
+    { key: "end", egg: { x: 0.95, z: 1.8 } },
   ],
+  hold: "Ooh ooh ooh!",
   yum: "Yum!",
-  drag: "Drag the treat onto the bunny (or press Enter on it)",
-  found: (n, of) => `Secret treat found! ${n}/${of}`,
-  done: (n, of) => `That's the lot. Secret treats found: ${n}/${of}.`,
+  hint: "Drag the treat to the bunny. Pet the bunnies. Hunt for golden eggs.",
+  give: "Give the treat",
+  hunt: "Collect a hidden golden egg",
+  found: (n, of) => `Golden egg found! ${n}/${of}`,
+  done: (n, of) => `That's everything! Golden eggs found: ${n}/${of}.`,
   summary: "See the summary",
+  noGl: "Your browser can't draw the 3D island, so here is the plain version.",
 };

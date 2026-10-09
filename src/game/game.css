@@ -1,25 +1,33 @@
-/* The interactive tour. Colours all come from the site's tokens, so dark mode works. */
-.tour { min-height: 100vh; padding-bottom: 140px; overflow-x: hidden; }
-.tour-page { position: relative; will-change: transform; }
-.tour-tow { position: absolute; left: 0; top: 40vh; display: none; z-index: 4; }
-.tour-tow-bunny { width: 64px; height: auto; overflow: visible; }
+/* The interactive tour. Colours come from the site's tokens, so dark mode works. */
+.tour { position: fixed; inset: 0; overflow: hidden; background: var(--bg); --strip: 240px; }
+.tour-plain { display: grid; place-content: center; gap: 16px; text-align: center; padding: 24px; }
+.tour-canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; z-index: 0; }
 
-.tour-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--border); }
-.tour-ask { margin: 0; max-width: 34ch; text-align: left; }
-.tour-ask small { display: block; color: var(--muted, inherit); opacity: 0.7; font-size: 0.8rem; }
-.tour-bunny { width: 84px; height: auto; overflow: visible; flex: none; }
-.tour-treat { font-size: 2.4rem; line-height: 1; padding: 10px; border-radius: 50%; border: 2px dashed var(--accent); background: var(--surface, var(--bg)); cursor: grab; touch-action: none; flex: none; }
-.tour-treat:active { cursor: grabbing; }
-.tour-egg { position: absolute; transform: translate(-50%, -50%); z-index: 3; background: none; border: 0; padding: 10px; font-size: 1rem; opacity: 0.25; cursor: pointer; }
-.tour-egg:hover, .tour-egg:focus-visible { opacity: 1; }
-.tour-toast { position: fixed; left: 50%; bottom: 170px; transform: translateX(-50%); z-index: 30; padding: 8px 16px; border-radius: 999px; background: var(--accent); color: var(--bg); font-weight: 600; }
-
-@media (prefers-reduced-motion: no-preference) {
-  .tour-page.is-in { animation: pull-in 0.9s cubic-bezier(.2,.7,.2,1); }
-  .tour-page.is-out { animation: pull-out 0.65s ease-in forwards; }
-  .tour-page.is-in .tour-tow, .tour-page.is-out .tour-tow { display: flex; }
-  .tour-bunny { animation: nibble 2.4s ease-in-out infinite; }
+/* The slide: a framed panel the bunnies tow in over the grass. */
+.tour-slide {
+  position: absolute; z-index: 1; top: 60px; left: 12px; right: 12px; bottom: var(--strip);
+  background: var(--bg); border: 1px solid var(--border); border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain;
+  transform-origin: 50% 100%; will-change: transform;
 }
-@keyframes pull-in { from { transform: translateX(100vw); } to { transform: none; } }
-@keyframes pull-out { to { transform: translateX(-100vw); } }
-@keyframes nibble { 50% { transform: translateY(-5px); } }
+
+.tour-bubble {
+  position: absolute; left: 0; top: 0; z-index: 3; max-width: 230px; padding: 10px 14px;
+  background: var(--surface, var(--bg)); color: var(--text); border: 2px solid var(--accent); border-radius: 16px;
+  font-size: 0.92rem; line-height: 1.35; opacity: 0; visibility: hidden; transition: opacity 0.2s;
+}
+.tour-bubble p { margin: 0; }
+.tour-bubble p + .btn { margin-top: 8px; }
+
+/* Keyboard and screen-reader route to everything the canvas does. */
+.tour-keys { position: absolute; z-index: 4; left: 16px; bottom: 12px; display: flex; gap: 8px; }
+.tour-hunt { position: absolute; left: -9999px; }
+.tour-hunt:focus-visible { position: static; }
+.tour-hint { position: absolute; z-index: 2; right: 14px; bottom: 8px; margin: 0; font-size: 0.75rem; opacity: 0.7; text-align: right; max-width: 40ch; pointer-events: none; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45); }
+.tour-toast { position: absolute; left: 50%; bottom: calc(var(--strip) - 40px); transform: translateX(-50%); z-index: 6; padding: 8px 16px; border-radius: 999px; background: var(--accent); color: var(--bg); font-weight: 600; white-space: nowrap; }
+
+@media (max-width: 640px) {
+  .tour-slide { top: 56px; left: 8px; right: 8px; }
+  .tour-hint { display: none; }
+}

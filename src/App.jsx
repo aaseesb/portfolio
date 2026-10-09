@@ -4,11 +4,12 @@
 // is the game (src/game); the summary is the compact one-page version
 // (LandingPage). App owns only what all of them need — the theme, which door
 // you're at, and which project is in the URL — and none holds content of its own.
-import { useEffect, useState, useCallback } from "react";
+import { lazy, Suspense, useEffect, useState, useCallback } from "react";
 import { profile, projects } from "./content.js";
 import LandingPage from "./components/LandingPage.jsx";
 import Chooser from "./game/Chooser.jsx";
-import GameShell from "./game/GameShell.jsx";
+// Three.js is only paid for by people who press Interactive.
+const GameShell = lazy(() => import("./game/GameShell.jsx"));
 
 const params = () => new URLSearchParams(window.location.search);
 const slugFromUrl = () => params().get("p");
@@ -116,7 +117,9 @@ export default function App() {
           </button>
           {themeBtn}
         </div>
-        <GameShell onExit={() => switchView("summary")} />
+        <Suspense fallback={null}>
+          <GameShell onExit={() => switchView("summary")} />
+        </Suspense>
       </>
     );
   }
