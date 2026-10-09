@@ -281,22 +281,19 @@ export const bunnyLines = {
 // The game. Each project's level is themed by a treat to collect, and the
 // gatekeeper bunny says a line when fed. Nothing about the game lives in the
 // components — add a project and give it a treat here.
-export const treats = {
-  argm: "🥕",
-  "books-galore": "📖",
-  "shea-tree": "🌿",
-  swipeflix: "🍿",
-  "seat-alert": "🔔",
-  "tic-tac-toe-ml": "🍪",
-};
-
-export const gameText = {
-  introTitle: "The bunnies are coming!",
-  introLine: "Help them find their treats and each project is yours to read.",
-  hubTitle: "Bunny burrow",
-  hubLine: "Pick a door. Treats you collect can be fed to the gang.",
-  levelHelp: "← → to run · Space or ↑ to jump · collect every treat, then feed the gatekeeper",
-  finaleTitle: "Everyone's fed!",
-  finaleLine: "Thanks for playing. Here's how to reach me.",
-  fed: "Yum!",
+// The interactive tour: the bunnies drag in one section of the page at a time,
+// and a treat fed to the bunny sends it off for the next. `egg` marks where a
+// secret treat is hidden in that section (percent of the section).
+export const tour = {
+  steps: [
+    { key: "intro", treat: "🥕", ask: "Hi! Feed me a carrot and I'll fetch the next bit.", egg: { x: 92, y: 78 } },
+    { key: "work", treat: "🍎", ask: "Ooh, an apple, please? Then you can see how I got here.", egg: { x: 4, y: 96 } },
+    { key: "path", treat: "🌿", ask: "A leaf for the road, and then we're nearly done.", egg: { x: 96, y: 40 } },
+    { key: "end", egg: { x: 50, y: 99 } },
+  ],
+  yum: "Yum!",
+  drag: "Drag the treat onto the bunny (or press Enter on it)",
+  found: (n, of) => `Secret treat found! ${n}/${of}`,
+  done: (n, of) => `That's the lot. Secret treats found: ${n}/${of}.`,
+  summary: "See the summary",
 };

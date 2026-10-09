@@ -89,7 +89,10 @@ const entryRow = (e, i, setFront) => (
 // under that the whole thing shows and there is no control at all.
 const MAX_LINES = 6;
 
-export default function LandingPage({ selectedSlug, onFrontChange }) {
+// `only` shows a single section ("intro" | "work" | "path" | "end"); the
+// game uses it to drag the page in one piece at a time.
+export default function LandingPage({ selectedSlug, onFrontChange, only }) {
+  const show = (k) => !only || only === k;
   const [front, setFront] = useState(0);
   const [clipIndex, setClipIndex] = useState(0);
   const island = useRef(null);
@@ -217,7 +220,7 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
       {/* One short band instead of a full screen: this is the summary, so the
           work is already in view under it. Resume leads, the way a recruiter
           reads it. */}
-      <section className="lp-intro">
+      {show("intro") && <section className="lp-intro">
         <Reveal className="lp-intro-inner">
           <p className="lp-eyebrow">{profile.tagline}</p>
           <h1 className="lp-name">{profile.name}</h1>
@@ -234,10 +237,10 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
             ))}
           </p>
         </Reveal>
-      </section>
+      </section>}
 
       {/* ---------- The work ---------- */}
-      <section className="lp-work" id="work">
+      {show("work") && <><section className="lp-work" id="work">
         {/* The heading sits inside the left column rather than across the top,
             so the panel on the right starts level with "Things I've built"
             instead of a heading's worth of empty space below it. */}
@@ -416,10 +419,10 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
             </div>
           ))}
         </div>
-      </section>
+      </section></>}
 
       {/* ---------- The path ---------- */}
-      <section className="lp-path" id="path">
+      {show("path") && <section className="lp-path" id="path">
         <Reveal as="header" className="lp-section-head">
           <p className="lp-sec-eyebrow"><b>02</b> The path</p>
           <h2>How I got here</h2>
@@ -471,10 +474,10 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
             )}
           </aside>
         </div>
-      </section>
+      </section>}
 
       {/* ---------- The end ---------- */}
-      <footer className="lp-end">
+      {show("end") && <footer className="lp-end">
         <Reveal>
           <h2>Get in touch</h2>
           <p className="lp-end-text">
@@ -482,7 +485,7 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
           </p>
           <ContactForm endpoint={profile.formEndpoint} email={profile.email} />
         </Reveal>
-      </footer>
+      </footer>}
     </main>
   );
 }

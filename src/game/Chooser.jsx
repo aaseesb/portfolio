@@ -14,7 +14,7 @@ export default function Chooser({ onInteractive, onSummary }) {
       <div className="chooser-buttons">
         <button className="btn primary chooser-btn" onClick={onInteractive}>
           Interactive
-          <span>a little game, one level per project</span>
+          <span>the bunnies drag in each section; feed them to go on</span>
         </button>
         <button className="btn chooser-btn" onClick={onSummary}>
           Summary

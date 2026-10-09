@@ -1,37 +1,25 @@
-/* Game scenes. Colours all come from the site's tokens, so dark mode works. */
-.intro, .hub, .game-card, .lvl { max-width: 860px; margin: 0 auto; padding: 72px 20px 40px; text-align: center; }
-.intro { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; max-width: none; }
-.intro-curtain { position: absolute; inset: 0; background: var(--surface-2, var(--border)); transform: translateX(-100%); animation: curtain 2.6s 0.8s ease-out forwards; z-index: -1; }
-.intro-scene { width: min(480px, 90vw); margin: 0 auto; overflow: visible; }
-.intro-text { margin-top: 18px; }
-.intro-text p { color: var(--muted); margin: 8px 0 18px; }
-.intro-b { opacity: 0; }
-.intro-b1 { animation: hopin-l 2.4s 0.2s ease-out forwards; }
-.intro-b2 { animation: hopin-r 2.4s 0.5s ease-out forwards; }
-.intro-b3 { animation: hopin-l 2.4s 0.9s ease-out forwards; }
-@keyframes curtain { to { transform: translateX(0); } }
-@keyframes hopin-l { 0% { opacity: 0; transform: translate(-200px, 0); } 20% { opacity: 1; } 100% { opacity: 1; transform: translate(var(--tx, 80px), 0); } }
-@keyframes hopin-r { 0% { opacity: 0; transform: translate(200px, 0); } 20% { opacity: 1; } 100% { opacity: 1; transform: translate(var(--tx, 0px), 0); } }
-.intro-b1 { --tx: 90px; } .intro-b2 { --tx: 310px; } .intro-b3 { --tx: 200px; }
-.hub-gang { width: min(520px, 100%); overflow: visible; margin-top: 14px; }
-.hub-line, .hub-pouch { color: var(--muted); }
-.hub-doors { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 18px 0; padding: 0; }
-.hub-door { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--card, var(--bg)); color: var(--text); font: inherit; cursor: pointer; }
-.hub-door:hover:not(:disabled) { border-color: var(--accent); }
-.hub-door:disabled { opacity: 0.45; cursor: not-allowed; }
-.hub-door.is-done { border-color: var(--accent); }
-.hub-door svg { width: 28px; height: 28px; color: var(--accent); }
-.hub-door small { color: var(--muted); }
-.game-card { text-align: left; display: grid; gap: 12px; }
-.game-card-line { font-style: italic; color: var(--muted); }
-.lvl { padding-top: 64px; max-width: 900px; }
-.lvl-hud { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 8px; }
-.lvl-svg { width: 100%; height: auto; border: 1px solid var(--border); border-radius: 14px; touch-action: none; }
-.lvl-feed { margin-top: 12px; }
-.lvl-help { color: var(--muted); font-size: 0.85rem; margin-top: 10px; }
-.pad { display: none; }
-@media (hover: none) and (pointer: coarse), (max-width: 700px) {
-  .pad { display: flex; justify-content: space-between; margin-top: 14px; }
-  .pad-btn { width: 64px; height: 64px; border-radius: 50%; border: 1px solid var(--border); background: var(--card, var(--bg)); color: var(--text); font-size: 1.4rem; touch-action: none; user-select: none; }
-  .pad-l { order: 1; } .pad-r { order: 2; margin-right: auto; margin-left: 10px; } .pad-j { order: 3; }
+/* The interactive tour. Colours all come from the site's tokens, so dark mode works. */
+.tour { min-height: 100vh; padding-bottom: 140px; overflow-x: hidden; }
+.tour-page { position: relative; will-change: transform; }
+.tour-tow { position: absolute; left: 0; top: 40vh; display: none; z-index: 4; }
+.tour-tow-bunny { width: 64px; height: auto; overflow: visible; }
+
+.tour-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--border); }
+.tour-ask { margin: 0; max-width: 34ch; text-align: left; }
+.tour-ask small { display: block; color: var(--muted, inherit); opacity: 0.7; font-size: 0.8rem; }
+.tour-bunny { width: 84px; height: auto; overflow: visible; flex: none; }
+.tour-treat { font-size: 2.4rem; line-height: 1; padding: 10px; border-radius: 50%; border: 2px dashed var(--accent); background: var(--surface, var(--bg)); cursor: grab; touch-action: none; flex: none; }
+.tour-treat:active { cursor: grabbing; }
+.tour-egg { position: absolute; transform: translate(-50%, -50%); z-index: 3; background: none; border: 0; padding: 10px; font-size: 1rem; opacity: 0.25; cursor: pointer; }
+.tour-egg:hover, .tour-egg:focus-visible { opacity: 1; }
+.tour-toast { position: fixed; left: 50%; bottom: 170px; transform: translateX(-50%); z-index: 30; padding: 8px 16px; border-radius: 999px; background: var(--accent); color: var(--bg); font-weight: 600; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .tour-page.is-in { animation: pull-in 0.9s cubic-bezier(.2,.7,.2,1); }
+  .tour-page.is-out { animation: pull-out 0.65s ease-in forwards; }
+  .tour-page.is-in .tour-tow, .tour-page.is-out .tour-tow { display: flex; }
+  .tour-bunny { animation: nibble 2.4s ease-in-out infinite; }
 }
+@keyframes pull-in { from { transform: translateX(100vw); } to { transform: none; } }
+@keyframes pull-out { to { transform: translateX(-100vw); } }
+@keyframes nibble { 50% { transform: translateY(-5px); } }

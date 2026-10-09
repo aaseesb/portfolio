@@ -1,83 +1,98 @@
-// The game's state machine: intro → hub ⇄ level → card → finale. Progress is
-// kept in localStorage when it's available; the game works without it.
-import { useCallback, useState } from "react";
-import { projects, profile, treats, bunnyLines } from "../content.js";
-import ProjectVisual from "../components/ProjectVisual.jsx";
-import ContactForm from "../components/ContactForm.jsx";
-import Intro from "./Intro.jsx";
-import Hub from "./Hub.jsx";
-import Level from "./Level.jsx";
+// The interactive tour. The bunnies drag the page in one section at a time
+// (intro, work, path, contact); to send them for the next, drag a treat onto
+// the bunny. Secret treats are hidden in each section. No progress is kept:
+// it's a short tour, not a save file.
+import { useRef, useState } from "react";
+import { tour } from "../content.js";
+import LandingPage from "../components/LandingPage.jsx";
+import BunnySvg from "../components/BunnySvg.jsx";
 import "./game.css";
 
-const KEY = "bunny-progress";
-const load = () => {
-  try {
-    const p = JSON.parse(localStorage.getItem(KEY));
-    if (p && Array.isArray(p.done)) return { done: p.done, treats: p.treats || 0 };
-  } catch { /* no storage */ }
-  return { done: [], treats: 0 };
-};
+const steps = tour.steps;
 const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const OUT_MS = 650;
 
 export default function GameShell({ onExit }) {
-  const [progress, setProgress] = useState(load);
-  const [scene, setScene] = useState(() => (reduced() ? "hub" : "intro"));
-  const [level, setLevel] = useState(0);
+  const [step, setStep] = useState(0);
+  const [phase, setPhase] = useState("in"); // in | idle | out
+  const [found, setFound] = useState([]);
+  const [toast, setToast] = useState("");
+  const [drag, setDrag] = useState(null); // {x, y} while a treat is held
+  const bunnyRef = useRef(null);
+  const moved = useRef(false);
+  const s = steps[step];
+  const last = step === steps.length - 1;
+  const fast = reduced();
 
-  const save = useCallback((next) => {
-    setProgress(next);
-    try { localStorage.setItem(KEY, JSON.stringify(next)); } catch { /* ignore */ }
-  }, []);
+  const feed = () => {
+    if (phase === "out") return;
+    setToast(tour.yum);
+    setPhase("out");
+    setTimeout(() => {
+      setToast("");
+      setStep((n) => n + 1);
+      setPhase("in");
+      window.scrollTo({ top: 0 });
+    }, fast ? 0 : OUT_MS);
+  };
 
-  const win = useCallback((collected) => {
-    const slug = projects[level].slug;
-    save({
-      done: progress.done.includes(slug) ? progress.done : [...progress.done, slug],
-      treats: progress.treats + (progress.done.includes(slug) ? 0 : collected || 0),
-    });
-    setScene("card");
-  }, [level, progress, save]);
+  const release = (e) => {
+    const r = bunnyRef.current?.getBoundingClientRect();
+    const hit = r && e.clientX > r.left - 30 && e.clientX < r.right + 30 && e.clientY > r.top - 30 && e.clientY < r.bottom + 30;
+    setDrag(null);
+    if (hit && moved.current) feed();
+  };
 
-  const intro = useCallback(() => setScene("hub"), []);
-  const p = projects[level];
+  const findEgg = (key) => {
+    if (found.includes(key)) return;
+    const next = [...found, key];
+    setFound(next);
+    setToast(tour.found(next.length, steps.length));
+    setTimeout(() => setToast(""), 1800);
+  };
 
-  if (scene === "intro") return <Intro onDone={intro} />;
-  if (scene === "level")
-    return (
-      <Level key={level} index={level} project={p} treat={treats[p.slug] || "🥕"}
-        onWin={win} onSkip={() => win(0)} onHub={() => setScene("hub")} />
-    );
-  if (scene === "card")
-    return (
-      <div className="game-card">
-        <p className="game-card-line">{bunnyLines[p.slug]}</p>
-        <ProjectVisual name={p.name} icon={p.icon} image={p.image} variant="hero" />
-        <h2>{p.name}</h2>
-        <p className="muted">{p.badge}</p>
-        <p>{p.description}</p>
-        <ul className="panel-tech">{p.tech.map((t) => <li key={t}>{t}</li>)}</ul>
-        <div className="panel-actions">
-          {p.demo && <a className="btn primary" href={p.demo} target="_blank" rel="noopener">Visit site ↗</a>}
-          {p.repo && <a className="btn" href={p.repo} target="_blank" rel="noopener">Code</a>}
-          <button className="btn" onClick={() => setScene("hub")}>Back to burrow</button>
-        </div>
-      </div>
-    );
-  if (scene === "finale")
-    return (
-      <div className="game-card">
-        <h2>Everyone's fed!</h2>
-        <p>Thanks for playing. Here's how to reach me.</p>
-        <ContactForm endpoint={profile.formEndpoint} email={profile.email} />
-        <div className="panel-actions">
-          <button className="btn primary" onClick={onExit}>See the summary</button>
-          <button className="btn" onClick={() => setScene("hub")}>Back to burrow</button>
-        </div>
-      </div>
-    );
   return (
-    <Hub progress={progress} onPlay={(i) => { setLevel(i); setScene("level"); }}
-      onFeed={() => save({ ...progress, treats: Math.max(0, progress.treats - 1) })}
-      onFinale={() => setScene("finale")} />
+    <div className="tour">
+      <div className={`tour-page is-${phase}`} key={step} onAnimationEnd={() => phase === "in" && setPhase("idle")}>
+        <div className="tour-tow" aria-hidden="true">
+          {[0, 1].map((i) => (
+            <svg key={i} viewBox="-40 -50 80 90" className="tour-tow-bunny">
+              <BunnySvg fur={i ? "var(--bunny-alt-b)" : "var(--bunny-alt-a)"} blaze={false} />
+            </svg>
+          ))}
+        </div>
+        <LandingPage only={s.key} />
+        {!found.includes(s.key) && (
+          <button className="tour-egg" style={{ left: `${s.egg.x}%`, top: `${s.egg.y}%` }}
+            aria-label="A hidden treat" onClick={() => findEgg(s.key)}>🥚</button>
+        )}
+      </div>
+
+      <div className="tour-bar">
+        {last ? (
+          <>
+            <p>{tour.done(found.length, steps.length)}</p>
+            <button className="btn primary" onClick={onExit}>{tour.summary}</button>
+          </>
+        ) : (
+          <>
+            <button className="tour-treat" aria-label={`Feed the bunny ${s.treat}`}
+              style={drag ? { transform: `translate(${drag.dx}px, ${drag.dy}px)`, zIndex: 20 } : undefined}
+              onClick={() => { if (!moved.current) feed(); moved.current = false; }}
+              onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); moved.current = false; setDrag({ sx: e.clientX, sy: e.clientY, dx: 0, dy: 0 }); }}
+              onPointerMove={(e) => { if (!drag) return; if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 6) moved.current = true; setDrag({ ...drag, dx: e.clientX - drag.sx, dy: e.clientY - drag.sy }); }}
+              onPointerUp={release}
+              onPointerCancel={() => setDrag(null)}>
+              {s.treat}
+            </button>
+            <p className="tour-ask">{s.ask}<small>{tour.drag}</small></p>
+            <svg ref={bunnyRef} viewBox="-40 -50 80 90" className="tour-bunny" role="img" aria-label="A hungry bunny">
+              <BunnySvg pose="wave" />
+            </svg>
+          </>
+        )}
+      </div>
+      {toast && <div className="tour-toast" role="status">{toast}</div>}
+    </div>
   );
 }
