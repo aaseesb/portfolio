@@ -1,7 +1,6 @@
 // The main site: the long, scrolling version of me.
 //
-// Three acts. A landing that is just a name and a sentence, so the first
-// screen isn't a wall of resume. Then the work, where the island is the
+// The one-page summary. A short intro band, then the work, where the island is the
 // control — turn it and the panel beside it swaps to whatever project came
 // round, and the row of cards underneath turns it the other way. Then the
 // path: education, then the jobs as a timeline that assembles itself
@@ -33,36 +32,56 @@ const asideRoles = timeline.filter((e) => e.aside);
 const leadRoles = leadership.slice().sort(byRecency);
 
 // One row of either timeline. The two lists render identically — the only
-// difference is which heading they sit under.
+// difference is which heading they sit under. The bullet points fold behind the
+// row, so the summary stays short; the row itself says what and where.
+function Entry({ e, i, setFront }) {
+  const [open, setOpen] = useState(false);
+  const foldable = e.points?.length > 0;
+  const head = (
+    <>
+      <span className="lp-entry-dates">{e.dates}</span>
+      {/* The place first and in the larger type: that's what someone
+          skimming a CV is actually looking for. The role sits under it.
+          A row with `leadWithTitle` flips the two, for work with no
+          employer behind it. `orgNote` is a qualifier, not part of the
+          name, so it rides on the lower line with the badges. */}
+      <h3 className="lp-entry-title">{e.leadWithTitle ? e.title : e.org}</h3>
+      <span className="lp-entry-org">
+        {e.leadWithTitle ? e.org : e.title}
+        {e.orgNote && <span className="lp-entry-note">{e.orgNote}</span>}
+        {foldable && <span className={`lp-entry-chev${open ? " is-open" : ""}`} aria-hidden="true">›</span>}
+      </span>
+    </>
+  );
+  return (
+    <Reveal as="li" className="lp-entry" delay={Math.min(i, 4) * 60}>
+      <span className="lp-dot" aria-hidden="true" />
+      {foldable ? (
+        <button className="lp-entry-btn" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+          {head}
+        </button>
+      ) : (
+        <div className="lp-entry-btn">{head}</div>
+      )}
+      {foldable && open && (
+        <ul className="lp-entry-points">
+          {e.points.map((pt) => <li key={pt}>{pt}</li>)}
+        </ul>
+      )}
+      {open && e.projectSlugs?.length > 0 && (
+        <ClientWork
+          slugs={e.projectSlugs}
+          onOpen={(slug) => {
+            setFront(projects.findIndex((p) => p.slug === slug));
+            document.getElementById("work")?.scrollIntoView({ behavior: "smooth" });
+          }}
+        />
+      )}
+    </Reveal>
+  );
+}
 const entryRow = (e, i, setFront) => (
-  <Reveal as="li" className="lp-entry" key={e.org + e.dates} delay={Math.min(i, 4) * 60}>
-    <span className="lp-dot" aria-hidden="true" />
-    <p className="lp-entry-dates">{e.dates}</p>
-    {/* The place first and in the larger type: that's what someone
-        skimming a CV is actually looking for. The role sits under it.
-        A row with `leadWithTitle` flips the two, for work with no
-        employer behind it. `orgNote` is a qualifier, not part of the
-        name, so it rides on the lower line with the badges. */}
-    <h3 className="lp-entry-title">{e.leadWithTitle ? e.title : e.org}</h3>
-    <p className="lp-entry-org">
-      {e.leadWithTitle ? e.org : e.title}
-      {e.orgNote && <span className="lp-entry-note">{e.orgNote}</span>}
-    </p>
-    {e.points?.length > 0 && (
-      <ul className="lp-entry-points">
-        {e.points.map((pt) => <li key={pt}>{pt}</li>)}
-      </ul>
-    )}
-    {e.projectSlugs?.length > 0 && (
-      <ClientWork
-        slugs={e.projectSlugs}
-        onOpen={(slug) => {
-          setFront(projects.findIndex((p) => p.slug === slug));
-          document.getElementById("work")?.scrollIntoView({ behavior: "smooth" });
-        }}
-      />
-    )}
-  </Reveal>
+  <Entry key={e.org + e.dates} e={e} i={i} setFront={setFront} />
 );
 
 // A description is only worth folding if it runs long enough to take over the
@@ -194,7 +213,10 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
 
   return (
     <main className="lp">
-      {/* ---------- The landing ---------- */}
+      {/* ---------- The intro band ---------- */}
+      {/* One short band instead of a full screen: this is the summary, so the
+          work is already in view under it. Resume leads, the way a recruiter
+          reads it. */}
       <section className="lp-intro">
         <Reveal className="lp-intro-inner">
           <p className="lp-eyebrow">{profile.tagline}</p>
@@ -212,10 +234,6 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
             ))}
           </p>
         </Reveal>
-        <a className="lp-scroll-cue" href="#work">
-          <span>the work</span>
-          <span className="lp-cue-arrow" aria-hidden="true">↓</span>
-        </a>
       </section>
 
       {/* ---------- The work ---------- */}
@@ -380,6 +398,26 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
 
       </section>
 
+      {/* ---------- Skills ---------- */}
+      {/* Right under the work, so the highlight is visible: whichever project
+          faces us lights up its tech here and dims the rest. */}
+      <section className="lp-skills" aria-label="Skills">
+        <div className="skills is-filtered">
+          {profile.skills.map((g) => (
+            <div className="skill-group" key={g.group}>
+              <span className="skill-label">{g.group}</span>
+              <p className="skill-items">
+                {g.items.map((t, i) => (
+                  <span key={t} className={`tech-item${project.tech.includes(t) ? " is-on" : ""}`}>
+                    {t}{i < g.items.length - 1 ? ", " : ""}
+                  </span>
+                ))}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ---------- The path ---------- */}
       <section className="lp-path" id="path">
         <Reveal as="header" className="lp-section-head">
@@ -438,20 +476,11 @@ export default function LandingPage({ selectedSlug, onFrontChange }) {
       {/* ---------- The end ---------- */}
       <footer className="lp-end">
         <Reveal>
-          <h2>Still reading?</h2>
+          <h2>Get in touch</h2>
           <p className="lp-end-text">
             I'm looking for internships in robotics, computer vision and full-stack work.
-            The quickest way to reach me is email{profile.formEndpoint ? ", or this form" : ""}.
           </p>
           <ContactForm endpoint={profile.formEndpoint} email={profile.email} />
-          <p className="lp-links">
-            {profile.email && (
-              <a className="btn primary" href={`mailto:${profile.email}`}>{profile.email}</a>
-            )}
-            {links.map((l) => (
-              <a key={l.label} href={l.href} target="_blank" rel="noopener">{l.label}</a>
-            ))}
-          </p>
         </Reveal>
       </footer>
     </main>

@@ -1,3 +1,4 @@
+// `pose` is "rest" (default) or "wave".
 // Origin-centred so it can be dropped anywhere with a translate().
 // Beige by default, with the diamond blaze on her forehead — that's the one the
 // site is about. The small bunnies on the island pass their own `fur`, and some
@@ -8,6 +9,7 @@ export default function BunnySvg({
   belly = "var(--bunny-belly)",
   blaze = true,
   patch = false,
+  pose = "rest",
 }) {
   const outline = { stroke: "var(--border)", strokeWidth: 1.5 };
   return (
@@ -34,6 +36,13 @@ export default function BunnySvg({
       <ellipse cx="4" cy="26" rx="7" ry="4" fill={belly} {...outline} />
       <circle cx="0" cy="0" r="16" fill={fur} {...outline} />
       {blaze && <path d="M0 -14 l3.5 5 l-3.5 5 l-3.5 -5 z" fill="var(--bunny-blaze)" />}
+      {/* A raised front paw, for the front page. Hinged at the shoulder so it
+          can swing; the animation lives in game.css-free styles.css. */}
+      {pose === "wave" && (
+        <g className="bunny-wave-arm">
+          <ellipse cx="-20" cy="2" rx="5" ry="11" fill={fur} {...outline} transform="rotate(-18 -20 12)" />
+        </g>
+      )}
       <circle cx="-6" cy="-2" r="3" fill="var(--bunny-eye)" />
       <circle cx="6" cy="-2" r="3" fill="var(--bunny-eye)" />
       <path d="M0 4 l-3 3 h6 z" fill="var(--bunny-inner)" />
