@@ -72,6 +72,10 @@ export default function GameShell({ onExit }) {
     if (last) onExit(); else stageRef.current?.nav(1);
   }, [last, onExit]);
 
+  const go = useCallback((i) => { if (!itemRef.current) stageRef.current?.nav(Math.sign(i - sceneRef.current), i); }, []);
+  const sceneRef = useRef(0);
+  sceneRef.current = scene;
+
   // sunlight under the pointer: the glow layer reads --mx / --my / --glow
   useEffect(() => {
     const el = rootRef.current;
@@ -123,8 +127,14 @@ export default function GameShell({ onExit }) {
       <div className="tour-glow" aria-hidden="true" />
 
       <div className="tour-top">
-        <span className="tour-dots" role="img" aria-label={tour.sceneOf(scene + 1, scenes.length, s.label)}>
-          {scenes.map((x, i) => <i key={x.key} className={i === scene ? "on" : i < scene ? "done" : ""} />)}
+        <span className="tour-dots" role="group" aria-label={tour.sceneOf(scene + 1, scenes.length, s.label)}>
+          {scenes.map((x, i) => (
+            <button
+              key={x.key} type="button" className={i === scene ? "on" : i < scene ? "done" : ""}
+              aria-label={tour.goTo(x.label)} aria-current={i === scene ? "step" : undefined} title={x.label}
+              disabled={busy || !!item || i === scene} onClick={() => go(i)}
+            />
+          ))}
         </span>
         <span className="tour-hint">{tour.hint}</span>
       </div>

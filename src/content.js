@@ -145,7 +145,7 @@ export const experience = [
 export const leadership = [
   {
     title: "Hackathon Director",
-    org: "McGill Women in Computer Science (McWiCS)",
+    org: "McGill Women in Computer Science",
     dates: "Sep 2026 – present",
     points: [
       "TODO — one line on what you're running and at what scale.",
@@ -309,6 +309,8 @@ export const tour = {
   hint: "Press the treats to go back or forward",
   scroll: "Scroll down",
   back: "Back",
+  goTo: (label) => `Go to ${label}`,
+  demos: "Demo views",
   next: (label) => `Next: ${label}`,
   last: "See the summary",
   open: "Open",

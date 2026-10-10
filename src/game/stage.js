@@ -104,10 +104,10 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
     setBusy(false);
   }
   // Called from the Back and Next buttons. Ignored while anything is moving.
-  function nav(dir) {
+  function nav(dir, to) {
     if (S.phase !== "rest") return false;
-    const target = S.scene + dir;
-    if (target < 0 || target >= scenes.length) return false;
+    const target = to ?? S.scene + dir;
+    if (target < 0 || target >= scenes.length || target === S.scene) return false;
     S.dir = dir; S.target = target; setPhase("eat"); S.eatT = 0; setBusy(true);
     hero.nod = 0;
     if (treat) scene.remove(treat.group);

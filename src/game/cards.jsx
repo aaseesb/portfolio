@@ -1,7 +1,7 @@
 // What each tour scene lays over the sky: overlaid text, a village of houses with
 // the skills as clouds, a long scroll of roles. Anything longer than a line opens
 // in the Detail dialog. All copy comes from content.js.
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { profile, projects, education, experience, leadership, tour } from "../content.js";
 import { byRecency } from "../dates.js";
 import ProjectVisual from "../components/ProjectVisual.jsx";
@@ -26,6 +26,25 @@ function Row({ e, onOpen }) {
         <span className="tour-row-sub">{roleSub(e)}</span>
       </button>
     </li>
+  );
+}
+
+// A project's demo videos: one view at a time, with a tab for each when there are several.
+function Demos({ p }) {
+  const clips = p.clips?.length ? p.clips : p.clip ? [{ src: p.clip, poster: p.image }] : [];
+  const [n, setN] = useState(0);
+  const c = clips[n];
+  return (
+    <figure className="tour-frame">
+      <ProjectVisual key={n} name={p.name} icon={p.icon} image={c?.poster || p.image} clip={c?.src || ""} variant="clip" />
+      {clips.length > 1 && (
+        <div className="tour-tabs" role="tablist" aria-label={tour.demos}>
+          {clips.map((x, i) => (
+            <button key={x.label} role="tab" aria-selected={i === n} className={i === n ? "on" : ""} onClick={() => setN(i)}>{x.label}</button>
+          ))}
+        </div>
+      )}
+    </figure>
   );
 }
 
@@ -67,25 +86,33 @@ function Village({ sel, onSelect, onOpen }) {
   const pointer = useRef("mouse");
   const p = sel === null ? null : projects[sel];
   const used = p ? new Set(p.tech.map(norm)) : null;
+  // the chosen project's clouds gather on an ellipse round the explanation
+  const chosen = used ? skillList.filter((t) => used.has(norm(t))) : [];
+  const ring = (t, rx, ry, cy) => {
+    const a = (-90 + (360 * chosen.indexOf(t)) / chosen.length) * (Math.PI / 180);
+    return [`${50 + rx * Math.cos(a)}%`, `${cy + ry * Math.sin(a)}%`];
+  };
   return (
     <>
       <ul className="tour-clouds" aria-label={tour.village.cloudsLabel}>
         {skillList.map((t, i) => {
           const r = Math.floor(i / 4), c = i % 4, rm = Math.floor(i / 3), cm = i % 3;
           const state = used ? (used.has(norm(t)) ? " on" : " off") : "";
+          const [ox, oy] = state === " on" ? ring(t, 37, 19, 37) : [];
+          const [oxm, oym] = state === " on" ? ring(t, 36, 17, 33) : [];
           return (
             <li
               key={t} className={`tour-cloud${state}`}
               style={{
                 "--x": `${14 + c * 24 + (r % 2) * 9 + jit(i)}%`, "--y": `${27 + r * 8.5}%`,
                 "--xm": `${20 + cm * 30 + (rm % 2) * 7 + jit(i) * 0.6}%`, "--ym": `${17 + rm * 6.6}%`,
-                "--d": `${(i % 5) * 0.8}s`,
+                "--d": `${(i % 5) * 0.8}s`, "--ox": ox, "--oy": oy, "--oxm": oxm, "--oym": oym,
               }}
             >{t}</li>
           );
         })}
       </ul>
-      <div className="tour-info" aria-live="polite">
+      <div className={`tour-info${p ? " has" : ""}`} aria-live="polite">
         {p ? (
           <>
             <h2>{p.name}{p.badge && <span className="tour-badge">{p.badge}</span>}</h2>
@@ -213,10 +240,10 @@ export function Detail({ item, onClose }) {
     );
     body = (
       <>
-        <ProjectVisual name={p.name} icon={p.icon} image={p.image} clip={p.clip} variant="clip" />
+        <Demos p={p} />
         <p>{p.description}</p>
         <h3>{tour.tech}</h3>
-        <Chips items={p.tech} />
+        <div className="tour-shelf"><Chips items={p.tech} /></div>
         <div className="tour-links">
           {p.demo && <a className="btn primary" href={p.demo} target="_blank" rel="noopener">Visit site ↗</a>}
           {p.repo && <a className="btn" href={p.repo} target="_blank" rel="noopener">Code</a>}
@@ -260,7 +287,8 @@ export function Detail({ item, onClose }) {
       <div className="tour-dialog-box" role="dialog" aria-modal="true" aria-label={tour.open} onClick={(e) => e.stopPropagation()}>
         <button ref={ref} className="tour-close" onClick={onClose} aria-label={tour.close}>×</button>
         <header>{head}</header>
-        <div className="tour-dialog-body">{body}</div>
+        <div className="tour-dialog-body" tabIndex={0}>{body}</div>
+        <div className="tour-floor" aria-hidden="true" />
       </div>
     </div>
   );
