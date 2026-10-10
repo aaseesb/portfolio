@@ -84,7 +84,18 @@ const PLACES = [
   { i: 1, x: 11, xm: 9, tier: 1 }, { i: 0, x: 29, xm: 27, tier: 2 }, { i: 2, x: 44, xm: 43, tier: 0 },
   { i: 3, x: 56, xm: 56, tier: 0 }, { i: 5, x: 71, xm: 71, tier: 2 }, { i: 4, x: 89, xm: 90, tier: 1 },
 ];
-const skillList = profile.skills.flatMap((g) => g.items);
+// Each group starts on its own row (4 clouds a row, 3 on narrow screens), so the
+// sky reads as groups even before a house is hovered.
+const layoutSkills = (per) => {
+  let row = 0;
+  return profile.skills.flatMap((g) => {
+    const out = g.items.map((t, k) => ({ t, r: row + Math.floor(k / per), c: k % per }));
+    row += Math.ceil(g.items.length / per);
+    return out;
+  });
+};
+const skillsWide = layoutSkills(4), skillsNarrow = layoutSkills(3);
+const skillList = skillsWide.map((s) => s.t);
 const jit = (i) => ((i * 37) % 11) - 5;
 const norm = (t) => t.toLowerCase();
 
@@ -102,7 +113,7 @@ function Village({ sel, onSelect, onOpen }) {
     <>
       <ul className="tour-clouds" aria-label={tour.village.cloudsLabel}>
         {skillList.map((t, i) => {
-          const r = Math.floor(i / 4), c = i % 4, rm = Math.floor(i / 3), cm = i % 3;
+          const { r, c } = skillsWide[i], { r: rm, c: cm } = skillsNarrow[i];
           const state = used ? (used.has(norm(t)) ? " on" : " off") : "";
           const [ox, oy] = state === " on" ? ring(t, 37, 19, 37) : [];
           const [oxm, oym] = state === " on" ? ring(t, 36, 17, 33) : [];

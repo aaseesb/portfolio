@@ -148,7 +148,7 @@ export const leadership = [
     org: "McGill Women in Computer Science",
     dates: "Sep 2026 – present",
     points: [
-      "TODO — one line on what you're running and at what scale.",
+      "Planning and directing McWiCS\u2019 annual hackathon.",
     ],
   },
 ];
