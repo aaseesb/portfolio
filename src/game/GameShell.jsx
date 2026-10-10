@@ -19,11 +19,10 @@ const Carrot = () => (
       </linearGradient>
     </defs>
     <g strokeLinecap="round" strokeLinejoin="round">
-      <path d="M40 18c-3-8-1-13 4-14M42 19c4-7 10-9 15-6M40 20c7-1 12 3 13 9" fill="none" stroke="#4f7f35" strokeWidth="6" />
-      <path d="M40 18c-3-8-1-13 4-14M42 19c4-7 10-9 15-6M40 20c7-1 12 3 13 9" fill="none" stroke="#7cb05a" strokeWidth="2.5" />
-      <path d="M30 20c6-3 14-1 16 6 2 6-1 12-6 18L16 60c-3 1-6-1-6-4-1-9 1-16 6-22 4-6 8-11 14-14z" fill="url(#carrot-body)" stroke="#8a4a1c" strokeWidth="3" transform="rotate(0)" />
-      <path d="M33 29l7 3M28 38l6 3M22 47l5 2" fill="none" stroke="#b9561a" strokeWidth="2.5" />
-      <path d="M33 25c3-1 7 0 9 3" fill="none" stroke="#ffd9a3" strokeWidth="2.5" opacity="0.8" />
+      <path d="M32 20c-5-5-6-10-3-14M32 20c0-7 2-12 6-14M33 21c5-3 10-3 14 0" fill="none" stroke="#5f9a42" strokeWidth="6" />
+      <ellipse cx="32" cy="38" rx="16" ry="19" fill="url(#carrot-body)" stroke="#8a4a1c" strokeWidth="3" />
+      <path d="M22 33q4 2 8 0M34 41q4 2 8 0M24 48q3 1.5 6 0" fill="none" stroke="#c4631c" strokeWidth="2.5" />
+      <path d="M22 28q3-6 9-7" fill="none" stroke="#ffd9a3" strokeWidth="3" opacity="0.85" />
     </g>
   </svg>
 );

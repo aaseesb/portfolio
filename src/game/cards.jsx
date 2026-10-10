@@ -90,7 +90,7 @@ const PLACES = [
 const layoutSkills = (per) => {
   let row = 0;
   return profile.skills.flatMap((g, gi) => {
-    const out = g.items.map((t, k) => ({ t, gi, r: row + Math.floor(k / per), c: k % per, first: k === 0, group: g.group }));
+    const out = g.items.map((t, k) => ({ t, gi, r: row + Math.floor(k / per), c: k % per, n: Math.min(per, g.items.length - Math.floor(k / per) * per), first: k === 0, group: g.group }));
     row += Math.ceil(g.items.length / per);
     return out;
   });
@@ -113,20 +113,23 @@ function Village({ sel, onSelect, onOpen }) {
   return (
     <>
       <ul className={`tour-clouds${used ? " has-sel" : ""}`} aria-label={tour.village.cloudsLabel}>
-        {skillsWide.map(({ t, gi, r, c, first, group }, i) => {
+        {skillsWide.map(({ t, gi, r, c, n, first, group }, i) => {
           const state = used ? (used.has(norm(t)) ? " on" : " off") : "";
           const [ox, oy] = state === " on" ? ring(t, 37, 19, 37) : [];
           const [oxm, oym] = state === " on" ? ring(t, 36, 17, 33) : [];
-          const { r: rm, c: cm } = skillsNarrow[i];
-          const y = 27 + r * 8.5, ym = 15 + rm * 5.6 + (gi + 1) * 3.4;
+          const { r: rm, c: cm, n: nm } = skillsNarrow[i];
+          // spread each row across the sky (not packed from the left), staggered up and down
+          const y = 18 + r * 8.5 + (i % 2 ? 1.2 : -1.2), ym = 8 + rm * 5.6 + (gi + 1) * 3.4;
+          const x = Math.min(93, 24 + ((c + 0.5) / n) * 72 + ((r % 2) - 0.5) * 16 + jit(i) * 0.5);
+          const xm = Math.min(90, 14 + ((cm + 0.5) / nm) * 80 + ((rm % 2) - 0.5) * 12 + jit(i) * 0.4);
           return (
             <Fragment key={t}>
               {first && <li className="tour-glabel" aria-hidden="true" style={{ "--y": `${y}%`, "--ym": `${ym - 3.6}%` }}>{group}</li>}
               <li
                 className={`tour-cloud g${gi}${state}`} title={group}
                 style={{
-                  "--x": `${28 + c * 19 + (r % 2) * 4 + jit(i) * 0.5}%`, "--y": `${y}%`,
-                  "--xm": `${20 + cm * 30 + jit(i) * 0.4}%`, "--ym": `${ym}%`,
+                  "--x": `${x}%`, "--y": `${y}%`,
+                  "--xm": `${xm}%`, "--ym": `${ym}%`,
                   "--ox": ox, "--oy": oy, "--oxm": oxm, "--oym": oym,
                 }}
               >{t}</li>
