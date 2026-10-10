@@ -283,16 +283,26 @@
 @media (max-width: 560px) { .room-prop { display: none; } }
 .room-wrap { display: flex; align-items: center; justify-content: center; gap: 10px; }
 .room { flex: 0 1 780px; min-width: 0; width: auto; }
-.room-sign { flex: none; align-self: stretch; position: relative; display: grid; justify-items: center; align-content: center; gap: 4px; width: 62px; padding: 0; border: 0; background: none; color: #fff4dc; font: inherit; cursor: pointer; }
-.room-sign.gap { cursor: default; }
-.room-sign::before { content: ""; position: absolute; left: 50%; top: 50%; bottom: 80px; width: 8px; translate: -50% 0; background: linear-gradient(90deg, var(--wood), var(--wood-dark)); border-radius: 0 0 3px 3px; z-index: -1; }
-.room-sign-arrow { display: grid; place-content: center; width: 56px; height: 44px; padding-bottom: 4px; font-size: 2rem; font-weight: 700; line-height: 1; background: linear-gradient(var(--wood), var(--wood-dark)); box-shadow: inset 0 0 0 2px rgba(255, 244, 220, 0.25), 0 4px 0 rgba(0, 0, 0, 0.3); transition: translate 0.2s; }
-.room-sign.prev .room-sign-arrow { clip-path: polygon(0 50%, 22% 0, 100% 0, 100% 100%, 22% 100%); padding-left: 10px; }
-.room-sign.next .room-sign-arrow { clip-path: polygon(100% 50%, 78% 0, 0 0, 0 100%, 78% 100%); padding-right: 10px; }
-.room-sign-name { position: relative; max-width: 62px; padding: 2px 5px; border-radius: 3px; background: var(--wood-dark); font-size: 0.66rem; line-height: 1.15; text-align: center; overflow-wrap: anywhere; }
-.room-sign.prev:hover .room-sign-arrow, .room-sign.prev:focus-visible .room-sign-arrow { translate: -4px 0; }
-.room-sign.next:hover .room-sign-arrow, .room-sign.next:focus-visible .room-sign-arrow { translate: 4px 0; }
+.room-sign { flex: none; align-self: stretch; position: relative; display: grid; justify-items: center; align-content: center; gap: 0; width: 76px; padding: 0 0 60px; border: 0; background: none; color: #fff4dc; font: inherit; cursor: pointer; filter: drop-shadow(0 5px 4px rgba(0, 0, 0, 0.35)); }
+.room-sign.gap { cursor: default; filter: none; }
+/* the post, with wood grain and a grassy mound at its foot */
+.room-sign::before { content: ""; position: absolute; left: 50%; top: 50%; bottom: 66px; width: 12px; translate: -50% 0; background: repeating-linear-gradient(90deg, transparent 0 3px, rgba(0, 0, 0, 0.12) 3px 4px), linear-gradient(90deg, #a9835a, var(--wood) 40%, var(--wood-dark)); border-radius: 2px 2px 0 0; z-index: -1; }
+.room-sign::after { content: ""; position: absolute; left: 50%; bottom: 52px; width: 60px; height: 22px; translate: -50% 0; border-radius: 50% 50% 0 0; z-index: -1;
+  background: radial-gradient(circle at 18% 40%, #f4f0d8 0 2px, transparent 3px), radial-gradient(circle at 78% 55%, #f2c4cf 0 2px, transparent 3px), linear-gradient(#7ea457, #5d8040); }
+.room-sign-arrow { position: relative; display: grid; place-content: center; width: 68px; height: 46px; font-size: 2rem; font-weight: 700; line-height: 1; text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  background: radial-gradient(circle at 12px 50%, #cfc6b4 0 2.5px, transparent 3px), radial-gradient(circle at calc(100% - 12px) 50%, #cfc6b4 0 2.5px, transparent 3px),
+    repeating-linear-gradient(0deg, transparent 0 7px, rgba(0, 0, 0, 0.1) 7px 8px), linear-gradient(#b48e60, var(--wood) 45%, var(--wood-dark)); transition: translate 0.2s; }
+.room-sign.prev .room-sign-arrow { clip-path: polygon(0 50%, 24% 0, 100% 0, 100% 100%, 24% 100%); padding: 0 0 4px 14px; }
+.room-sign.next .room-sign-arrow { clip-path: polygon(100% 50%, 76% 0, 0 0, 0 100%, 76% 100%); padding: 0 14px 4px 0; }
+/* the project's name hangs below the arrow on two strings */
+.room-sign-name { position: relative; margin-top: 12px; max-width: 70px; padding: 3px 7px; border: 1px solid rgba(0, 0, 0, 0.3); border-radius: 3px; background: linear-gradient(#b48e60, var(--wood)); font-size: 0.66rem; font-weight: 700; line-height: 1.15; text-align: center; overflow-wrap: anywhere; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3); }
+.room-sign-name::before, .room-sign-name::after { content: ""; position: absolute; top: -12px; width: 1.5px; height: 12px; background: #5a4630; }
+.room-sign-name::before { left: 14px; } .room-sign-name::after { right: 14px; }
+.room-sign.prev:hover .room-sign-arrow, .room-sign.prev:focus-visible .room-sign-arrow { translate: -5px 0; }
+.room-sign.next:hover .room-sign-arrow, .room-sign.next:focus-visible .room-sign-arrow { translate: 5px 0; }
+.room-sign:hover .room-sign-name, .room-sign:focus-visible .room-sign-name { background: linear-gradient(#e9c46a, #c9993f); color: #3b2a14; }
 .room-sign:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
-@media (max-width: 700px) { .room-sign { width: 30px; } .room-sign-arrow { width: 30px; height: 40px; font-size: 1.5rem; padding: 0 0 4px; } .room-sign-name { display: none; } .room-sign::before { display: none; } }
+.room-sign.gap::before, .room-sign.gap::after { display: none; }
+@media (max-width: 700px) { .room-sign { width: 32px; padding-bottom: 0; } .room-sign-arrow { width: 32px; height: 42px; font-size: 1.5rem; padding: 0 0 4px; background-image: repeating-linear-gradient(0deg, transparent 0 7px, rgba(0, 0, 0, 0.1) 7px 8px), linear-gradient(#b48e60, var(--wood) 45%, var(--wood-dark)); } .room-sign.prev .room-sign-arrow { padding-left: 6px; } .room-sign.next .room-sign-arrow { padding-right: 6px; } .room-sign-name, .room-sign::before, .room-sign::after { display: none; } }
 @media (prefers-reduced-motion: reduce) { .room-sign-arrow { transition: none; } }
 .room-sign.gap::before { display: none; }
