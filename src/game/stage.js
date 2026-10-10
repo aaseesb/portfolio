@@ -284,6 +284,7 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
     renderer.render(scene, camera);
   }
   resize();
+  bunnies.forEach((b, i) => { b.x = restX(i); b.z = restZ(i); }); // start spread out, not piled in the middle
   S.busy = true;
   hooks.onScene(0);
   sky?.setStep(scenes[0].sky, true);
