@@ -1,6 +1,6 @@
 // The sky behind the tour: one full-screen shader quad on its own canvas. A
 // smooth ombre that drifts, a sun or moon, stars at night, and two soft hills.
-// Each tour step has its own palette (dawn, noon, dusk, night) and they lerp
+// Each tour scene has its own palette (dawn, noon, golden afternoon, dusk, night) and they lerp
 // into each other as the slides change. Dark theme dims the daytime ones.
 import * as THREE from "three";
 
@@ -9,6 +9,7 @@ const hex = (s) => new THREE.Color(s);
 const PALETTES = [
   { c0: "#e6a0b6", c1: "#f6c39c", c2: "#fde7c8", c3: "#ffd9ae", h0: "#d8b598", h1: "#a8bf84", night: 0, sun: 0.78 },
   { c0: "#5f9fe0", c1: "#a4d0f0", c2: "#eaf5f8", c3: "#ffffff", h0: "#9cc09c", h1: "#7fae72", night: 0, sun: 0.22 },
+  { c0: "#8fa8d8", c1: "#f2cf9a", c2: "#ffe6b0", c3: "#ffd27a", h0: "#c9b688", h1: "#9bb468", night: 0, sun: 0.55 },
   { c0: "#5a4a8c", c1: "#c76f8a", c2: "#f4a95c", c3: "#f9c982", h0: "#7a6a90", h1: "#627f5e", night: 0, sun: 0.82 },
   { c0: "#0f1636", c1: "#29336a", c2: "#5a5f98", c3: "#4656a8", h0: "#2f3a62", h1: "#2c4a48", night: 1, sun: 0.7 },
 ];

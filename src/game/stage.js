@@ -1,7 +1,7 @@
-// The 3D half of the interactive tour. Three bunnies tow each "slide" (a DOM
-// panel) in on ropes; a hero bunny circles a treat begging for it; you drag the
-// treat to her, she eats, and they tow the slide away and bring the next.
-// This file owns the canvas and the choreography; GameShell owns the slides.
+// The 3D half of the interactive tour. Three bunnies tow small DOM cards in on
+// ropes (bunny i tows card i); the Back and Next treat buttons send a treat to
+// the hero, she eats it, and the gang tows the cards off and fetches the next
+// scene. This file owns the canvas and the choreography; GameShell owns the cards.
 import * as THREE from "three";
 import { COL, makeBunny, poseBunny, hopNow, makeTreat, makeEgg, makeFlower, makeTuft, makeCart, spawnFx, updateFx } from "./bunny3d.js";
 import { createSky } from "./sky.js";
@@ -13,7 +13,7 @@ const easeIn = (u) => u * u * u;
 const rng = (seed) => () => { seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 
-export function createStage({ canvas, skyCanvas, root, slide, bubble, steps, reduced, hooks }) {
+export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, hooks }) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
   renderer.setClearColor(0x000000, 0);
@@ -27,22 +27,24 @@ export function createStage({ canvas, skyCanvas, root, slide, bubble, steps, red
   const sun = new THREE.DirectionalLight(0xfff3e0, 0.26 * Math.PI); sun.position.set(6, 8, 5); scene.add(sun);
 
   // ---- layout: world x = (px - W/2) / u, and the world origin sits `E` px above the bottom.
-  // The DOM board ends where the grass begins (strip = E + 1.75u); while you read, E shrinks. ----
-  let W = 1, H = 1, u = 40, bw = 600, E = 100;
-  const clamp = THREE.MathUtils.clamp, lerp = THREE.MathUtils.lerp;
+  // The cards stand on the grass strip (strip = E + 1.75u), which is fixed height
+  // because the treat buttons live in it. ----
+  let W = 1, H = 1, u = 40, E = 100, strip = 130;
+  const clamp = THREE.MathUtils.clamp;
   const toX = (px) => (px - W / 2) / u;
+  const sinP = Math.sin(pitch), cosP = Math.cos(pitch);
   function layout() {
-    E = lerp(clamp(H * 0.13, 90, 130), clamp(H * 0.06, 44, 56), S.k);
+    strip = clamp(H * 0.18, 130, 160);
+    E = strip - 1.75 * u;
     camera.left = -W / 2 / u; camera.right = W / 2 / u; camera.top = (H - E) / u; camera.bottom = -E / u;
     camera.updateProjectionMatrix();
-    root.style.setProperty("--strip", `${(E + 1.75 * u).toFixed(1)}px`);
+    root.style.setProperty("--strip", `${strip.toFixed(1)}px`);
   }
   function resize() {
     W = window.innerWidth; H = window.innerHeight;
     u = clamp(H * 0.05, 34, 56);
     renderer.setSize(W, H, false);
     sky?.resize(W, H);
-    bw = slide.offsetWidth || Math.min(980, W - 24);
     layout();
     ground.scale.x = (W / u + 8) / 100;
     scatter.forEach((s) => s.g.position.x = s.f * (W / u / 2 + 1));
@@ -67,153 +69,173 @@ export function createStage({ canvas, skyCanvas, root, slide, bubble, steps, red
     makeBunny({ fur: COL.brown, tail: COL.cream }),
   ];
   const lane = [0.3, -0.9, 1.3];
-  const offs = [90, 190, 290]; // px right of the hitch; they pull to the left
   bunnies.forEach((b) => scene.add(b.root));
   const hero = bunnies[0];
   const ropeMat = new THREE.MeshPhongMaterial({ color: COL.rope, specular: 0, shininess: 0 });
   const ropes = bunnies.map(() => { const m = new THREE.Mesh(new THREE.BufferGeometry(), ropeMat); m.frustumCulled = false; scene.add(m); return m; });
   const eggObj = makeEgg(); scene.add(eggObj.group);
-  const cart = makeCart(); scene.add(cart.group);
-  const CZ = -2.2; // the cart's wheels run on this line of grass
+  // one little cart under each card
+  const carts = bunnies.map(() => { const c = makeCart(); scene.add(c.group); return c; });
   let treat = null;
   const fx = [];
 
   // ---- state ----
-  const S = { step: 0, phase: "swap", t: 0, tx: 0, prevTx: 0, found: {}, begging: false, begT: 2.5, a: 0, held: false, eatT: 0, text: null, tiltT: 0, k: 0, kTarget: 0, readT: 0, atEnd: false };
-  const sc = () => Math.min(1, W / 900);
-  const hitchPx = () => W / 2 + S.tx - bw / 2 + 16;
-  const towX = (i) => toX(hitchPx() + offs[i] * sc());
-  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), tmp = new THREE.Vector3();
+  // phases: swap -> in -> rest -> eat -> out -> swap ... ; `dir` is +1 for Next
+  // (cards leave to the left, arrive from the right) and -1 for Back.
+  const S = { scene: 0, phase: "swap", t: 0, tx: 0, dir: 1, target: 0, found: {}, eatT: 0 };
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   function pickRay(cx, cy) { ndc.set((cx / W) * 2 - 1, -(cy / H) * 2 + 1); ray.setFromCamera(ndc, camera); }
-  function groundAt(cx, cy, y = 0) { pickRay(cx, cy); plane.constant = -y; return ray.ray.intersectPlane(plane, tmp.set(0, 0, 0)) ? tmp.clone() : null; }
-  const key = () => steps[S.step].key;
-  const say = (text) => { if (S.text !== text) { S.text = text; hooks.onText(text); } };
+  const key = () => scenes[S.scene].key;
 
-  function moveTo(b, x, z, max, dt) {
-    const dx = x - b.x, dz = z - b.z, d = Math.hypot(dx, dz) || 1;
-    const sp = Math.min(max, d * 5);
-    b.vx += (dx / d * sp - b.vx) * Math.min(1, dt * 12); b.vz += (dz / d * sp - b.vz) * Math.min(1, dt * 12);
-    b.x += b.vx * dt; b.z += b.vz * dt;
-    return d;
-  }
-  const turn = (b, yaw, dt) => { b.yaw += wrap(yaw - b.yaw) * (1 - Math.exp(-dt * 12)); };
-  function heading(b, dt, fallback) { if (Math.hypot(b.vx, b.vz) > 0.6) turn(b, Math.atan2(b.vx, b.vz), dt); else if (fallback !== undefined) turn(b, fallback, dt); }
+  const turn = (b, yaw, dt) => { b.yaw += wrap(yaw - b.yaw) * (1 - Math.exp(-dt * 10)); };
   const headPos = (b) => new THREE.Vector3(b.x, 1.9, b.z);
   const love = (b, n = 3, ch = "♥", color = "#e0707e") => spawnFx(fx, scene, headPos(b), ch, color, n);
+  const setBusy = (v) => { if (S.busy !== v) { S.busy = v; hooks.onBusy?.(v); } };
+
+  // ---- the cards: their rectangles on screen drive the 3D ----
+  let rects = [];
+  const readCards = () => {
+    const els = cards.children;
+    rects = [];
+    for (let i = 0; i < els.length && i < 3; i++) {
+      const r = els[i].getBoundingClientRect();
+      rects.push({ l: r.left, r: r.right, b: r.bottom, cx: (r.left + r.right) / 2 });
+    }
+  };
+  // stacked = the cards share one column (narrow screens)
+  const stacked = () => rects.length > 1 && Math.abs(rects[0].cx - rects[1].cx) < 40;
+  const wheelScale = () => (stacked() ? 0.55 : W < 900 ? 0.8 : 1);
+  // The card each bunny tows (single-card scenes use all three on the one card).
+  const cardOf = (i) => rects[Math.min(i, rects.length - 1)];
+  // where bunny i stands while resting: in front of its card
+  function restX(i) {
+    const n = rects.length;
+    if (n === 1) return toX(rects[0].cx) + (i - 1) * 2.3;
+    if (stacked()) return toX(W * (0.34 + 0.16 * i));
+    return toX(rects[i].cx) + (i === 1 ? 0 : (i === 0 ? 1 : -1) * 0.6);
+  }
+  const hitchX = (i) => toX(S.dir > 0 ? cardOf(i).l + 14 : cardOf(i).r - 14);
+  // while towing the bunny walks ahead of the hitch, in the direction of travel
+  function towXof(i) {
+    const spread = rects.length === 1 || stacked() ? 1.3 * i : 0;
+    return hitchX(i) - S.dir * (1.7 + spread);
+  }
+  const towYaw = () => -S.dir * Math.PI / 2 * 0.45; // walks sideways but looks mostly at us
+  const glance = (b) => clamp(-b.x / Math.max(1, W / u / 2), -1, 1) * 0.35;
 
   // ---- phases ----
-  function startIn() {
-    S.phase = "in"; S.t = 0; S.begging = false; S.held = false; S.eatT = 0; S.kTarget = 1;
-    hero.lean = 0; hero.nod = 0;
-    const st = steps[S.step];
-    if (treat) { scene.remove(treat.group); treat = null; }
+  function placeEgg() {
+    const st = scenes[S.scene];
     eggObj.group.visible = !S.found[st.key];
-    eggObj.t = 0; eggObj.group.scale.setScalar(1); eggObj.egg.position.y = 0;
+    eggObj.t = 0; eggObj.found = false; eggObj.group.scale.setScalar(1); eggObj.egg.position.y = 0;
     eggObj.group.position.set(toX(W * st.egg.x), 0, st.egg.z);
-    say(null);
-    if (reduced) { S.k = 1; layout(); S.tx = 0; enterRead(); }
-    else S.tx = W + 24;
   }
-  // Reading: the strip shrinks, the bunnies rest, no treat yet.
-  function enterRead() {
-    S.phase = "read"; S.t = 0; S.readT = 0; S.tx = 0; S.kTarget = 1;
-    bunnies.forEach((b, i) => { b.x = towX(i); b.z = lane[i]; b.vx = b.vz = 0; });
-    if (!reduced) cart.wheels.forEach((w) => spawnFx(fx, scene, new THREE.Vector3(w.position.x, 0.2, CZ + 0.6), "☁", "#d8d0bd", 2));
+  function startIn() {
+    S.phase = "in"; S.t = 0;
+    placeEgg();
+    readCards();
+    if (reduced) { S.tx = 0; enterRest(); } else S.tx = S.dir * (W + 80);
   }
-  // The card has been read (or the wait ran out): bring the strip back and the treat in.
-  function enterAsk() {
-    S.kTarget = 0; if (reduced) { S.k = 0; layout(); }
-    S.tx = 0;
-    if (key() === "end") { S.phase = "finale"; hooks.onFinale(true); return; }
-    S.phase = "ask"; S.begT = 2.5;
-    const st = steps[S.step];
-    treat = makeTreat(st.treat);
-    const hit = new THREE.Mesh(new THREE.SphereGeometry(0.85, 8, 6), new THREE.MeshBasicMaterial({ visible: false }));
-    hit.position.y = 0.3; treat.group.add(hit);
-    treat.group.position.set(toX(W * (W < 700 ? 0.72 : 0.68)), reduced ? 0 : 12, 0.7);
-    treat.vy = 0; treat.gone = false; scene.add(treat.group);
+  function enterRest() {
+    S.phase = "rest"; S.t = 0; S.tx = 0;
+    readCards();
+    bunnies.forEach((b, i) => { b.x = restX(i); b.z = lane[i]; b.vx = b.vz = 0; });
+    if (!reduced) carts.forEach((c, i) => i < rects.length && c.wheels.forEach((w) => spawnFx(fx, scene, new THREE.Vector3(w.position.x, 0.2, w.position.z + 0.6), "☁", "#d8d0bd", 1)));
+    setBusy(false);
   }
-  function advance() {
-    if (S.step >= steps.length - 1) return;
-    S.step++;
-    hooks.onStep(S.step);
-    sky?.setStep(S.step);
-    S.phase = "swap"; S.t = 0;
-    if (reduced) startIn();
-  }
-  function give() {
-    if (S.phase !== "ask" || !treat) return;
-    treat.held = false;
-    treat.group.position.set(hero.x + Math.sin(hero.yaw) * 1.2, 0, hero.z + Math.cos(hero.yaw) * 1.2);
-    startChase();
-  }
-  function startChase() {
-    S.phase = "chase"; S.held = false; S.begging = false; hero.lean = 0; say(null);
-    if (reduced) { say(null); finishEat(); }
+  // Called from the Back and Next buttons. Ignored while anything is moving.
+  function nav(dir) {
+    if (S.phase !== "rest") return false;
+    const target = S.scene + dir;
+    if (target < 0 || target >= scenes.length) return false;
+    S.dir = dir; S.target = target; S.phase = "eat"; S.t = 0; S.eatT = 0; setBusy(true);
+    hero.nod = 0;
+    if (treat) scene.remove(treat.group);
+    treat = makeTreat(dir > 0 ? "apple" : "carrot");
+    treat.vy = 0; treat.gone = false; treat.ring.visible = false;
+    treat.from = new THREE.Vector3(toX(W * (dir > 0 ? 0.92 : 0.08)), 3.4, 2.4);
+    treat.group.position.copy(treat.from); treat.group.scale.setScalar(1.6);
+    scene.add(treat.group);
+    if (reduced) { treat.group.visible = false; finishEat(); }
+    return true;
   }
   function finishEat() {
     if (treat) { treat.gone = true; treat.group.visible = false; }
-    bunnies.forEach((b, i) => { love(b, i ? 2 : 4); if (!reduced) setTimeout(() => hopNow(b), i * 140); });
+    love(hero, 4);
+    if (!reduced) { hopNow(hero); hooks.onToast(hooks.text.yum); }
     hero.nod = 0;
-    S.phase = "cheer"; S.t = 0; say(null); hooks.onToast(hooks.text.yum);
-    if (reduced) advance();
+    S.phase = "out"; S.t = 0;
+    if (reduced) arrive();
   }
-
-  // ---- input: the canvas sits over the board and ignores the pointer, so the
-  // window listens and asks the scene what was under it ----
-  let pointer = { x: 0, y: 0, down: false, over: false };
-  const objectsHit = (cx, cy) => {
-    pickRay(cx, cy);
-    if (treat && !treat.gone && S.phase === "ask" && ray.intersectObject(treat.group, true).length) return { kind: "treat" };
-    if (eggObj.group.visible && !eggObj.found && ray.intersectObject(eggObj.group, true).length) return { kind: "egg" };
-    for (const b of bunnies) if (ray.intersectObject(b.root, true).length) return { kind: "bunny", b };
-    return null;
-  };
-  function petBunny(b) { b.pet = 1.5; b.squash = 0.12; b.liftV = 3.2; love(b, 3); if (b === hero && !reduced) hopNow(b); }
+  function arrive() {
+    S.scene = S.target;
+    hooks.onScene(S.scene);
+    sky?.setStep(scenes[S.scene].sky);
+    S.phase = "swap"; S.t = 0; S.tx = S.dir * (W + 80);
+    if (reduced) S.t = 0.2;
+  }
   function collectEgg() {
     if (eggObj.found || S.found[key()]) return;
     S.found[key()] = true; eggObj.found = true; eggObj.t = 0;
     spawnFx(fx, scene, new THREE.Vector3(eggObj.group.position.x, 1, eggObj.group.position.z), "✦", "#e9b93a", 6);
     hooks.onFound(Object.keys(S.found).length);
   }
-  const onControl = (e) => !!e.target.closest?.("button, a, input, .tour-bubble");
+
+  // ---- input: the canvas sits over the cards and ignores the pointer, so the
+  // window listens and asks the scene what was under it ----
+  let pointer = { x: 0, y: 0, over: false };
+  const objectsHit = (cx, cy) => {
+    pickRay(cx, cy);
+    if (eggObj.group.visible && !eggObj.found && ray.intersectObject(eggObj.group, true).length) return { kind: "egg" };
+    for (const b of bunnies) if (ray.intersectObject(b.root, true).length) return { kind: "bunny", b };
+    return null;
+  };
+  function petBunny(b) { b.pet = 1.5; b.squash = 0.12; b.liftV = 3.2; love(b, 3); if (b === hero && !reduced) hopNow(b); }
+  const onControl = (e) => !!e.target.closest?.("button, a, input, .tour-card, .tour-dialog");
   function down(e) {
     pointer.x = e.clientX; pointer.y = e.clientY;
     if (e.button > 0 || onControl(e)) return;
     const h = objectsHit(e.clientX, e.clientY);
     if (!h) return;
     e.preventDefault();
-    if (h.kind === "egg") collectEgg();
-    else if (h.kind === "bunny") petBunny(h.b);
-    else if (h.kind === "treat") { treat.held = true; S.held = true; root.style.cursor = "grabbing"; }
+    if (h.kind === "egg") collectEgg(); else petBunny(h.b);
   }
   function move(e) { pointer.x = e.clientX; pointer.y = e.clientY; pointer.over = true; }
-  function up() {
-    if (!(treat && treat.held)) return;
-    treat.held = false; S.held = false;
-    if (S.phase === "ask") startChase();
-  }
   window.addEventListener("pointerdown", down);
   window.addEventListener("pointermove", move);
-  window.addEventListener("pointerup", up);
-  window.addEventListener("pointercancel", up);
   window.addEventListener("resize", resize);
 
   // ---- per-frame ----
-  const anchorW = new THREE.Vector3();
-  function updateRopes(t) {
-    anchorW.set(toX(hitchPx()), 0.85, CZ);
+  const anchors = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+  function placeCarts(prevTx, towing) {
+    const ws = wheelScale();
+    carts.forEach((c, i) => {
+      const r = rects[i];
+      c.group.visible = !!r && S.phase !== "swap";
+      if (!r) return;
+      // z puts a wheel centre (y = 0.85 ws) at the card's bottom edge on screen
+      const up = (H - r.b - E) / u;
+      const z = (0.85 * ws * cosP - up) / sinP;
+      const inset = Math.min(0.85 * ws * u + 6, (r.r - r.l) * 0.28);
+      c.wheels[0].position.set(toX(r.l + inset), 0.85 * ws, z);
+      c.wheels[1].position.set(toX(r.r - inset), 0.85 * ws, z);
+      c.wheels.forEach((w) => { w.scale.setScalar(ws); if (towing) w.rotation.z -= (S.tx - prevTx) / u / (0.85 * ws); });
+      c.hitch.scale.setScalar(ws);
+      c.hitch.position.set(hitchX(i), 0.15 * ws, z);
+      anchors[i].set(hitchX(i), 0.15 * ws + 0.9 * ws, z);
+    });
+  }
+  function updateRopes() {
     ropes.forEach((r, i) => {
-      const b = bunnies[i];
-      const hide = i === 0 && ["ask", "chase", "eat", "cheer"].includes(S.phase);
-      r.visible = !hide && S.phase !== "swap";
+      const b = bunnies[i], towing = S.phase === "in" || S.phase === "out";
+      r.visible = towing && !!rects.length && S.phase !== "swap";
       if (!r.visible) return;
-      const a = b.mouth, d = a.distanceTo(anchorW);
-      const slack = S.phase === "in" || S.phase === "out" ? 0.12 : Math.min(1.4, 0.3 + Math.max(0, 14 - d) * 0.1);
+      const anchor = anchors[Math.min(i, rects.length - 1)];
+      const a = b.mouth, d = a.distanceTo(anchor);
       const pts = [];
       for (let k = 0; k <= 12; k++) {
-        const s = k / 12, p = a.clone().lerp(anchorW, s);
-        p.y = Math.max(0.06, p.y - 4 * s * (1 - s) * slack * Math.min(d, 6) * 0.35);
+        const s = k / 12, p = a.clone().lerp(anchor, s);
+        p.y = Math.max(0.06, p.y - 4 * s * (1 - s) * 0.12 * Math.min(d, 6) * 0.35);
         pts.push(p);
       }
       r.geometry.dispose();
@@ -221,111 +243,64 @@ export function createStage({ canvas, skyCanvas, root, slide, bubble, steps, red
     });
   }
 
-  let lastPhase = "";
-  const q = new THREE.Vector3();
+  const tmpV = new THREE.Vector3();
   function tick(dt, t) {
     S.t += dt;
-    if (S.phase !== lastPhase) { lastPhase = S.phase; hooks.onPhase?.(lastPhase); }
     const ph = S.phase;
     const prevTx = S.tx;
-    if (Math.abs(S.kTarget - S.k) > 0.002) { S.k = reduced ? S.kTarget : S.k + (S.kTarget - S.k) * (1 - Math.exp(-dt * 7)); layout(); }
-    else if (S.k !== S.kTarget) { S.k = S.kTarget; layout(); }
+    readCards();
 
-    // slide and gang position
-    if (ph === "swap") { if (S.t > 0.15) startIn(); }
-    else if (ph === "in") {
-      const u1 = Math.min(1, S.t / 1.1); S.tx = (W + 24) * (1 - ease(u1));
-      if (u1 >= 1) enterRead();
+    if (ph === "swap") {
+      // wait for React to render the new cards before bringing them in
+      if (S.t > 0.15 && cards.dataset.scene === scenes[S.scene].key && rects.length) startIn();
+    } else if (ph === "in") {
+      const u1 = Math.min(1, S.t / 1.0); S.tx = S.dir * (W + 80) * (1 - ease(u1));
+      if (u1 >= 1) enterRest();
     } else if (ph === "out") {
-      const u1 = Math.min(1, S.t / 0.8); S.tx = -(W + 40) * easeIn(u1);
-      if (u1 >= 1) advance();
+      // the gang gathers at the hitches first, then everything rolls off
+      const g = Math.min(1, S.t / 0.35), u1 = clamp((S.t - 0.35) / 0.85, 0, 1);
+      S.tx = -S.dir * (W + 80) * easeIn(u1);
+      if (u1 >= 1) arrive();
+      void g;
     }
-    const towing = ph === "in" || ph === "out";
+    const moving = ph === "in" || ph === "out";
     const vTx = (S.tx - prevTx) / Math.max(dt, 1e-4);
-    bunnies.forEach((b, i) => {
-      if (towing) { b.x = towX(i); b.z = lane[i]; b.vx = vTx / u; b.vz = 0; turn(b, -Math.PI / 2, dt); }
-    });
-    if (ph === "swap") bunnies.forEach((b, i) => { b.x = towX(i) - (W + 60) / u; });
+    cards.style.transform = `translateX(${S.tx.toFixed(1)}px)`;
+    readCards(); // now including the translation, so wheels and hitches follow
 
-    // reading: they rest facing the card; the treat waits for the end of it
-    if (ph === "read") {
-      S.readT += dt;
-      bunnies.forEach((b, i) => { b.x = towX(i); b.z = lane[i]; b.vx = b.vz = 0; turn(b, Math.PI, dt); });
-      if ((S.atEnd && S.readT > 2.5) || S.readT > 10) enterAsk();
-    }
-
-    // the hero's job
-    const tp = treat ? treat.group.position : null;
-    if (ph === "ask" && tp) {
-      if (treat.held) {
-        const g = groundAt(pointer.x, pointer.y);
-        if (g) { const lim = W / u / 2 - 0.8; tp.x += (THREE.MathUtils.clamp(g.x, -lim, lim) - tp.x) * Math.min(1, dt * 20); tp.z += (THREE.MathUtils.clamp(g.z, -3, 3.4) - tp.z) * Math.min(1, dt * 20); }
-        tp.y += (1.0 - tp.y) * Math.min(1, dt * 12);
-        say(hooks.text.hold);
-      } else say(steps[S.step].ask);
-      if (reduced) { moveTo(hero, tp.x - 1.6, tp.z, 0, dt); turn(hero, Math.PI / 2, dt); }
-      else if (S.begging) {
-        hero.vx *= 0.8; hero.vz *= 0.8; hero.lean += (1 - hero.lean) * Math.min(1, dt * 8);
-        turn(hero, Math.atan2(tp.x - hero.x, tp.z - hero.z), dt);
-        if ((S.begT -= dt) <= 0) { S.begging = false; S.begT = 3 + Math.random() * 2; }
-      } else {
-        S.a += dt * (treat.held ? 1.7 : 1.0);
-        hero.lean += (0 - hero.lean) * Math.min(1, dt * 8);
-        moveTo(hero, tp.x + Math.cos(S.a) * 2.2, tp.z + Math.sin(S.a) * 1.15, 6, dt);
-        heading(hero, dt);
-        if (!treat.held && (S.begT -= dt) <= 0) { S.begging = true; S.begT = 1.7; }
-      }
-    } else if (ph === "chase" && tp) {
-      const dx = tp.x - hero.x, dz = tp.z - hero.z, d = Math.hypot(dx, dz);
-      if (d > 0.95) moveTo(hero, tp.x - dx / d * 0.9, tp.z - dz / d * 0.9, 6.5, dt);
-      else { hero.vx = hero.vz = 0; S.phase = "eat"; S.eatT = 0; }
-      heading(hero, dt, Math.atan2(dx, dz));
-    } else if (ph === "eat" && tp) {
-      S.eatT += dt; hero.nod = Math.min(1, S.eatT / 1.0);
-      hero.vx = hero.vz = 0; turn(hero, Math.atan2(tp.x - hero.x, tp.z - hero.z), dt);
-      treat.group.scale.setScalar(Math.max(0.05, 1 - S.eatT / 1.0));
-      if (S.eatT > 1.0) finishEat();
-    } else if (ph === "cheer") {
-      if (S.t > 0.4) { S.phase = "gather"; S.t = 0; hooks.onToast(""); }
-    } else if (ph === "gather") {
-      let far = 0;
-      bunnies.forEach((b, i) => { far = Math.max(far, moveTo(b, towX(i), lane[i], 14, dt)); heading(b, dt, -Math.PI / 2); });
-      if (far < 0.25 || S.t > 1) { S.phase = "out"; S.t = 0; }
-    } else if (ph === "finale") {
-      say("finale");
+    if (ph === "swap") {
+      bunnies.forEach((b, i) => { b.x = (S.dir > 0 ? 1 : -1) * (W / u / 2 + 6 + i); b.z = lane[i]; b.vx = b.vz = 0; });
+    } else if (moving && rects.length) {
+      const g = ph === "out" ? ease(Math.min(1, S.t / 0.35)) : 1;
       bunnies.forEach((b, i) => {
-        moveTo(b, toX(W / 2 + (i - 1) * 130 * sc()), lane[i] + 0.4, 5, dt);
-        heading(b, dt, 0);
-        if (!reduced && (b.idle -= dt) <= 0) { b.idle = 1.2 + Math.random() * 2.2; hopNow(b); if (Math.random() < 0.5) love(b, 1); }
+        const tx = towXof(i);
+        // on the way out they first walk from where they rested to the hitch
+        b.x = ph === "out" && S.t < 0.35 ? b.x + (tx - b.x) * Math.min(1, dt * 14) : tx;
+        b.z += (lane[i] - b.z) * Math.min(1, dt * 8);
+        b.vx = ph === "out" && S.t < 0.35 ? (tx - b.x) * 6 : vTx / u; b.vz = 0;
+        turn(b, towYaw() * g, dt);
+      });
+    } else if (ph === "rest" || ph === "eat") {
+      bunnies.forEach((b, i) => {
+        const rx = restX(i);
+        b.x += (rx - b.x) * Math.min(1, dt * 4); b.z += (lane[i] - b.z) * Math.min(1, dt * 4);
+        b.vx = b.vz = 0;
+        turn(b, ph === "eat" && b === hero ? 0 : glance(b), dt);
+        if (!reduced && (b.idle -= dt) <= 0) { b.idle = (key() === "end" ? 1.2 : 3) + Math.random() * 3; if (b !== hero || ph === "rest") { hopNow(b); if (key() === "end" && Math.random() < 0.5) love(b, 1); } }
       });
     }
 
-    // the others watch her, fidget, and wait
-    if (ph === "ask" || ph === "chase" || ph === "eat" || ph === "cheer") {
-      bunnies.forEach((b, i) => {
-        if (i === 0) return;
-        b.x += (towX(i) - b.x) * Math.min(1, dt * 3); b.z += (lane[i] - b.z) * Math.min(1, dt * 3);
-        b.vx = b.vz = 0; turn(b, Math.atan2(hero.x - b.x, hero.z - b.z), dt);
-        if (!reduced && (b.idle -= dt) <= 0) { b.idle = 2 + Math.random() * 4; hopNow(b); }
-      });
-    }
-    if (ph === "cheer" || ph === "eat") bunnies.forEach((b) => { if (b !== hero) b.lean *= 0.9; });
-
-    // treat falls and settles
-    if (treat && !treat.gone) {
-      const g = treat.group;
-      if (!treat.held) {
-        treat.vy -= 22 * dt; g.position.y += treat.vy * dt;
-        if (g.position.y <= 0) { g.position.y = 0; treat.vy = treat.vy < -3 ? -treat.vy * 0.3 : 0; }
-      }
-      treat.bob.position.y = treat.held ? Math.sin(t * 9) * 0.05 : Math.sin(t * 2.4) * 0.03 + (ph === "ask" ? 0.04 : 0);
-      treat.bob.rotation.y += dt * (treat.held ? 4 : 0.8);
-      treat.ring.visible = ph === "ask" && !treat.held;
-      treat.ring.position.y = 0.02 - g.position.y;
-      treat.ring.scale.setScalar(1 + Math.sin(t * 4) * 0.12);
-      treat.ring.material.opacity = 0.55 + Math.sin(t * 4) * 0.25;
-      const sh = 1 - Math.min(0.5, g.position.y * 0.1); treat.shadow.scale.set(0.4 * sh, 0.32 * sh, 1);
-      treat.shadow.position.y = 0.012 - g.position.y;
+    // the treat flies to the hero's mouth, she eats it
+    if (ph === "eat" && treat && !reduced) {
+      S.eatT += dt;
+      const f = Math.min(1, S.eatT / 0.45);
+      const m = hero.mouth;
+      tmpV.lerpVectors(treat.from, m, ease(f)); tmpV.y += Math.sin(f * Math.PI) * 2.2;
+      treat.group.position.copy(tmpV);
+      treat.group.scale.setScalar(f < 1 ? 1.6 - 0.6 * f : Math.max(0.05, 1 - (S.eatT - 0.45) / 0.3));
+      treat.bob.rotation.y += dt * 8;
+      hero.nod = f < 1 ? 0 : Math.min(1, (S.eatT - 0.45) / 0.3);
+      if (S.eatT > 0.75) finishEat();
     }
 
     // the egg: wiggles now and then so the curious find it
@@ -334,40 +309,15 @@ export function createStage({ canvas, skyCanvas, root, slide, bubble, steps, red
     else if (!reduced) eg.egg.rotation.z = Math.max(0, Math.sin(t * 1.3 + 2)) ** 24 * Math.sin(t * 30) * 0.25;
 
     bunnies.forEach((b) => poseBunny(b, dt, t, ph === "swap"));
-    updateRopes(t);
+    placeCarts(prevTx, moving);
+    updateRopes();
     updateFx(fx, scene, dt);
-
-    // the DOM board follows the gang; it sways a little as they hop
-    const tilt = towing ? Math.sin(hero.hop) * 0.4 * (Math.abs(vTx) > 40 ? 1 : 0) : 0;
-    slide.style.transform = `translateX(${S.tx.toFixed(1)}px) rotate(${tilt.toFixed(2)}deg)`;
-
-    // the wheels sit under the board's corners and turn as it rolls
-    const cx = W / 2 + S.tx;
-    cart.wheels[0].position.set(toX(cx - bw / 2 + 72), 0.85, CZ);
-    cart.wheels[1].position.set(toX(cx + bw / 2 - 72), 0.85, CZ);
-    if (towing) cart.wheels.forEach((w) => { w.rotation.z -= (S.tx - prevTx) / u / 0.85; });
-    cart.hitch.position.set(toX(hitchPx()), 0, CZ);
-
-    // the speech bubble rides beside whoever is talking, never over the card
-    const talking = S.text && ["ask", "finale"].includes(ph);
-    if (talking) {
-      const b = ph === "finale" ? bunnies[1] : hero;
-      q.set(b.x, 1.3, b.z).project(camera);
-      const bwid = bubble.offsetWidth, bh = bubble.offsetHeight;
-      const hx = (q.x * 0.5 + 0.5) * W, hy = (-q.y * 0.5 + 0.5) * H;
-      const right = hx + 50 + bwid < W - 8;
-      const px = right ? hx + 50 : hx - 50;
-      const py = clamp(hy, H - (E + 1.75 * u) + bh / 2 + 6, H - bh / 2 - 6);
-      bubble.style.transform = `translate(${px.toFixed(0)}px, ${py.toFixed(0)}px) translate(${right ? "0" : "-100%"}, -50%)`;
-      bubble.style.opacity = "1"; bubble.style.visibility = "visible";
-    } else { bubble.style.opacity = "0"; bubble.style.visibility = "hidden"; }
-
     sky?.update(dt, t, S.tx);
 
     // cursor hint
-    if (!treat?.held && pointer.over) {
+    if (pointer.over) {
       const h = objectsHit(pointer.x, pointer.y);
-      root.style.cursor = h ? (h.kind === "treat" ? "grab" : "pointer") : "";
+      if (!(pointer.x && document.elementFromPoint(pointer.x, pointer.y)?.closest?.("button, a, .tour-card, .tour-dialog"))) root.style.cursor = h ? "pointer" : "";
     }
   }
 
@@ -380,25 +330,22 @@ export function createStage({ canvas, skyCanvas, root, slide, bubble, steps, red
     renderer.render(scene, camera);
   }
   resize();
-  hooks.onStep(0);
-  S.phase = "swap"; S.t = 0.1;
-  if (reduced) startIn();
+  S.busy = true;
+  hooks.onScene(0);
+  sky?.setStep(scenes[0].sky, true);
+  S.phase = "swap"; S.t = 0.1; S.tx = W + 80;
   raf = requestAnimationFrame(loop);
 
-  const api = {
-    give, collectEgg,
-    setAtEnd(v) { S.atEnd = v; },
+  return {
+    nav, collectEgg,
     dispose() {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointerdown", down);
       window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
-      window.removeEventListener("pointercancel", up);
       sky?.dispose();
       renderer.dispose();
     },
     _S: S,
   };
-  return api;
 }

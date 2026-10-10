@@ -1,50 +1,64 @@
-// The interactive tour. Three bunnies (a Three.js scene, see stage.js) tow each
-// section of the page in like a slide; a hero bunny circles a treat begging for
-// it, you drag the treat to her, and they tow the slide away and fetch the next.
+// The interactive tour. Bunnies (a Three.js scene, see stage.js) tow a handful of
+// small themed cards in; the two treat buttons send them off left or right.
 // Golden eggs are hidden in the grass. No progress is kept: it's a short tour.
 import { useCallback, useEffect, useRef, useState } from "react";
-import { tour } from "../content.js";
-import LandingPage from "../components/LandingPage.jsx";
+import { tour, projects } from "../content.js";
 import { createStage } from "./stage.js";
+import { Card, Clouds, Detail } from "./cards.jsx";
 import "./game.css";
 
-const steps = tour.steps;
+const scenes = tour.scenes;
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const firstHouse = (s) => s.cards.find((c) => c.kind === "house")?.i ?? null;
+
+// The two treats, drawn flat. Back is a carrot, Next an apple.
+const Carrot = () => (
+  <svg viewBox="0 0 64 64" aria-hidden="true">
+    <path d="M14 30c10-8 26-8 34 2L30 56c-6-2-14-10-16-26z" fill="#e8934a" stroke="#8a4a1c" strokeWidth="3" strokeLinejoin="round" transform="rotate(-35 32 32)" />
+    <path d="M44 14c2-6 8-8 12-6M44 14c-4-6-10-6-12-2M44 14c6 0 10 4 10 8" fill="none" stroke="#5f8a42" strokeWidth="4" strokeLinecap="round" />
+  </svg>
+);
+const Apple = () => (
+  <svg viewBox="0 0 64 64" aria-hidden="true">
+    <path d="M32 20c-8-6-20-2-20 12 0 12 8 24 16 24 2 0 2-1 4-1s2 1 4 1c8 0 16-12 16-24 0-14-12-18-20-12z" fill="#d9695f" stroke="#8a2f28" strokeWidth="3" strokeLinejoin="round" />
+    <path d="M32 20c0-6 2-10 6-12" fill="none" stroke="#5f4730" strokeWidth="4" strokeLinecap="round" />
+    <path d="M38 12c6-4 12-1 12 3-6 3-11 1-12-3z" fill="#78a456" stroke="#4a6e30" strokeWidth="2" />
+  </svg>
+);
 
 export default function GameShell({ onExit }) {
   const rootRef = useRef(null);
   const canvasRef = useRef(null);
   const skyRef = useRef(null);
-  const scrollRef = useRef(null);
-  const slideRef = useRef(null);
-  const bubbleRef = useRef(null);
+  const cardsRef = useRef(null);
   const stageRef = useRef(null);
-  const [step, setStep] = useState(0);
-  const [text, setText] = useState(null);
-  const [phase, setPhase] = useState("swap");
-  const [more, setMore] = useState(false);
-  const [finale, setFinale] = useState(false);
+  const [scene, setScene] = useState(0);
+  const [sel, setSel] = useState(firstHouse(scenes[0]));
+  const [hov, setHov] = useState(null);
+  const [item, setItem] = useState(null);
   const [found, setFound] = useState(0);
   const [toast, setToast] = useState("");
+  const [busy, setBusy] = useState(true);
   const [failed, setFailed] = useState(false);
   const toastTimer = useRef(0);
-  const s = steps[step];
+  const itemRef = useRef(null);
+  itemRef.current = item;
+  const s = scenes[scene];
+  const last = scene === scenes.length - 1;
 
   useEffect(() => {
     let stage;
     const flash = (msg, ms) => { clearTimeout(toastTimer.current); setToast(msg); if (msg && ms) toastTimer.current = setTimeout(() => setToast(""), ms); };
     try {
       stage = createStage({
-        canvas: canvasRef.current, skyCanvas: skyRef.current, root: rootRef.current, slide: slideRef.current, bubble: bubbleRef.current,
-        steps, reduced: reducedMotion(),
+        canvas: canvasRef.current, skyCanvas: skyRef.current, root: rootRef.current, cards: cardsRef.current,
+        scenes, reduced: reducedMotion(),
         hooks: {
           text: tour,
-          onStep: (n) => { setStep(n); setFinale(false); setText(null); scrollRef.current?.scrollTo({ top: 0 }); },
-          onPhase: setPhase,
-          onText: setText,
-          onFinale: setFinale,
-          onToast: (m) => flash(m, 1400),
-          onFound: (n) => { setFound(n); flash(tour.found(n, steps.length), 2200); },
+          onScene: (n) => { setScene(n); setSel(firstHouse(scenes[n])); setHov(null); },
+          onBusy: setBusy,
+          onToast: (m) => flash(m, 1200),
+          onFound: (n) => { setFound(n); flash(tour.found(n, scenes.length), 2200); },
         },
       });
     } catch {
@@ -56,24 +70,26 @@ export default function GameShell({ onExit }) {
     return () => { stage.dispose(); clearTimeout(toastTimer.current); };
   }, []);
 
-  // Tells the stage when the card has been read to the end, and whether to hint at more.
-  const check = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const left = el.scrollHeight - el.scrollTop - el.clientHeight;
-    setMore(left > 24);
-    stageRef.current?.setAtEnd(left <= 24);
-  }, []);
+  const back = useCallback(() => { if (!itemRef.current) stageRef.current?.nav(-1); }, []);
+  const next = useCallback(() => {
+    if (itemRef.current) return;
+    if (last) onExit(); else stageRef.current?.nav(1);
+  }, [last, onExit]);
+
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return undefined;
-    el.addEventListener("scroll", check, { passive: true });
-    const ro = new ResizeObserver(check);
-    ro.observe(el);
-    if (el.firstElementChild) ro.observe(el.firstElementChild);
-    const id = requestAnimationFrame(check);
-    return () => { el.removeEventListener("scroll", check); ro.disconnect(); cancelAnimationFrame(id); };
-  }, [check, step, failed]);
+    const key = (e) => {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      if (e.key === "ArrowRight") next();
+      else if (e.key === "ArrowLeft") back();
+    };
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [next, back]);
+
+  const open = useCallback((it) => {
+    if (it.type === "project") setSel(it.i ?? projects.indexOf(it.p));
+    setItem(it.type === "role" ? { ...it, go: (p) => open({ type: "project", p }) } : it);
+  }, []);
 
   if (failed) {
     return (
@@ -84,50 +100,49 @@ export default function GameShell({ onExit }) {
     );
   }
 
+  const cloudProject = projects[hov ?? sel] || null;
+  const nextLabel = last ? tour.last : tour.next(scenes[scene + 1].label);
+  const backLabel = scene > 0 ? scenes[scene - 1].label : tour.back;
+
   return (
     <div className="tour" ref={rootRef}>
       <canvas ref={skyRef} className="tour-sky" aria-hidden="true" />
-      <div className="tour-slide" ref={slideRef}>
-        <div className="tour-scroll" ref={scrollRef}>
-          <LandingPage only={s.key} />
-        </div>
-        <div className={`tour-fade${more ? " on" : ""}`} aria-hidden="true" />
-        {more && (
-          <button className="tour-more" onClick={() => scrollRef.current?.scrollBy({ top: scrollRef.current.clientHeight * 0.7, behavior: "smooth" })}>
-            {tour.scroll} ↓
-          </button>
-        )}
-        <div className="tour-deck" aria-hidden="true" />
+
+      {firstHouse(s) !== null && <Clouds project={cloudProject} />}
+      <div className={`tour-cards n${s.cards.length}${firstHouse(s) !== null ? " has-clouds" : ""}`} ref={cardsRef} data-scene={s.key}>
+        {s.cards.map((c, i) => (
+          <Card
+            key={`${s.key}${i}`} card={c} index={i} selected={sel}
+            onSelect={setSel} onHover={setHov} onOpen={open}
+            found={found} total={scenes.length} onExit={onExit}
+          />
+        ))}
       </div>
       <canvas ref={canvasRef} className="tour-canvas" aria-hidden="true" />
 
       <div className="tour-top">
-        <span className="tour-dots" role="img" aria-label={tour.stepOf(step + 1, steps.length)}>
-          {steps.map((x, i) => <i key={x.key} className={i === step ? "on" : i < step ? "done" : ""} />)}
+        <span className="tour-dots" role="img" aria-label={tour.sceneOf(scene + 1, scenes.length, s.label)}>
+          {scenes.map((x, i) => <i key={x.key} className={i === scene ? "on" : i < scene ? "done" : ""} />)}
         </span>
-        {s.next && (
-          <span className={`tour-next${phase === "ask" || phase === "chase" ? " pulse" : ""}`}>
-            {tour.feed(s.next)} →
-          </span>
-        )}
+        <span className="tour-hint">{tour.hint}</span>
       </div>
 
-      <div className="tour-bubble" ref={bubbleRef} role="status" aria-live="polite">
-        {text && !finale && <p>{text}</p>}
-        {finale && (
-          <>
-            <p>{tour.done(found, steps.length)}</p>
-            <button className="btn primary" onClick={onExit}>{tour.summary}</button>
-          </>
-        )}
+      <div className="tour-treat tour-treat-back">
+        <button className="tour-treat-btn" onClick={back} disabled={scene === 0 || busy} aria-label={tour.back}>
+          <Carrot />
+        </button>
+        <span className="tour-treat-label">← {scene > 0 ? backLabel : tour.back}</span>
+      </div>
+      <div className="tour-treat tour-treat-next">
+        <button className={`tour-treat-btn${busy ? "" : " is-ready"}`} onClick={next} disabled={busy} aria-label={nextLabel}>
+          <Apple />
+        </button>
+        <span className="tour-treat-label">{nextLabel} →</span>
       </div>
 
-      <div className="tour-keys">
-        {!finale && s.treat && <button className="btn tour-give" onClick={() => stageRef.current?.give()}>{tour.give}</button>}
-        <button className="btn tour-hunt" onClick={() => stageRef.current?.collectEgg()}>{tour.hunt}</button>
-      </div>
-      <p className="tour-hint">{phase === "read" ? tour.read : tour.hint}</p>
+      <button className="btn tour-hunt" onClick={() => stageRef.current?.collectEgg()}>{tour.hunt}</button>
       {toast && <div className="tour-toast" role="status">{toast}</div>}
+      {item && <Detail item={item} onClose={() => setItem(null)} />}
     </div>
   );
 }

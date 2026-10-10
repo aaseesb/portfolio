@@ -285,23 +285,38 @@ export const bunnyLines = {
 // and a treat fed to the bunny sends it off for the next. `egg` marks where a
 // secret treat is hidden in that section (percent of the section).
 export const tour = {
-  steps: [
-    { key: "intro", treat: "carrot", icon: "🥕", next: "my work", ask: "A carrot! Feed me and we'll fetch my work!", egg: { x: 0.9, z: -1.2 } },
-    { key: "work", treat: "apple", icon: "🍎", next: "my path", ask: "Ooh, an apple! Feed me and we'll fetch my path.", egg: { x: 0.06, z: 1.4 } },
-    { key: "path", treat: "leaf", icon: "🌿", next: "the finish", ask: "A leaf for the road? Feed me and we're nearly there.", egg: { x: 0.5, z: -1.1 } },
-    { key: "end", egg: { x: 0.95, z: 1.8 } },
+  // Five scenes, up to three cards each; bunny i tows card i. A "house" card is
+  // one project (index into `projects`). `next` names the scene the Next treat
+  // leads to. `egg` marks where a golden egg hides (fraction of width, z).
+  scenes: [
+    { key: "hello", label: "Hello", next: "my work", sky: 0, egg: { x: 0.94, z: 1.6 }, cards: [{ kind: "hello" }, { kind: "skills" }, { kind: "contact" }] },
+    { key: "work1", label: "Work", next: "more work", sky: 1, egg: { x: 0.05, z: 1.5 }, cards: [{ kind: "house", i: 0 }, { kind: "house", i: 1 }, { kind: "house", i: 2 }] },
+    { key: "work2", label: "More work", next: "my path", sky: 2, egg: { x: 0.95, z: 1.4 }, cards: [{ kind: "house", i: 3 }, { kind: "house", i: 4 }, { kind: "house", i: 5 }] },
+    { key: "path", label: "Path", next: "the finish", sky: 3, egg: { x: 0.5, z: 1.7 }, cards: [{ kind: "experience" }, { kind: "education" }, { kind: "leadership" }] },
+    { key: "end", label: "Finish", sky: 4, egg: { x: 0.06, z: 1.8 }, cards: [{ kind: "finish" }] },
   ],
-  hold: "Ooh ooh ooh!",
+  titles: {
+    skills: "Skills",
+    contact: "Say hi",
+    experience: "Experience",
+    education: "School & other roles",
+    leadership: "Leadership",
+    finish: "Thank you for visiting",
+  },
   yum: "Yum!",
-  hint: "Drag the treat to the bunny. Pet the bunnies. Hunt for golden eggs.",
-  read: "Scroll to the end and the bunnies will ask for a treat.",
-  feed: (next) => `Feed the bunny to see ${next}`,
-  scroll: "Scroll for more",
-  stepOf: (n, of) => `Step ${n} of ${of}`,
-  give: "Give the treat",
+  hint: "Press the treats to go back or forward",
+  back: "Back",
+  next: (label) => `Next: ${label}`,
+  last: "See the summary",
+  open: "Open",
+  openLabel: (name) => `Open ${name}`,
+  close: "Close",
+  tech: "Built with",
+  pointsTitle: "What I did",
+  sceneOf: (n, of, label) => `Scene ${n} of ${of}: ${label}`,
   hunt: "Collect a hidden golden egg",
   found: (n, of) => `Golden egg found! ${n}/${of}`,
-  done: (n, of) => `That's everything! Golden eggs found: ${n}/${of}.`,
+  done: (n, of) => `Golden eggs found: ${n} of ${of}.`,
   summary: "See the summary",
   noGl: "Your browser can't draw the 3D island, so here is the plain version.",
 };
