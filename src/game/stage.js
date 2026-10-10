@@ -68,9 +68,11 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
     makeBunny({ fur: COL.tan, mark: true }),
     makeBunny({ fur: COL.gray, tail: COL.cream }),
     makeBunny({ fur: COL.brown, tail: COL.cream }),
-    makeBunny({ fur: 0xe4d2b4, tail: COL.cream, size: 0.62 }), // the baby
+    makeBunny({ fur: 0xe4d2b4, tail: COL.cream, size: 0.62 }), // the babies
+    makeBunny({ fur: 0xb9bcc8, tail: COL.cream, size: 0.55 }),
+    makeBunny({ fur: 0x9a7456, tail: COL.cream, size: 0.68 }),
   ];
-  const lane = [0.3, -0.9, 1.3, 0.6];
+  const lane = [0.3, -0.9, 1.3, 0.6, -0.4, 1.0];
   bunnies.forEach((b) => scene.add(b.root));
   const hero = bunnies[0];
   let treat = null;
@@ -79,7 +81,7 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
   // ---- state ----
   // phases: swap -> in -> rest -> eat -> out -> swap ... ; `dir` is +1 for Next
   // (cards leave to the left, arrive from the right) and -1 for Back.
-  const S = { scene: 0, phase: "swap", t: 0, par: 0, dir: 1, target: 0, eatT: 0 };
+  const S = { scroll: 0, scene: 0, phase: "swap", t: 0, par: 0, dir: 1, target: 0, eatT: 0 };
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   function pickRay(cx, cy) { ndc.set((cx / W) * 2 - 1, -(cy / H) * 2 + 1); ray.setFromCamera(ndc, camera); }
   const key = () => scenes[S.scene].key;
@@ -90,15 +92,17 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
   const setBusy = (v) => { if (S.busy !== v) { S.busy = v; hooks.onBusy?.(v); } };
 
   // ---- where the bunnies rest: a little group in the middle of the grass ----
-  const stand = [0.5, 0.41, 0.59, 0.69];
+  const stand = [0.5, 0.41, 0.59, 0.69, 0.3, 0.78];
   const restX = (i) => toX(W * stand[i]);
   // they face the screen, angled a little toward the middle and a little apart from each other
   // sitting and standing bunnies turn a good way round, lying ones go side-on; never away from the screen
-  const side = [1, -1, 1, -1];
+  const side = [1, -1, 1, -1, 1, -1];
   const TURN = { sit: 0.6, stand: 0.4, loaf: 0.7, long: 1.15, flop: 1.1, run: 0.5 };
   const glance = (b, i) => clamp(-b.x / Math.max(1, W / u / 2), -1, 1) * 0.25 + side[i] * (TURN[b.poseName] ?? 0.5);
   // who is doing what in each scene (the hero stands up for treats, everyone runs to their spot)
-  const POSE = { hello: ["stand", "sit", "sit", "sit"], village: ["sit", "loaf", "sit", "loaf"], path: ["sit", "sit", "long", "sit"], end: ["sit", "sit", "sit", "sit"] };
+  const POSE = { hello: ["stand", "sit", "sit", "sit", "loaf", "sit"], village: ["sit", "loaf", "sit", "loaf", "sit", "sit"], path: ["sit", "sit", "long", "sit", "sit", "loaf"], end: ["sit", "sit", "sit", "sit", "sit", "sit"] };
+  // [dx, dz, height] around the hero when they sleep
+  const HUDDLE = [[0, 0.2, 0], [-1.0, -0.6, 0], [1.05, 0.7, 0], [0.2, 0.15, 0.5], [-1.3, 0.8, 0], [1.05, 0.7, 0.45]];
   const upright = (b) => b.poseName === "sit" || b.poseName === "stand";
   const setPhase = (ph) => { S.phase = ph; S.t = 0; cards.dataset.phase = ph; };
 
@@ -137,7 +141,7 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
     if (reduced) arrive();
   }
   function arrive() {
-    S.scene = S.target;
+    S.scene = S.target; S.scroll = 0;
     hooks.onScene(S.scene);
     sky?.setStep(scenes[S.scene].sky);
     setPhase("swap");
@@ -153,6 +157,8 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
     return null;
   };
   function petBunny(b) { b.pet = 1.5; b.squash = 0.12; b.liftV = 3.2; love(b, 3); if (b === hero && !reduced) hopNow(b); }
+  const onScroll = (e) => { const el = e.target; if (el?.scrollHeight > el.clientHeight) S.scroll = el.scrollTop / (el.scrollHeight - el.clientHeight); };
+  cards.addEventListener("scroll", onScroll, true);
   const onControl = (e) => !!e.target.closest?.("button, a, input, .tour-dialog, .tour-scroll");
   function down(e) {
     pointer.x = e.clientX; pointer.y = e.clientY;
@@ -190,9 +196,16 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
       if (!roam) { b.wx = b.wz = 0; }
       else if ((b.wander = (b.wander ?? 2 + i * 1.7) - dt) <= 0) {
         b.wander = 4 + Math.random() * 6;
-        b.wx = (Math.random() - 0.5) * 1.3; b.wz = (Math.random() - 0.5) * 0.7;
+        b.wx = (Math.random() - 0.5) * 0.6; b.wz = (Math.random() - 0.5) * 0.4;
       }
-      const tx = rx + (b.wx || 0), tz = lane[i] + (b.wz || 0);
+      // the group also reshuffles with every scene and drifts as you scroll; the hero hardly moves so she stays the centre
+      const ph2 = S.scroll * 5 + i * 1.7 + S.scene * 2.1, spread = i ? 0.9 : 0.1;
+      const form = roam ? [spread * Math.sin(ph2), (i ? 0.45 : 0) * Math.cos(ph2 + 1)] : [0, 0];
+      let tx = rx + (b.wx || 0) + form[0], tz = lane[i] + (b.wz || 0) + form[1];
+      // bedtime: everyone piles up around the hero, the little ones sleeping on top of the big ones
+      const asleep = key() === "end" && (ph === "in" || ph === "rest") && b.pet <= 0;
+      if (asleep) { tx = restX(0) + HUDDLE[i][0]; tz = 0.3 + HUDDLE[i][1]; }
+      b.perch = (b.perch || 0) + ((asleep ? HUDDLE[i][2] : 0) - (b.perch || 0)) * Math.min(1, dt * 2.5);
       const gap = Math.hypot(tx - b.x, tz - b.z);
       b.vx = b.vz = 0;
       if (roam && gap < 1.2 && gap > 0.05) {
@@ -202,12 +215,11 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
       } else { b.x += (tx - b.x) * Math.min(1, dt * 4); b.z += (tz - b.z) * Math.min(1, dt * 4); }
       turn(b, ph === "eat" && b === hero ? 0 : glance(b, i), dt);
       // the last scene is bedtime: they curl up and drift off, a petting wakes one briefly
-      const asleep = key() === "end" && (ph === "in" || ph === "rest") && b.pet <= 0;
       b.sleepT = asleep ? 1 : 0;
-      const far = Math.hypot(rx - b.x, lane[i] - b.z) > 1.3;
-      setPose(b, far ? "run" : asleep ? "flop" : ph === "eat" && b === hero ? "stand" : (POSE[key()] || POSE.end)[i]);
+      const far = Math.hypot(tx - b.x, tz - b.z) > 1.3;
+      setPose(b, far ? "run" : asleep ? ["flop", "loaf", "flop", "loaf", "loaf", "flop"][i] : ph === "eat" && b === hero ? "stand" : (POSE[key()] || POSE.end)[i]);
       if (!reduced && ph !== "swap" && (b.idle -= dt) <= 0) {
-        b.idle = (asleep ? 2.4 : 3) + Math.random() * 3;
+        b.idle = (asleep ? 1.4 : 3) + Math.random() * (asleep ? 1.8 : 3);
         if (asleep) { if (b.sleep > 0.8) spawnFx(fx, scene, headPos(b), "z", "#dfe6ff", 1); }
         else if (upright(b) && (b !== hero || ph === "rest")) hopNow(b);
       }
@@ -257,6 +269,7 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
     sky: (i) => sky?.setStep(i),
     dispose() {
       cancelAnimationFrame(raf);
+      cards.removeEventListener("scroll", onScroll, true);
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointerdown", down);
       window.removeEventListener("pointermove", move);

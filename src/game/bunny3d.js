@@ -108,11 +108,12 @@ export function poseBunny(b, dt, t, still) {
   const happy = b.pet > 0 ? 1 : 0;
   b.sleep += (b.sleepT - b.sleep) * (1 - Math.exp(-dt * 2.5));
   const sl = b.sleep;
-  b.eyes.forEach((e) => e.scale.y *= 1 - sl * 0.9);
-  b.root.position.set(b.x, j * 0.42 + b.lift, b.z);
+  b.eyes.forEach((e) => { e.scale.y *= 1 - sl * 0.92; e.scale.x *= 1 + sl * 0.35; });
+  const br = sl * Math.sin(t * 2 + b.x * 3); // slow breathing while asleep
+  b.root.position.set(b.x, j * 0.42 + b.lift + (b.perch || 0), b.z);
   b.root.rotation.y = b.yaw;
   const sq = b.squash - j * 0.05;
-  b.body.scale.multiply(_v.set(1 + sq * 0.6 + sl * 0.12, 1 - sq - sl * 0.08, 1 + sq * 0.6 + sl * 0.12));
+  b.body.scale.multiply(_v.set(1 + sq * 0.6 + sl * 0.12 - br * 0.02, 1 - sq - sl * 0.08 + br * 0.045, 1 + sq * 0.6 + sl * 0.12 - br * 0.02));
   b.body.rotation.x += -b.lean * 0.5 + j * -0.1;
   b.body.position.z += -b.lean * 0.15;
   b.head.rotation.x += sl * (0.55 + Math.sin(t * 1.6) * 0.04) + b.lean * 0.55 + Math.sin(b.nod * Math.PI * 6) * 0.4 * (b.nod > 0 ? 1 : 0) + happy * Math.sin(t * 22) * 0.08;
