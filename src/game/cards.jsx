@@ -1,11 +1,12 @@
 // What each tour scene lays over the sky: overlaid text, a village of houses with
 // the skills as clouds, a long scroll of roles. Anything longer than a line opens
 // as a room (room.jsx). All copy comes from content.js.
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { profile, projects, education, experience, leadership, tour } from "../content.js";
 import { byRecency } from "../dates.js";
 import ProjectVisual from "../components/ProjectVisual.jsx";
 import ProjectIcon from "../components/ProjectIcon.jsx";
+import { hillY, PAR_PER_SCENE } from "./hills.js";
 import ContactLinks, { contactLinks } from "../components/ContactLinks.jsx";
 
 const roles = experience.slice().sort(byRecency);
@@ -100,8 +101,42 @@ const skillList = skillsWide.map((s) => s.t);
 const jit = (i) => ((i * 37) % 11) - 5;
 const norm = (t) => t.toLowerCase();
 
+const VILLAGE_SCENE = 1; // the hills have drifted this many scenes by the time the village shows
+const TIER_SCALE = [0.6, 0.8, 1];
+
 function Village({ sel, onSelect, onOpen }) {
   const pointer = useRef("mouse");
+  const villageRef = useRef(null);
+  const [trail, setTrail] = useState(null);
+  // Stand each house on the ridge it belongs to (the same curves the sky paints) and
+  // thread a dirt trail through their feet. Far houses sit on the far ridge, middle
+  // ones on the near ridge, front ones on the grass strip.
+  useLayoutEffect(() => {
+    const v = villageRef.current;
+    const place = () => {
+      const W = v.clientWidth, H = v.clientHeight;
+      if (!W || !H) return;
+      const strip = parseFloat(getComputedStyle(v.closest(".tour")).getPropertyValue("--strip")) || 140;
+      const feet = [...v.querySelectorAll(".tour-house")].map((el) => {
+        const tier = +el.dataset.tier, s = TIER_SCALE[tier];
+        const cx = el.offsetLeft;
+        let b = strip - 2;
+        if (tier < 2) b = Math.max(hillY(tier, (cx / W) * (W / H) + PAR_PER_SCENE * VILLAGE_SCENE) * H - 2 * s, strip + 6);
+        el.style.setProperty("--b", `${b.toFixed(1)}px`);
+        return [cx, Math.min(H - b + 3 * s, H - strip - 3)]; // the grass strip covers anything lower
+      }).sort((a, c) => a[0] - c[0]);
+      setTrail({ W, H, feet });
+    };
+    place();
+    const ro = new ResizeObserver(place);
+    ro.observe(v);
+    return () => ro.disconnect();
+  }, []);
+  const trailD = trail && trail.feet.length > 1 ? trail.feet.reduce((d, [x, y], k, a) => {
+    if (k === 0) return `M${x},${y}`;
+    const [px, py] = a[k - 1], mx = (px + x) / 2;
+    return `${d} C${mx},${py} ${mx},${y} ${x},${y}`;
+  }, "") : null;
   const p = sel === null ? null : projects[sel];
   const used = p ? new Set(p.tech.map(norm)) : null;
   // the chosen project's clouds gather on an ellipse round the explanation
@@ -146,12 +181,18 @@ function Village({ sel, onSelect, onOpen }) {
           </>
         ) : <p>{tour.village.hint}</p>}
       </div>
-      <div className="tour-village">
+      <div className="tour-village" ref={villageRef}>
+        {trailD && (
+          <svg className="tour-trail" width={trail.W} height={trail.H} viewBox={`0 0 ${trail.W} ${trail.H}`} aria-hidden="true">
+            <path d={trailD} className="trail-edge" />
+            <path d={trailD} className="trail-path" />
+          </svg>
+        )}
         {PLACES.map(({ i, x, xm, tier }) => {
           const q = projects[i];
           return (
             <button
-              key={i} className={`tour-house t${tier}${sel === i ? " is-sel" : ""}`} style={{ "--x": `${x}%`, "--xm": `${xm}%` }}
+              key={i} className={`tour-house t${tier}${sel === i ? " is-sel" : ""}`} data-tier={tier} style={{ "--x": `${x}%`, "--xm": `${xm}%` }}
               aria-label={tour.openLabel(q.name)}
               onPointerDown={(e) => { pointer.current = e.pointerType; }}
               onPointerEnter={(e) => { if (e.pointerType === "mouse") onSelect(i); }}
@@ -160,6 +201,11 @@ function Village({ sel, onSelect, onOpen }) {
               onBlur={() => onSelect(null)}
               onClick={(e) => { if (pointer.current !== "mouse" && sel !== i) onSelect(i); else onOpen({ type: "project", p: q, i }, originOf(e.currentTarget.querySelector(".tour-door"))); pointer.current = "mouse"; }}
             >
+              <i className="tour-ground" aria-hidden="true" />
+              <i className="tour-bush b1" aria-hidden="true" />
+              <i className="tour-bush b2" aria-hidden="true" />
+              <i className="tour-tree" aria-hidden="true" />
+              <i className="tour-fence" aria-hidden="true" />
               <span className="tour-roof" aria-hidden="true"><i className="tour-chimney" /></span>
               <span className="tour-wall" aria-hidden="true">
                 <span className="tour-window">

@@ -3,6 +3,7 @@
 // Each tour scene has its own palette (dawn, noon, golden afternoon, dusk, night) and they lerp
 // into each other as the slides change. Dark theme dims the daytime ones.
 import * as THREE from "three";
+import { hillGLSL } from "./hills.js";
 
 const hex = (s) => new THREE.Color(s);
 // top, middle, horizon, drifting blob, far hill, near hill, night, sun x
@@ -45,20 +46,31 @@ void main(){
   float hs = hash(g);
   float star = step(0.986, hs) * (0.55 + 0.45 * sin(t * 2.0 + hs * 60.0)) * night * smoothstep(0.35, 0.75, uv.y);
   col += vec3(star);
-  // hills, far then near
+  // hills, far then near: a crisp ridge, a lighter rim, one flat tone step below it,
+  // and haze (a glow above the far ridge, mist in the valley between the two)
   float x = p.x + par;
-  float f0 = 0.27 + 0.045 * sin(x * 2.6 + 0.6) + 0.025 * sin(x * 6.1 + 2.0);
-  float f1 = 0.22 + 0.04 * sin(x * 3.4 + 3.1) + 0.02 * sin(x * 8.0 + 1.0);
+  ${hillGLSL}
+  float aa = 1.5 / res.y;
+  float hz = 1.0 - night * 0.7;
+  col = mix(col, c2, smoothstep(f0 + 0.15, f0, uv.y) * 0.38 * hz);
   vec3 hc0 = mix(h0, c2, 0.25) * mix(1.0, 0.6, dark * (1.0 - night));
   vec3 hc1 = h1 * mix(1.0, 0.62, dark * (1.0 - night));
-  col = mix(col, hc0, smoothstep(0.003, -0.003, uv.y - f0));
-  col = mix(col, hc1, smoothstep(0.003, -0.003, uv.y - f1));
+  float d0 = f0 - uv.y;
+  vec3 far = hc0 * mix(1.0, 0.93, step(0.055, d0));
+  far = mix(far, c2, smoothstep(f1 + 0.1, f1, uv.y) * 0.4 * hz);
+  far += smoothstep(0.012, 0.0, d0) * 0.05;
+  col = mix(col, far, smoothstep(-aa, aa, d0));
+  float d1 = f1 - uv.y;
+  vec3 near = hc1 * mix(1.0, 0.9, step(0.05, d1));
+  near += smoothstep(0.012, 0.0, d1) * 0.05;
+  col = mix(col, near, smoothstep(-aa, aa, d1));
   gl_FragColor = vec4(col, 1.0);
 }`;
 
 export function createSky(canvas, { reduced }) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false });
-  renderer.setPixelRatio(1);
+  const pr = Math.min(window.devicePixelRatio || 1, 2);
+  renderer.setPixelRatio(pr);
   const scene = new THREE.Scene();
   const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   const cur = {}, tgt = {};
@@ -76,6 +88,19 @@ export function createSky(canvas, { reduced }) {
   const mo = new MutationObserver(readTheme);
   mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
+  // the ridge colours as CSS vars, so the village's mounds match the hills they stand on
+  const root = document.documentElement.style;
+  let hillCss = "";
+  const publishHills = () => {
+    const k = 1 - U.dark.value * (1 - U.night.value) * 0.4;
+    const k1 = 1 - U.dark.value * (1 - U.night.value) * 0.38;
+    const rgb = (c, m) => `rgb(${[c.r, c.g, c.b].map((v) => Math.round(Math.min(1, v * m) * 255)).join(",")})`;
+    const far = rgb(cur.h0.clone().lerp(cur.c2, 0.25), k), near = rgb(cur.h1, k1);
+    if (far + near === hillCss) return;
+    hillCss = far + near;
+    root.setProperty("--hill-far", far); root.setProperty("--hill-near", near);
+  };
+
   let nightT = 0, sunT = 0.78;
   function setStep(i, instant) {
     const p = PALETTES[Math.min(i, PALETTES.length - 1)];
@@ -87,7 +112,7 @@ export function createSky(canvas, { reduced }) {
 
   return {
     setStep,
-    resize(w, h) { renderer.setSize(w, h, false); U.res.value.set(w, h); },
+    resize(w, h) { renderer.setSize(w, h, false); U.res.value.set(w * pr, h * pr); },
     update(dt, t, tx) {
       const a = 1 - Math.exp(-dt * 2.2);
       for (const k of Object.keys(cur)) cur[k].lerp(tgt[k], a);
@@ -95,6 +120,7 @@ export function createSky(canvas, { reduced }) {
       U.sun.value += (sunT - U.sun.value) * a;
       U.t.value = reduced ? 0 : t;
       U.par.value = -tx * 0.0006;
+      publishHills();
     },
     render() { renderer.render(scene, cam); },
     dispose() { mo.disconnect(); quad.geometry.dispose(); quad.material.dispose(); renderer.dispose(); },
