@@ -68,8 +68,9 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
     makeBunny({ fur: COL.tan, mark: true }),
     makeBunny({ fur: COL.gray, tail: COL.cream }),
     makeBunny({ fur: COL.brown, tail: COL.cream }),
+    makeBunny({ fur: 0xe4d2b4, tail: COL.cream, size: 0.62 }), // the baby
   ];
-  const lane = [0.3, -0.9, 1.3];
+  const lane = [0.3, -0.9, 1.3, 0.6];
   bunnies.forEach((b) => scene.add(b.root));
   const hero = bunnies[0];
   let treat = null;
@@ -89,13 +90,15 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
   const setBusy = (v) => { if (S.busy !== v) { S.busy = v; hooks.onBusy?.(v); } };
 
   // ---- where the bunnies rest: a little group in the middle of the grass ----
-  const stand = [0.5, 0.41, 0.59];
+  const stand = [0.5, 0.41, 0.59, 0.69];
   const restX = (i) => toX(W * stand[i]);
   // they face the screen, angled a little toward the middle and a little apart from each other
-  const angle = [0.3, -0.28, 0.22];
-  const glance = (b, i) => clamp(-b.x / Math.max(1, W / u / 2), -1, 1) * 0.3 + angle[i];
+  // sitting and standing bunnies turn a good way round, lying ones go side-on; never away from the screen
+  const side = [1, -1, 1, -1];
+  const TURN = { sit: 0.6, stand: 0.4, loaf: 0.7, long: 1.15, flop: 1.1, run: 0.5 };
+  const glance = (b, i) => clamp(-b.x / Math.max(1, W / u / 2), -1, 1) * 0.25 + side[i] * (TURN[b.poseName] ?? 0.5);
   // who is doing what in each scene (the hero stands up for treats, everyone runs to their spot)
-  const POSE = { hello: ["stand", "sit", "sit"], village: ["sit", "loaf", "sit"], path: ["sit", "sit", "long"], end: ["sit", "sit", "sit"] };
+  const POSE = { hello: ["stand", "sit", "sit", "sit"], village: ["sit", "loaf", "sit", "loaf"], path: ["sit", "sit", "long", "sit"], end: ["sit", "sit", "sit", "sit"] };
   const upright = (b) => b.poseName === "sit" || b.poseName === "stand";
   const setPhase = (ph) => { S.phase = ph; S.t = 0; cards.dataset.phase = ph; };
 
@@ -182,13 +185,26 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
 
     bunnies.forEach((b, i) => {
       const rx = restX(i);
-      b.x += (rx - b.x) * Math.min(1, dt * 4); b.z += (lane[i] - b.z) * Math.min(1, dt * 4);
+      // sitting bunnies potter about their spot; everyone else is eased to it
+      const roam = upright(b) && ph === "rest" && !reduced && b.pet <= 0;
+      if (!roam) { b.wx = b.wz = 0; }
+      else if ((b.wander = (b.wander ?? 2 + i * 1.7) - dt) <= 0) {
+        b.wander = 4 + Math.random() * 6;
+        b.wx = (Math.random() - 0.5) * 1.3; b.wz = (Math.random() - 0.5) * 0.7;
+      }
+      const tx = rx + (b.wx || 0), tz = lane[i] + (b.wz || 0);
+      const gap = Math.hypot(tx - b.x, tz - b.z);
       b.vx = b.vz = 0;
+      if (roam && gap < 1.2 && gap > 0.05) {
+        const sp = Math.min(1.1, gap / dt), k = sp * dt / gap;
+        b.x += (tx - b.x) * k; b.z += (tz - b.z) * k;
+        b.vx = (tx - b.x) / gap * sp; b.vz = (tz - b.z) / gap * sp;
+      } else { b.x += (tx - b.x) * Math.min(1, dt * 4); b.z += (tz - b.z) * Math.min(1, dt * 4); }
       turn(b, ph === "eat" && b === hero ? 0 : glance(b, i), dt);
       // the last scene is bedtime: they curl up and drift off, a petting wakes one briefly
       const asleep = key() === "end" && (ph === "in" || ph === "rest") && b.pet <= 0;
       b.sleepT = asleep ? 1 : 0;
-      const far = Math.hypot(rx - b.x, lane[i] - b.z) > 0.5;
+      const far = Math.hypot(rx - b.x, lane[i] - b.z) > 1.3;
       setPose(b, far ? "run" : asleep ? "flop" : ph === "eat" && b === hero ? "stand" : (POSE[key()] || POSE.end)[i]);
       if (!reduced && ph !== "swap" && (b.idle -= dt) <= 0) {
         b.idle = (asleep ? 2.4 : 3) + Math.random() * 3;

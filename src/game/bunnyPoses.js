@@ -58,7 +58,8 @@ export const POSES = {
       head: { p: [0, 1.5, 0.2], r: [0, 0, 0] },
       shadow: { s: [1, 1, 1] },
     },
-    pair("haunch", { p: [0.4, 0.4, -0.1], s: [1.06, 1.05, 1.09] }),
+    pair("haunch", { p: [0.28, 0.4, -0.1], s: [1.06, 1.05, 1.09] }),
+    pair("hind", { p: [0.26, 0.1, 0.12], s: HIDE }),
     pair("paw", { p: [0.2, 0.7, 0.5], s: [0.7, 1.2, 0.74] }),
     pair("ear", { r: [0, 0, -0.06] }),
   ),
@@ -66,7 +67,7 @@ export const POSES = {
   // a tucked loaf: a round bun, paws and hind feet hidden, ears back, eyes soft
   loaf: merge(
     {
-      torso: { p: [0, 0.46, -0.02], s: [1.2, 0.95, 1.1] },
+      torso: { p: [0, 0.46, -0.02], s: [1.25, 1, 1.15] },
       chest: { p: [0, 0.3, 0.4], s: [1.15, 0.85, 1] },
       tail: { p: [0, 0.36, -0.64] },
       head: { p: [0, 0.88, 0.42], r: [0.1, 0, 0] },
@@ -74,7 +75,7 @@ export const POSES = {
       eyeL: { s: [1, 0.65, 1] }, eyeR: { s: [1, 0.65, 1] },
       hindL: { s: HIDE }, hindR: { s: HIDE },
     },
-    pair("haunch", { p: [0.46, 0.34, -0.04], s: [1.15, 0.95, 1] }),
+    pair("haunch", { p: [0.3, 0.36, -0.04], s: [1.1, 1, 1.05] }),
     pair("paw", { p: [0.24, 0.07, 0.56], s: [0.8, 0.7, 0.6] }), // just the toes peeking out
     pair("ear", { r: [-0.3, 0, 0.3] }),
   ),
@@ -98,14 +99,14 @@ export const POSES = {
   // sprawled flat and boneless, head dropped sideways, ears slack, hind legs kicked out behind
   flop: merge(
     {
-      torso: { p: [0, 0.3, 0], s: [1.1, 0.5, 1.5] },
-      chest: { p: [0, 0.18, 0.7], s: [1.1, 0.55, 1.2] },
-      tail: { p: [0, 0.26, -1.0] },
-      head: { p: [0.1, 0.42, 1.0], r: [0.35, 0, 0.55] },
+      torso: { p: [0, 0.38, 0], s: [1.1, 0.72, 1.45] },
+      chest: { p: [0, 0.24, 0.7], s: [1.1, 0.7, 1.2] },
+      tail: { p: [0, 0.32, -1.0] },
+      head: { p: [0.1, 0.5, 0.98], r: [0.35, 0, 0.55] },
       shadow: { p: [0, 0.012, 0], s: [1.35, 1.9, 1] },
       eyeL: { s: [1, 0.2, 1] }, eyeR: { s: [1, 0.2, 1] },
     },
-    pair("haunch", { p: [0.55, 0.22, -0.55], s: [1.05, 0.55, 0.95] }),
+    pair("haunch", { p: [0.5, 0.28, -0.55], s: [1.05, 0.75, 0.95] }),
     pair("hind", { p: [0.7, 0.08, -1.25], r: [0, 0.5, 0], s: [1.1, 1, 1.25] }),
     pair("paw", { p: [0.3, 0.08, 1.05], r: [0, 0.25, 0], s: [1, 1, 1.2] }),
     pair("ear", { r: [-1.4, 0, 0.3] }),
@@ -142,6 +143,9 @@ const RUN_GATHER = merge(
   pair("ear", { r: [-0.35, 0, 0.1] }),
 );
 
+// Lying poses settle in slowly so a bunny lowers itself instead of getting smushed.
+const RATE = { run: 30, flop: 2.2, long: 3, loaf: 4 };
+
 // ---- engine ----
 const KEYS = ["body", "head", "shadow", "tail", "haunchL", "haunchR", "torso", "chest", "earL", "earR",
   "pawL", "pawR", "hindL", "hindR", "eyeL", "eyeR"];
@@ -163,7 +167,7 @@ export function stepPose(b, dt, t, snap = false) {
     const k = 0.5 + 0.5 * Math.sin(t * 11);
     target = lerpSpec(resolve(RUN_GATHER, base), resolve(RUN_STRETCH, base), k);
   } else target = resolve(POSES[name], base);
-  const ease = snap || !b.posePose ? 1 : 1 - Math.exp(-dt * (name === "run" ? 30 : 9));
+  const ease = snap || !b.posePose ? 1 : 1 - Math.exp(-dt * (RATE[name] || 9));
   b.posePose = b.posePose && !snap ? lerpSpec(b.posePose, target, ease) : target;
   for (const n of KEYS) {
     const o = b.parts[n], c = b.posePose[n];

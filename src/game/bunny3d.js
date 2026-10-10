@@ -50,7 +50,7 @@ export function makeShadow(r) {
 }
 
 // A bunny faces +z. `root` is what gets positioned and turned.
-export function makeBunny({ fur, mark, tail }) {
+export function makeBunny({ fur, mark, tail, size = 1 }) {
   const T = 0.05;
   const root = new THREE.Group(), body = new THREE.Group();
   root.add(body);
@@ -80,7 +80,7 @@ export function makeBunny({ fur, mark, tail }) {
   const paws = [-1, 1].map((sd) => { const f = blob(0.2, 0.1, 0.27, COL.belly, [sd * 0.26, 0.1, 0.62], { line: T }); body.add(f); return f; });
   // hind feet start tucked away; the lying and running poses (bunnyPoses.js) bring them out
   const hind = [-1, 1].map((sd) => { const f = blob(0.17, 0.1, 0.3, COL.belly, [sd * 0.42, 0.1, 0.1], { line: T }); f.scale.setScalar(0.001); body.add(f); return f; });
-  root.scale.setScalar(0.95);
+  root.scale.setScalar(0.95 * size);
   const b = {
     root, body, head, ears, eyes, shadow, sleep: 0, sleepT: 0,
     parts: { body, head, shadow, tail: tailB, haunchL, haunchR, torso, chest, earL: ears[0], earR: ears[1],
@@ -112,7 +112,7 @@ export function poseBunny(b, dt, t, still) {
   b.root.position.set(b.x, j * 0.42 + b.lift, b.z);
   b.root.rotation.y = b.yaw;
   const sq = b.squash - j * 0.05;
-  b.body.scale.multiply(_v.set(1 + sq * 0.6 + sl * 0.12, 1 - sq - sl * 0.25, 1 + sq * 0.6 + sl * 0.12));
+  b.body.scale.multiply(_v.set(1 + sq * 0.6 + sl * 0.12, 1 - sq - sl * 0.08, 1 + sq * 0.6 + sl * 0.12));
   b.body.rotation.x += -b.lean * 0.5 + j * -0.1;
   b.body.position.z += -b.lean * 0.15;
   b.head.rotation.x += sl * (0.55 + Math.sin(t * 1.6) * 0.04) + b.lean * 0.55 + Math.sin(b.nod * Math.PI * 6) * 0.4 * (b.nod > 0 ? 1 : 0) + happy * Math.sin(t * 22) * 0.08;
