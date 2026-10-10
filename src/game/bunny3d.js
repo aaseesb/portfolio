@@ -1,4 +1,4 @@
-// Little low-poly bunnies, treats and eggs for the interactive tour, ported
+// Little low-poly bunnies, and treats for the interactive tour, ported
 // from the island mockup: ellipsoid blobs with a cream outline shell.
 import * as THREE from "three";
 
@@ -54,11 +54,12 @@ export function makeBunny({ fur, mark, tail }) {
   const root = new THREE.Group(), body = new THREE.Group();
   root.add(body);
   const shadow = makeShadow(0.95); root.add(shadow);
-  body.add(blob(0.2, 0.2, 0.2, tail || COL.belly, [0.5, 0.42, -0.52], { line: T }));
-  body.add(blob(0.36, 0.38, 0.46, fur, [-0.42, 0.4, -0.08], { line: T }));
-  body.add(blob(0.36, 0.38, 0.46, fur, [0.42, 0.4, -0.08], { line: T }));
-  body.add(blob(0.6, 0.52, 0.62, fur, [0, 0.5, -0.02], { line: T }));
-  body.add(blob(0.46, 0.3, 0.3, COL.belly, [0, 0.36, 0.4], { line: 0 }));
+  const tailB = blob(0.2, 0.2, 0.2, tail || COL.belly, [0, 0.44, -0.7], { line: T });
+  const haunchL = blob(0.36, 0.38, 0.46, fur, [-0.42, 0.4, -0.08], { line: T });
+  const haunchR = blob(0.36, 0.38, 0.46, fur, [0.42, 0.4, -0.08], { line: T });
+  const torso = blob(0.6, 0.52, 0.62, fur, [0, 0.5, -0.02], { line: T });
+  const chest = blob(0.46, 0.3, 0.3, COL.belly, [0, 0.36, 0.4], { line: 0 });
+  body.add(tailB, haunchL, haunchR, torso, chest);
   const head = new THREE.Group(); head.position.set(0, 1.16, 0.16); body.add(head);
   const ears = [];
   [-1, 1].forEach((sd) => {
@@ -68,17 +69,21 @@ export function makeBunny({ fur, mark, tail }) {
     head.add(piv); ears.push(piv);
   });
   head.add(blob(0.5, 0.46, 0.46, fur, [0, 0, 0], { line: T }));
-  [-1, 1].forEach((sd) => head.add(blob(0.095, 0.11, 0.06, COL.black, [sd * 0.2, 0.05, 0.42], { line: 0 })));
+  const eyes = [-1, 1].map((sd) => { const e = blob(0.095, 0.11, 0.06, COL.black, [sd * 0.2, 0.05, 0.42], { line: 0 }); head.add(e); return e; });
   const nose = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.08, 3), lam(COL.pink));
   nose.rotation.set(Math.PI / 2, 0, Math.PI); nose.scale.set(1, 1, 0.35); nose.position.set(0, -0.07, 0.46); head.add(nose);
   if (mark) {
     const d = new THREE.Mesh(new THREE.OctahedronGeometry(1), new THREE.MeshBasicMaterial({ color: 0xfffaf3 }));
     d.scale.set(0.09, 0.14, 0.04); d.position.set(0, 0.3, 0.38); d.rotation.x = -0.55; head.add(d);
   }
-  [-1, 1].forEach((sd) => body.add(blob(0.2, 0.1, 0.27, COL.belly, [sd * 0.26, 0.1, 0.62], { line: T })));
+  const paws = [-1, 1].map((sd) => { const f = blob(0.2, 0.1, 0.27, COL.belly, [sd * 0.26, 0.1, 0.62], { line: T }); body.add(f); return f; });
+  // hind feet start tucked away; the lying and running poses (bunnyPoses.js) bring them out
+  const hind = [-1, 1].map((sd) => { const f = blob(0.17, 0.1, 0.3, COL.belly, [sd * 0.42, 0.1, 0.1], { line: T }); f.scale.setScalar(0.001); body.add(f); return f; });
   root.scale.setScalar(0.95);
   const b = {
-    root, body, head, ears, shadow,
+    root, body, head, ears, eyes, shadow, sleep: 0, sleepT: 0,
+    parts: { body, head, shadow, tail: tailB, haunchL, haunchR, torso, chest, earL: ears[0], earR: ears[1],
+      pawL: paws[0], pawR: paws[1], hindL: hind[0], hindR: hind[1], eyeL: eyes[0], eyeR: eyes[1] },
     x: 0, z: 0, yaw: 0, vx: 0, vz: 0, hop: 0, lift: 0, liftV: 0, squash: 0, pet: 0, lean: 0, nod: 0,
     idle: 1 + Math.random() * 3, mouth: new THREE.Vector3(),
   };
@@ -98,15 +103,18 @@ export function poseBunny(b, dt, t, still) {
   b.squash *= Math.exp(-dt * 8);
   if (b.pet > 0) b.pet -= dt;
   const happy = b.pet > 0 ? 1 : 0;
+  b.sleep += (b.sleepT - b.sleep) * (1 - Math.exp(-dt * 2.5));
+  const sl = b.sleep;
+  b.eyes.forEach((e) => e.scale.y = 1 - sl * 0.9);
   b.root.position.set(b.x, j * 0.42 + b.lift, b.z);
   b.root.rotation.y = b.yaw;
   const sq = b.squash - j * 0.05;
-  b.body.scale.set(1 + sq * 0.6, 1 - sq, 1 + sq * 0.6);
+  b.body.scale.set(1 + sq * 0.6 + sl * 0.12, 1 - sq - sl * 0.25, 1 + sq * 0.6 + sl * 0.12);
   b.body.rotation.x = -b.lean * 0.5 + j * -0.1;
   b.body.position.z = -b.lean * 0.15;
-  b.head.rotation.x = b.lean * 0.55 + Math.sin(b.nod * Math.PI * 6) * 0.4 * (b.nod > 0 ? 1 : 0) + happy * Math.sin(t * 22) * 0.08;
+  b.head.rotation.x = sl * (0.55 + Math.sin(t * 1.6) * 0.04) + b.lean * 0.55 + Math.sin(b.nod * Math.PI * 6) * 0.4 * (b.nod > 0 ? 1 : 0) + happy * Math.sin(t * 22) * 0.08;
   b.head.rotation.z = happy * Math.sin(t * 18) * 0.12;
-  b.ears.forEach((e, i) => { e.rotation.x = -j * 0.5 - happy * 0.3 - b.lean * 0.2; e.rotation.z = (i ? 1 : -1) * (0.06 + happy * 0.1 + Math.sin(t * 2 + i) * 0.03); });
+  b.ears.forEach((e, i) => { e.rotation.x = -j * 0.5 - happy * 0.3 - b.lean * 0.2 - sl * 0.9; e.rotation.z = (i ? 1 : -1) * (0.06 + happy * 0.1 + Math.sin(t * 2 + i) * 0.03); });
   const s = 1 - Math.min(0.5, b.lift * 0.5);
   b.shadow.scale.set(0.95 * s, 0.76 * s, 1);
   b.head.updateWorldMatrix(true, false);
@@ -157,20 +165,6 @@ export function makeCart() {
   const loop = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.05, 6, 14), lam(0x9a9a9a)); loop.position.y = 0.9; hitch.add(loop);
   group.add(hitch);
   return { group, wheels, hitch };
-}
-
-export function makeEgg() {
-  const g = new THREE.Group();
-  g.add(blob(0.3, 0.4, 0.3, COL.gold, [0, 0.38, 0], { line: 0.04 }));
-  g.add(blob(0.07, 0.07, 0.03, 0xfff3c4, [0.1, 0.5, 0.27], { line: 0 }));
-  g.add(blob(0.06, 0.06, 0.03, 0xd9695f, [-0.12, 0.3, 0.27], { line: 0 }));
-  // tucked into a bush so it is findable but not obvious
-  const bush = new THREE.Group();
-  [[-0.35, 0.2, 0.3, 0.42], [0.3, 0.2, 0.2, 0.38], [0, 0.18, 0.45, 0.36], [-0.05, 0.3, -0.15, 0.4]].forEach(([x, y, z, r]) =>
-    bush.add(blob(r, r * 0.8, r, COL.grassDark, [x, y, z], { line: 0.04 })));
-  g.add(bush);
-  g.add(makeShadow(0.7));
-  return { group: g, egg: g.children[0], bush, found: false, t: 0 };
 }
 
 // Soft hearts and dust puffs as sprites with canvas textures.

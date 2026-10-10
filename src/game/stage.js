@@ -100,7 +100,7 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
   }
   function enterRest() {
     setPhase("rest");
-    bunnies.forEach((b, i) => { b.vx = b.vz = 0; if (!reduced) setTimeout(() => hopNow(b), 120 * i); });
+    bunnies.forEach((b, i) => { b.vx = b.vz = 0; if (!reduced && key() !== "end") setTimeout(() => hopNow(b), 120 * i); });
     setBusy(false);
   }
   // Called from the Back and Next buttons. Ignored while anything is moving.
@@ -179,7 +179,14 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
       b.x += (rx - b.x) * Math.min(1, dt * 4); b.z += (lane[i] - b.z) * Math.min(1, dt * 4);
       b.vx = b.vz = 0;
       turn(b, ph === "eat" && b === hero ? 0 : glance(b), dt);
-      if (!reduced && ph !== "swap" && (b.idle -= dt) <= 0) { b.idle = (key() === "end" ? 1.2 : 3) + Math.random() * 3; if (b !== hero || ph === "rest") { hopNow(b); if (key() === "end" && Math.random() < 0.5) love(b, 1); } }
+      // the last scene is bedtime: they curl up and drift off, a petting wakes one briefly
+      const asleep = key() === "end" && (ph === "in" || ph === "rest") && b.pet <= 0;
+      b.sleepT = asleep ? 1 : 0;
+      if (!reduced && ph !== "swap" && (b.idle -= dt) <= 0) {
+        b.idle = (asleep ? 2.4 : 3) + Math.random() * 3;
+        if (asleep) { if (b.sleep > 0.8) spawnFx(fx, scene, headPos(b), "z", "#dfe6ff", 1); }
+        else if (b !== hero || ph === "rest") hopNow(b);
+      }
     });
 
     // the treat flies to the hero's mouth, she eats it

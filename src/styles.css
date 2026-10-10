@@ -970,3 +970,5 @@ button.lp-entry-btn:hover .lp-entry-title { color: var(--accent); }
   @keyframes bunnywave { 0%,100% { transform: rotate(-35deg); } 50% { transform: rotate(10deg); } }
   .bunny-wave-arm { animation: bunnywave 0.9s ease-in-out infinite; }
 }
+
+.contact-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }

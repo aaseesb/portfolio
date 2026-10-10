@@ -6,6 +6,7 @@ import { profile, projects, education, experience, leadership, tour } from "../c
 import { byRecency } from "../dates.js";
 import ProjectVisual from "../components/ProjectVisual.jsx";
 import ProjectIcon from "../components/ProjectIcon.jsx";
+import ContactLinks, { contactLinks } from "../components/ContactLinks.jsx";
 
 const roles = experience.slice().sort(byRecency);
 const mainRoles = roles.filter((e) => !e.aside);
@@ -34,11 +35,7 @@ function Chips({ items }) {
 
 // ---- Hello: the name sits on the sky, the links are scattered around it ----
 function Hello() {
-  const links = [
-    profile.resume && { label: "Resume", href: profile.resume, primary: true },
-    profile.email && { label: "Email", href: `mailto:${profile.email}` },
-    ...profile.links,
-  ].filter(Boolean);
+  const links = contactLinks();
   return (
     <>
       <section className="tour-hello" aria-label={profile.name}>
@@ -57,9 +54,10 @@ function Hello() {
 
 // ---- Village: six small houses on the hills, the whole skill set in the sky ----
 // x is a percentage across; tier 0 is the far hill, 2 the foreground.
+// Spaced so no house overlaps another, on wide and (xm) narrow screens.
 const PLACES = [
-  { i: 0, x: 30, tier: 2 }, { i: 1, x: 15, tier: 1 }, { i: 2, x: 34, tier: 0 },
-  { i: 3, x: 66, tier: 0 }, { i: 4, x: 85, tier: 1 }, { i: 5, x: 70, tier: 2 },
+  { i: 1, x: 11, xm: 9, tier: 1 }, { i: 0, x: 29, xm: 27, tier: 2 }, { i: 2, x: 44, xm: 43, tier: 0 },
+  { i: 3, x: 56, xm: 56, tier: 0 }, { i: 5, x: 71, xm: 71, tier: 2 }, { i: 4, x: 89, xm: 90, tier: 1 },
 ];
 const skillList = profile.skills.flatMap((g) => g.items);
 const jit = (i) => ((i * 37) % 11) - 5;
@@ -97,15 +95,17 @@ function Village({ sel, onSelect, onOpen }) {
         ) : <p>{tour.village.hint}</p>}
       </div>
       <div className="tour-village">
-        {PLACES.map(({ i, x, tier }) => {
+        {PLACES.map(({ i, x, xm, tier }) => {
           const q = projects[i];
           return (
             <button
-              key={i} className={`tour-house t${tier}${sel === i ? " is-sel" : ""}`} style={{ "--x": `${x}%` }}
+              key={i} className={`tour-house t${tier}${sel === i ? " is-sel" : ""}`} style={{ "--x": `${x}%`, "--xm": `${xm}%` }}
               aria-label={tour.openLabel(q.name)}
               onPointerDown={(e) => { pointer.current = e.pointerType; }}
               onPointerEnter={(e) => { if (e.pointerType === "mouse") onSelect(i); }}
+              onPointerLeave={(e) => { if (e.pointerType === "mouse") onSelect(null); }}
               onFocus={() => onSelect(i)}
+              onBlur={() => onSelect(null)}
               onClick={() => { if (pointer.current !== "mouse" && sel !== i) onSelect(i); else onOpen({ type: "project", p: q, i }); pointer.current = "mouse"; }}
             >
               <span className="tour-roof" aria-hidden="true"><i className="tour-chimney" /></span>
@@ -148,6 +148,8 @@ function Path({ onOpen, onProgress }) {
     <div className="tour-scroll" ref={ref} tabIndex={0} role="region" aria-label={t.experience}>
       <h2 className="reveal">{t.experience}</h2>
       <ul className="tour-rows">{mainRoles.map((e) => <Row key={e.org + e.title} e={e} onOpen={onOpen} />)}</ul>
+      <div className="tour-duo">
+      <div>
       <h2 className="reveal">{t.education}</h2>
       <ul className="tour-rows">
         <li className="reveal">
@@ -159,8 +161,12 @@ function Path({ onOpen, onProgress }) {
         </li>
         {asideRoles.map((e) => <Row key={e.org + e.title} e={e} onOpen={onOpen} />)}
       </ul>
+      </div>
+      <div>
       <h2 className="reveal">{t.leadership}</h2>
       <ul className="tour-rows">{leadRoles.map((e) => <Row key={e.org + e.title} e={e} onOpen={onOpen} />)}</ul>
+      </div>
+      </div>
       <p className="tour-scroll-hint" aria-hidden="true">{tour.scroll} ↓</p>
     </div>
   );
@@ -170,6 +176,8 @@ function End({ onExit }) {
   return (
     <section className="tour-hello tour-end" aria-label={tour.titles.finish}>
       <h2>{tour.titles.finish}</h2>
+      <p className="tour-sum">{profile.lookingFor}</p>
+      <ContactLinks className="tour-end-links" />
       <button className="btn primary" onClick={onExit}>{tour.summary}</button>
     </section>
   );

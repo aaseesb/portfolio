@@ -20,6 +20,8 @@ export const profile = {
     { label: "LinkedIn", href: "https://linkedin.com/in/aasees-badesha" },
   ],
   email: "aaseesbadesha13@gmail.com",
+  contactTitle: "Get in touch",
+  lookingFor: "I'm looking for internships in robotics, computer vision and full-stack work.",
 
   // The contact form at the bottom of the main page. Leave `formEndpoint` empty
   // and the form isn't rendered at all — the email button stands in for it.

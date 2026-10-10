@@ -72,6 +72,19 @@ export default function GameShell({ onExit }) {
     if (last) onExit(); else stageRef.current?.nav(1);
   }, [last, onExit]);
 
+  // sunlight under the pointer: the glow layer reads --mx / --my / --glow
+  useEffect(() => {
+    const el = rootRef.current;
+    const move = (e) => {
+      if (e.pointerType === "touch") return;
+      el.style.setProperty("--mx", `${e.clientX}px`); el.style.setProperty("--my", `${e.clientY}px`); el.style.setProperty("--glow", "1");
+    };
+    const leave = () => el.style.setProperty("--glow", "0");
+    window.addEventListener("pointermove", move);
+    document.addEventListener("pointerleave", leave);
+    return () => { window.removeEventListener("pointermove", move); document.removeEventListener("pointerleave", leave); };
+  }, []);
+
   useEffect(() => {
     const key = (e) => {
       if (e.altKey || e.ctrlKey || e.metaKey) return;
@@ -107,6 +120,7 @@ export default function GameShell({ onExit }) {
         <Scene k={s.key} sel={sel} onSelect={setSel} onOpen={open} onExit={onExit} onProgress={progress} />
       </div>
       <canvas ref={canvasRef} className="tour-canvas" aria-hidden="true" />
+      <div className="tour-glow" aria-hidden="true" />
 
       <div className="tour-top">
         <span className="tour-dots" role="img" aria-label={tour.sceneOf(scene + 1, scenes.length, s.label)}>

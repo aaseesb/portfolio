@@ -35,7 +35,12 @@
 .tour-scroll::-webkit-scrollbar { display: none; }
 .tour-scroll h2 { margin-top: 14vh; font-size: clamp(1.7rem, 4vw, 2.6rem); text-align: center; }
 .tour-scroll h2:first-child { margin-top: 0; }
-.tour-rows { display: grid; gap: 22px; margin: 0; padding: 0; list-style: none; width: min(560px, 100%); }
+.tour-rows { display: grid; gap: 22px; margin: 0; padding: 0; list-style: none; width: min(1040px, 100%); grid-template-columns: repeat(2, 1fr); column-gap: 48px; }
+.tour-rows > li:nth-child(even) { margin-top: 34px; }
+.tour-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 0 48px; width: min(1040px, 100%); align-items: start; }
+.tour-duo > div { display: grid; justify-items: center; gap: 18px; align-content: start; }
+.tour-duo .tour-rows { width: 100%; grid-template-columns: 1fr; }
+.tour-duo .tour-rows > li:nth-child(even) { margin-top: 0; }
 .reveal { opacity: 0; translate: 0 28px; transition: opacity 0.8s ease, translate 0.8s ease; }
 .reveal.in { opacity: 1; translate: 0 0; }
 .tour-row { display: grid; width: 100%; text-align: center; gap: 2px; padding: 8px 12px; border-radius: 12px; border: 1px solid transparent; background: none; color: inherit; font: inherit; text-shadow: inherit; cursor: pointer; }
@@ -64,27 +69,31 @@
 .tour-chimney { position: absolute; right: 22%; top: 9px; width: 11px; height: 16px; background: #8a6b45; }
 .tour-wall { position: relative; padding: 8px 10px 0; background: var(--paper); border: 3px solid var(--wood); border-bottom: 0; display: flex; align-items: flex-end; gap: 6px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); }
 .tour-house.is-sel .tour-wall { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 40%, transparent), 0 10px 24px rgba(0, 0, 0, 0.2); }
-.tour-window { flex: 1; aspect-ratio: 16 / 11; min-width: 0; border: 3px solid var(--wood-dark); border-radius: 5px; overflow: hidden; background: #a9d4ee; }
+.tour-window { flex: 1; aspect-ratio: 1 / 1.2; min-width: 0; border: 3px solid var(--wood-dark); border-radius: 5px; overflow: hidden; background: #a9d4ee; }
 .tour-window img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .tour-pane { display: grid; place-content: center; width: 100%; height: 100%; color: #2d5d85; }
 .tour-pane svg { width: 26px; height: 26px; }
-.tour-door { flex: none; width: 18px; height: 32px; border-radius: 9px 9px 0 0; background: var(--wood); }
+.tour-door { flex: none; width: 18px; height: 44px; border-radius: 9px 9px 0 0; background: var(--wood); }
 .tour-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .tour-badge { font-size: 0.7rem; padding: 1px 8px; border-radius: 999px; background: var(--accent); color: var(--bg); text-shadow: none; }
 .tour-open { padding: 5px 16px; border-radius: 999px; border: 1px solid var(--accent); background: var(--bg); color: var(--accent); font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-shadow: none; }
 .tour-open:hover, .tour-open:focus-visible { background: var(--accent); color: var(--bg); }
 
-/* ---- skill clouds: always in the sky; the chosen project's get brighter and bigger ---- */
-.tour-clouds { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; pointer-events: none; }
-.tour-cloud { position: absolute; left: var(--x); top: var(--y); transform: translate(-50%, -50%); padding: 8px 20px; border-radius: 999px; background: #fff; color: #33425a; font-size: 0.85rem; font-weight: 600; white-space: nowrap; opacity: 0.82; scale: 1; box-shadow: 0 5px 0 rgba(120, 140, 175, 0.25), 0 8px 16px rgba(60, 80, 120, 0.14); transition: scale 0.3s, opacity 0.3s, box-shadow 0.3s; animation: tour-float 5.5s ease-in-out var(--d, 0s) infinite; }
-.tour-cloud::before, .tour-cloud::after { content: ""; position: absolute; background: inherit; border-radius: 50%; z-index: -1; }
-.tour-cloud::before { width: 38%; height: 130%; left: 12%; top: -45%; }
-.tour-cloud::after { width: 30%; height: 110%; right: 14%; top: -30%; }
-.tour-cloud.on { scale: 1.3; opacity: 1; z-index: 2; color: #7a3a10; background: #fff8e8; box-shadow: 0 5px 0 rgba(230, 160, 60, 0.45), 0 0 26px rgba(255, 214, 120, 0.9); }
-.tour-cloud.off { scale: 0.9; opacity: 0.4; }
-:root[data-theme="dark"] .tour-cloud { background: #dfe6f5; }
-:root[data-theme="dark"] .tour-cloud.on { background: #fff3d6; }
-@keyframes tour-float { 50% { translate: 0 -7px; } }
+/* ---- skill clouds: soft puffs in the sky; the chosen project's get brighter and bigger ---- */
+.tour-clouds { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; pointer-events: none; --cl: 255, 255, 255; }
+:root[data-theme="dark"] .tour-clouds { --cl: 206, 218, 244; }
+.tour-cloud { position: absolute; left: var(--x); top: var(--y); transform: translate(-50%, -50%); padding: 17px 34px; color: #36445f; font-size: 0.85rem; font-weight: 700; white-space: nowrap; text-shadow: 0 0 6px rgba(var(--cl), 0.9); opacity: 0.6; scale: 1; filter: blur(0.4px); transition: scale 0.5s, opacity 0.5s, filter 0.5s;
+  background:
+    radial-gradient(ellipse 30% 62% at 24% 58%, rgba(var(--cl), 0.82), transparent 74%),
+    radial-gradient(ellipse 30% 84% at 46% 38%, rgba(var(--cl), 0.9), transparent 74%),
+    radial-gradient(ellipse 28% 70% at 70% 52%, rgba(var(--cl), 0.86), transparent 74%),
+    radial-gradient(ellipse 22% 52% at 88% 68%, rgba(var(--cl), 0.7), transparent 74%),
+    radial-gradient(ellipse 58% 48% at 50% 72%, rgba(var(--cl), 0.85), transparent 78%);
+  animation: tour-drift 11s ease-in-out var(--d, 0s) infinite alternate; }
+.tour-cloud.on { scale: 1.32; opacity: 1; z-index: 2; color: #6b3410; --cl: 255, 244, 214; filter: drop-shadow(0 0 14px rgba(255, 214, 120, 0.85)); }
+.tour-cloud.off { scale: 0.92; opacity: 0.3; }
+@keyframes tour-drift { from { translate: -9px 0; } to { translate: 9px -5px; } }
+
 
 /* ---- where you are, and what the treats do ---- */
 .tour-top { position: absolute; z-index: 5; top: 12px; left: 12px; display: flex; align-items: center; gap: 10px; max-width: calc(100% - 230px); pointer-events: none; }
@@ -126,6 +135,8 @@
 
 /* ---- narrow screens ---- */
 @media (max-width: 760px) {
+  .tour-rows, .tour-duo { grid-template-columns: 1fr; }
+  .tour-rows > li:nth-child(even) { margin-top: 0; }
   .tour-hello { top: calc((100% - var(--strip)) * 0.46); gap: 8px; }
   .tour-sum { font-size: 0.86rem; max-width: 330px; }
   .tour-float.f0 { left: 6%; top: 64%; }
@@ -137,9 +148,10 @@
   .tour-info { top: 54px; min-height: 76px; }
   .tour-info h2 { font-size: 1.2rem; }
   .tour-info p { font-size: 0.85rem; }
-  .tour-house { --w: 84px; }
+  .tour-house { --w: 70px; left: var(--xm); }
+  .tour-wall { padding: 6px 6px 0; gap: 4px; }
   .tour-roof { height: 28px; }
-  .tour-door { width: 14px; height: 24px; }
+  .tour-door { width: 12px; height: 34px; }
   .tour-cloud { left: var(--xm); top: var(--ym); padding: 5px 13px; font-size: 0.72rem; }
   .tour-top { max-width: calc(100% - 200px); gap: 6px; top: 10px; left: 10px; }
   .tour-dots { padding: 7px 9px; }
@@ -149,3 +161,8 @@
   .tour-treat-label { max-width: 112px; font-size: 0.72rem; padding: 3px 9px; }
 }
 @media (prefers-reduced-motion: reduce) { .tour-cloud, .tour-float, .tour-scroll-hint, .tour-treat-btn.is-ready { animation: none; } .reveal, .tour-layer { transition: none; } }
+
+/* ---- sunlight that follows the pointer ---- */
+.tour-glow { position: absolute; inset: 0; z-index: 4; pointer-events: none; mix-blend-mode: soft-light; opacity: var(--glow, 0); transition: opacity 0.6s; background: radial-gradient(circle 260px at var(--mx, 50%) var(--my, 50%), rgba(255, 238, 170, 0.95), rgba(255, 214, 120, 0.35) 45%, transparent 72%); }
+.tour-glow::after { content: ""; position: absolute; inset: 0; mix-blend-mode: screen; background: radial-gradient(circle 150px at var(--mx, 50%) var(--my, 50%), rgba(255, 240, 190, 0.28), transparent 70%); }
+.tour-end-links { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 4px 0 6px; }

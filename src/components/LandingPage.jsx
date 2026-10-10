@@ -15,6 +15,7 @@ import ProjectVisual from "./ProjectVisual.jsx";
 import ProjectIcon from "./ProjectIcon.jsx";
 import Reveal from "./Reveal.jsx";
 import ContactForm from "./ContactForm.jsx";
+import ContactLinks from "./ContactLinks.jsx";
 import ClientWork from "./ClientWork.jsx";
 import { byRecency } from "../dates.js";
 
@@ -479,10 +480,9 @@ export default function LandingPage({ selectedSlug, onFrontChange, only }) {
       {/* ---------- The end ---------- */}
       {show("end") && <footer className="lp-end">
         <Reveal>
-          <h2>Get in touch</h2>
-          <p className="lp-end-text">
-            I'm looking for internships in robotics, computer vision and full-stack work.
-          </p>
+          <h2>{profile.contactTitle}</h2>
+          <p className="lp-end-text">{profile.lookingFor}</p>
+          <ContactLinks />
           <ContactForm endpoint={profile.formEndpoint} email={profile.email} />
         </Reveal>
       </footer>}
