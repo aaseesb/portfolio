@@ -312,6 +312,7 @@ export const tour = {
   hint: "Press the treats to go back or forward",
   scroll: "Scroll down",
   back: "Back",
+  backTo: (label) => `Back: ${label}`,
   goTo: (label) => `Go to ${label}`,
   demos: "Demo views",
   next: (label) => `Next: ${label}`,
