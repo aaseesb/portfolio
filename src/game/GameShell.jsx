@@ -180,13 +180,13 @@ export default function GameShell({ onExit }) {
         <button className="tour-treat-btn" onClick={back} disabled={scene === 0 || busy} aria-label={tour.back}>
           <Carrot />
         </button>
-        <span className="tour-treat-label">← {scene > 0 ? backLabel : tour.back}</span>
+        <button type="button" className="tour-treat-label" onClick={back} disabled={scene === 0 || busy} tabIndex={-1} aria-hidden="true">{scene > 0 ? backLabel : tour.back}</button>
       </div>
       <div className="tour-treat tour-treat-next">
         <button className={`tour-treat-btn${busy ? "" : " is-ready"}`} onClick={next} disabled={busy} aria-label={nextLabel}>
           <Apple />
         </button>
-        <span className="tour-treat-label">{nextLabel} →</span>
+        <button type="button" className="tour-treat-label" onClick={next} disabled={busy} tabIndex={-1} aria-hidden="true">{nextLabel}</button>
       </div>
 
       {toast && <div className="tour-toast" role="status">{toast}</div>}
