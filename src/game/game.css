@@ -88,13 +88,19 @@
 /* ---- skill clouds: soft puffs in the sky; the chosen project's get brighter and bigger ---- */
 .tour-clouds { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; pointer-events: none; --cb: #d7e8fb; --cs: 120, 150, 200; }
 :root[data-theme="dark"] .tour-clouds { --cb: #a9bbe0; --cs: 40, 55, 110; }
-.tour-cloud { position: absolute; left: var(--x); top: var(--y); transform: translate(-50%, -50%); padding: 8px 20px; border-radius: 999px; background: var(--cb); color: #2f4468; font-size: 0.85rem; font-weight: 600; white-space: nowrap; opacity: 0.8; scale: 1; box-shadow: 0 5px 0 rgba(var(--cs), 0.22), 0 8px 16px rgba(var(--cs), 0.14); transition: left 0.8s cubic-bezier(.3,.8,.3,1), top 0.8s cubic-bezier(.3,.8,.3,1), scale 0.4s, opacity 0.4s, box-shadow 0.4s, background 0.4s; animation: tour-drift 9s ease-in-out var(--d, 0s) infinite alternate; }
+.tour-cloud { position: absolute; left: var(--x); top: var(--y); transform: translate(-50%, -50%); padding: 8px 20px; border-radius: 999px; background: var(--cb); color: #2f4468; font-size: 0.85rem; font-weight: 600; white-space: nowrap; opacity: 0.8; scale: 1; box-shadow: 0 5px 0 rgba(var(--cs), 0.22), 0 8px 16px rgba(var(--cs), 0.14); transition: left 0.8s cubic-bezier(.3,.8,.3,1), top 0.8s cubic-bezier(.3,.8,.3,1), scale 0.4s, opacity 0.4s, box-shadow 0.4s, background 0.4s; }
 .tour-cloud::before, .tour-cloud::after { content: ""; position: absolute; background: inherit; border-radius: 50%; z-index: -1; }
 .tour-cloud::before { width: 38%; height: 130%; left: 12%; top: -45%; }
 .tour-cloud::after { width: 30%; height: 110%; right: 14%; top: -30%; }
 .tour-cloud.on { left: var(--ox); top: var(--oy); scale: 1.15; opacity: 1; z-index: 2; color: #6b3410; background: #fff6df; box-shadow: 0 5px 0 rgba(230, 160, 60, 0.4), 0 0 26px rgba(255, 214, 120, 0.9); }
 .tour-cloud.off { scale: 0.85; opacity: 0.22; }
-@keyframes tour-drift { from { translate: -9px 0; } to { translate: 9px -5px; } }
+/* one soft tint per skill group, plus a small label beside (narrow: above) the group's first row */
+.tour-cloud.g0 { --cb: #d7e8fb; } .tour-cloud.g1 { --cb: #e3dcf7; } .tour-cloud.g2 { --cb: #d5f0e4; } .tour-cloud.g3 { --cb: #fbe5d3; }
+:root[data-theme="dark"] .tour-cloud.g0 { --cb: #a9bbe0; } :root[data-theme="dark"] .tour-cloud.g1 { --cb: #b9aee0; }
+:root[data-theme="dark"] .tour-cloud.g2 { --cb: #98cdb4; } :root[data-theme="dark"] .tour-cloud.g3 { --cb: #e0b998; }
+.tour-glabel { position: absolute; left: 3%; top: var(--y); transform: translateY(-50%); max-width: 15%; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.25; color: #4a5f86; transition: opacity 0.4s; }
+:root[data-theme="dark"] .tour-glabel { color: #c9d4ee; }
+.tour-clouds.has-sel .tour-glabel { opacity: 0; }
 
 
 /* ---- where you are, and what the treats do ---- */
@@ -226,6 +232,7 @@
   .tour-roof { height: 28px; }
   .tour-door { width: 12px; height: 34px; }
   .tour-cloud { left: var(--xm); top: var(--ym); padding: 5px 13px; font-size: 0.72rem; }
+  .tour-glabel { left: 6%; top: var(--ym); max-width: 60%; font-size: 0.62rem; }
   .tour-top { max-width: calc(100% - 200px); gap: 6px; top: 10px; left: 10px; }
   .tour-dots { padding: 7px 9px; }
   .tour-hint { display: none; }
@@ -233,7 +240,7 @@
   .tour-treat-btn { width: 72px; height: 72px; padding: 10px; }
   .tour-treat-label { max-width: 112px; font-size: 0.72rem; padding: 3px 9px; }
 }
-@media (prefers-reduced-motion: reduce) { .tour-cloud, .tour-float, .tour-scroll-hint, .tour-treat-btn.is-ready { animation: none; } .reveal, .tour-layer { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .tour-float, .tour-scroll-hint, .tour-treat-btn.is-ready { animation: none; } .reveal, .tour-layer { transition: none; } }
 
 /* ---- sunlight that follows the pointer ---- */
 .tour-glow { position: absolute; inset: 0; z-index: 4; pointer-events: none; mix-blend-mode: soft-light; opacity: var(--glow, 0); transition: opacity 0.6s; background: radial-gradient(circle 260px at var(--mx, 50%) var(--my, 50%), rgba(255, 238, 170, 0.95), rgba(255, 214, 120, 0.35) 45%, transparent 72%); }

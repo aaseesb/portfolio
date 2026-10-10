@@ -1,7 +1,7 @@
 // What each tour scene lays over the sky: overlaid text, a village of houses with
 // the skills as clouds, a long scroll of roles. Anything longer than a line opens
 // as a room (room.jsx). All copy comes from content.js.
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { profile, projects, education, experience, leadership, tour } from "../content.js";
 import { byRecency } from "../dates.js";
 import ProjectVisual from "../components/ProjectVisual.jsx";
@@ -84,12 +84,13 @@ const PLACES = [
   { i: 1, x: 11, xm: 9, tier: 1 }, { i: 0, x: 29, xm: 27, tier: 2 }, { i: 2, x: 44, xm: 43, tier: 0 },
   { i: 3, x: 56, xm: 56, tier: 0 }, { i: 5, x: 71, xm: 71, tier: 2 }, { i: 4, x: 89, xm: 90, tier: 1 },
 ];
-// Each group starts on its own row (4 clouds a row, 3 on narrow screens), so the
-// sky reads as groups even before a house is hovered.
+// Each group gets its own rows (4 clouds a row, 3 on narrow screens), its own tint,
+// and a small label in the sky, so it's clear which group a skill belongs to before
+// any house is hovered.
 const layoutSkills = (per) => {
   let row = 0;
-  return profile.skills.flatMap((g) => {
-    const out = g.items.map((t, k) => ({ t, r: row + Math.floor(k / per), c: k % per }));
+  return profile.skills.flatMap((g, gi) => {
+    const out = g.items.map((t, k) => ({ t, gi, r: row + Math.floor(k / per), c: k % per, first: k === 0, group: g.group }));
     row += Math.ceil(g.items.length / per);
     return out;
   });
@@ -111,21 +112,25 @@ function Village({ sel, onSelect, onOpen }) {
   };
   return (
     <>
-      <ul className="tour-clouds" aria-label={tour.village.cloudsLabel}>
-        {skillList.map((t, i) => {
-          const { r, c } = skillsWide[i], { r: rm, c: cm } = skillsNarrow[i];
+      <ul className={`tour-clouds${used ? " has-sel" : ""}`} aria-label={tour.village.cloudsLabel}>
+        {skillsWide.map(({ t, gi, r, c, first, group }, i) => {
           const state = used ? (used.has(norm(t)) ? " on" : " off") : "";
           const [ox, oy] = state === " on" ? ring(t, 37, 19, 37) : [];
           const [oxm, oym] = state === " on" ? ring(t, 36, 17, 33) : [];
+          const { r: rm, c: cm } = skillsNarrow[i];
+          const y = 27 + r * 8.5, ym = 15 + rm * 5.6 + (gi + 1) * 3.4;
           return (
-            <li
-              key={t} className={`tour-cloud${state}`}
-              style={{
-                "--x": `${14 + c * 24 + (r % 2) * 9 + jit(i)}%`, "--y": `${27 + r * 8.5}%`,
-                "--xm": `${20 + cm * 30 + (rm % 2) * 7 + jit(i) * 0.6}%`, "--ym": `${17 + rm * 6.6}%`,
-                "--d": `${(i % 5) * 0.8}s`, "--ox": ox, "--oy": oy, "--oxm": oxm, "--oym": oym,
-              }}
-            >{t}</li>
+            <Fragment key={t}>
+              {first && <li className="tour-glabel" aria-hidden="true" style={{ "--y": `${y}%`, "--ym": `${ym - 3.6}%` }}>{group}</li>}
+              <li
+                className={`tour-cloud g${gi}${state}`} title={group}
+                style={{
+                  "--x": `${28 + c * 19 + (r % 2) * 4 + jit(i) * 0.5}%`, "--y": `${y}%`,
+                  "--xm": `${20 + cm * 30 + jit(i) * 0.4}%`, "--ym": `${ym}%`,
+                  "--ox": ox, "--oy": oy, "--oxm": oxm, "--oym": oym,
+                }}
+              >{t}</li>
+            </Fragment>
           );
         })}
       </ul>
