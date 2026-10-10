@@ -219,15 +219,30 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
       b.perch = (b.perch || 0) + ((asleep ? HUDDLE[i][2] : 0) - (b.perch || 0)) * Math.min(1, dt * 2.5);
       const gap = Math.hypot(tx - b.x, tz - b.z);
       b.vx = b.vz = 0;
-      if (roam && gap < 1.2 && gap > 0.05) {
-        const sp = Math.min(1.1, gap / dt), k = sp * dt / gap;
-        b.x += (tx - b.x) * k; b.z += (tz - b.z) * k;
-        b.vx = (tx - b.x) / gap * sp; b.vz = (tz - b.z) / gap * sp;
-      } else { b.x += (tx - b.x) * Math.min(1, dt * 4); b.z += (tz - b.z) * Math.min(1, dt * 4); }
-      turn(b, ph === "eat" && b === hero ? 0 : glance(b, i), dt);
+      // a bunny with somewhere to be sets off at a run, facing where it's going, and settles when it gets there
+      if (b.pet > 0 || ph === "eat") b.running = false;
+      else if (!b.running && gap > 0.9 && !reduced) b.running = true;
+      else if (b.running && gap < 0.12) b.running = false;
+      if (reduced) { b.x = tx; b.z = tz; }
+      else if (b.running) {
+        const dx = tx - b.x, dz = tz - b.z;
+        b.runV = Math.min(3.6, (b.runV || 0) + dt * 9);
+        const k = Math.min(1, b.runV * dt / gap);
+        b.x += dx * k; b.z += dz * k;
+        b.vx = dx / gap * b.runV; b.vz = dz / gap * b.runV;
+        turn(b, Math.atan2(dx, Math.max(dz, -Math.abs(dx) * 0.4)), dt);
+      } else {
+        b.runV = 0;
+        if (roam && gap < 1.2 && gap > 0.05) {
+          const sp = Math.min(1.1, gap / dt), k = sp * dt / gap;
+          b.x += (tx - b.x) * k; b.z += (tz - b.z) * k;
+          b.vx = (tx - b.x) / gap * sp; b.vz = (tz - b.z) / gap * sp;
+        } else { b.x += (tx - b.x) * Math.min(1, dt * 4); b.z += (tz - b.z) * Math.min(1, dt * 4); }
+        turn(b, ph === "eat" && b === hero ? 0 : glance(b, i), dt);
+      }
       // the last scene is bedtime: they curl up and drift off, a petting wakes one briefly
       b.sleepT = asleep ? 1 : 0;
-      const far = Math.hypot(tx - b.x, tz - b.z) > 1.3;
+      const far = b.running;
       setPose(b, far ? "run" : asleep ? ["flop", "loaf", "flop", "loaf", "loaf", "flop"][i] : ph === "eat" && b === hero ? "stand" : (POSE[key()] || POSE.end)[i]);
       if (!reduced && ph !== "swap" && (b.idle -= dt) <= 0) {
         b.idle = (asleep ? 1.4 : 3) + Math.random() * (asleep ? 1.8 : 3);
