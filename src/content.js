@@ -282,29 +282,30 @@ export const bunnyLines = {
 // gatekeeper bunny says a line when fed. Nothing about the game lives in the
 // components — add a project and give it a treat here.
 // The interactive tour: the bunnies drag in one section of the page at a time,
-// and a treat fed to the bunny sends it off for the next. `egg` marks where a
-// secret treat is hidden in that section (percent of the section).
+// and a treat fed to the bunny sends it off for the next.
 export const tour = {
-  // Five scenes, up to three cards each; bunny i tows card i. A "house" card is
-  // one project (index into `projects`). `next` names the scene the Next treat
-  // leads to. `egg` marks where a golden egg hides (fraction of width, z).
+  // Four scenes. `sky` is the palette the sky settles on; `next` names the scene
+  // the Next treat leads to. Each scene's text lives in cards.jsx.
   scenes: [
-    { key: "hello", label: "Hello", next: "my work", sky: 0, egg: { x: 0.94, z: 1.6 }, cards: [{ kind: "hello" }, { kind: "skills" }, { kind: "contact" }] },
-    { key: "work1", label: "Work", next: "more work", sky: 1, egg: { x: 0.05, z: 1.5 }, cards: [{ kind: "house", i: 0 }, { kind: "house", i: 1 }, { kind: "house", i: 2 }] },
-    { key: "work2", label: "More work", next: "my path", sky: 2, egg: { x: 0.95, z: 1.4 }, cards: [{ kind: "house", i: 3 }, { kind: "house", i: 4 }, { kind: "house", i: 5 }] },
-    { key: "path", label: "Path", next: "the finish", sky: 3, egg: { x: 0.5, z: 1.7 }, cards: [{ kind: "experience" }, { kind: "education" }, { kind: "leadership" }] },
-    { key: "end", label: "Finish", sky: 4, egg: { x: 0.06, z: 1.8 }, cards: [{ kind: "finish" }] },
+    { key: "hello", label: "Hello", next: "my work", sky: 0 },
+    { key: "village", label: "Work", next: "my path", sky: 1 },
+    { key: "path", label: "Path", next: "the finish", sky: 2 },
+    { key: "end", label: "Finish", sky: 4 },
   ],
   titles: {
-    skills: "Skills",
     contact: "Say hi",
     experience: "Experience",
     education: "School & other roles",
     leadership: "Leadership",
     finish: "Thank you for visiting",
   },
+  village: {
+    hint: "Hover or tap a house to light up the clouds it was built with",
+    cloudsLabel: "Skills",
+  },
   yum: "Yum!",
   hint: "Press the treats to go back or forward",
+  scroll: "Scroll down",
   back: "Back",
   next: (label) => `Next: ${label}`,
   last: "See the summary",
@@ -314,9 +315,6 @@ export const tour = {
   tech: "Built with",
   pointsTitle: "What I did",
   sceneOf: (n, of, label) => `Scene ${n} of ${of}: ${label}`,
-  hunt: "Collect a hidden golden egg",
-  found: (n, of) => `Golden egg found! ${n}/${of}`,
-  done: (n, of) => `Golden eggs found: ${n} of ${of}.`,
   summary: "See the summary",
   noGl: "Your browser can't draw the 3D island, so here is the plain version.",
 };

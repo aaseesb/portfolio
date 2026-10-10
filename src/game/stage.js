@@ -1,9 +1,9 @@
-// The 3D half of the interactive tour. Three bunnies tow small DOM cards in on
-// ropes (bunny i tows card i); the Back and Next treat buttons send a treat to
-// the hero, she eats it, and the gang tows the cards off and fetches the next
-// scene. This file owns the canvas and the choreography; GameShell owns the cards.
+// The 3D half of the interactive tour: sky, grass and three bunnies. The Back and
+// Next treat buttons send a treat to the hero; she eats it, the scene's text
+// fades out and the next one fades in (CSS follows `data-phase` on the layer).
+// This file owns the canvas and the choreography; GameShell owns the text.
 import * as THREE from "three";
-import { COL, makeBunny, poseBunny, hopNow, makeTreat, makeEgg, makeFlower, makeTuft, makeCart, spawnFx, updateFx } from "./bunny3d.js";
+import { COL, makeBunny, poseBunny, hopNow, makeTreat, makeFlower, makeTuft, spawnFx, updateFx } from "./bunny3d.js";
 import { createSky } from "./sky.js";
 
 THREE.ColorManagement.enabled = false; // match the look the mockup was tuned in
@@ -71,18 +71,13 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
   const lane = [0.3, -0.9, 1.3];
   bunnies.forEach((b) => scene.add(b.root));
   const hero = bunnies[0];
-  const ropeMat = new THREE.MeshPhongMaterial({ color: COL.rope, specular: 0, shininess: 0 });
-  const ropes = bunnies.map(() => { const m = new THREE.Mesh(new THREE.BufferGeometry(), ropeMat); m.frustumCulled = false; scene.add(m); return m; });
-  const eggObj = makeEgg(); scene.add(eggObj.group);
-  // one little cart under each card
-  const carts = bunnies.map(() => { const c = makeCart(); scene.add(c.group); return c; });
   let treat = null;
   const fx = [];
 
   // ---- state ----
   // phases: swap -> in -> rest -> eat -> out -> swap ... ; `dir` is +1 for Next
   // (cards leave to the left, arrive from the right) and -1 for Back.
-  const S = { scene: 0, phase: "swap", t: 0, tx: 0, dir: 1, target: 0, found: {}, eatT: 0 };
+  const S = { scene: 0, phase: "swap", t: 0, par: 0, dir: 1, target: 0, eatT: 0 };
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   function pickRay(cx, cy) { ndc.set((cx / W) * 2 - 1, -(cy / H) * 2 + 1); ray.setFromCamera(ndc, camera); }
   const key = () => scenes[S.scene].key;
@@ -92,55 +87,20 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
   const love = (b, n = 3, ch = "♥", color = "#e0707e") => spawnFx(fx, scene, headPos(b), ch, color, n);
   const setBusy = (v) => { if (S.busy !== v) { S.busy = v; hooks.onBusy?.(v); } };
 
-  // ---- the cards: their rectangles on screen drive the 3D ----
-  let rects = [];
-  const readCards = () => {
-    const els = cards.children;
-    rects = [];
-    for (let i = 0; i < els.length && i < 3; i++) {
-      const r = els[i].getBoundingClientRect();
-      rects.push({ l: r.left, r: r.right, b: r.bottom, cx: (r.left + r.right) / 2 });
-    }
-  };
-  // stacked = the cards share one column (narrow screens)
-  const stacked = () => rects.length > 1 && Math.abs(rects[0].cx - rects[1].cx) < 40;
-  const wheelScale = () => (stacked() ? 0.55 : W < 900 ? 0.8 : 1);
-  // The card each bunny tows (single-card scenes use all three on the one card).
-  const cardOf = (i) => rects[Math.min(i, rects.length - 1)];
-  // where bunny i stands while resting: in front of its card
-  function restX(i) {
-    const n = rects.length;
-    if (n === 1) return toX(rects[0].cx) + (i - 1) * 2.3;
-    if (stacked()) return toX(W * (0.34 + 0.16 * i));
-    return toX(rects[i].cx) + (i === 1 ? 0 : (i === 0 ? 1 : -1) * 0.6);
-  }
-  const hitchX = (i) => toX(S.dir > 0 ? cardOf(i).l + 14 : cardOf(i).r - 14);
-  // while towing the bunny walks ahead of the hitch, in the direction of travel
-  function towXof(i) {
-    const spread = rects.length === 1 || stacked() ? 1.3 * i : 0;
-    return hitchX(i) - S.dir * (1.7 + spread);
-  }
-  const towYaw = () => -S.dir * Math.PI / 2 * 0.45; // walks sideways but looks mostly at us
+  // ---- where the bunnies rest: a little group in the middle of the grass ----
+  const stand = [0.5, 0.41, 0.59];
+  const restX = (i) => toX(W * stand[i]);
   const glance = (b) => clamp(-b.x / Math.max(1, W / u / 2), -1, 1) * 0.35;
+  const setPhase = (ph) => { S.phase = ph; S.t = 0; cards.dataset.phase = ph; };
 
-  // ---- phases ----
-  function placeEgg() {
-    const st = scenes[S.scene];
-    eggObj.group.visible = !S.found[st.key];
-    eggObj.t = 0; eggObj.found = false; eggObj.group.scale.setScalar(1); eggObj.egg.position.y = 0;
-    eggObj.group.position.set(toX(W * st.egg.x), 0, st.egg.z);
-  }
+  // ---- phases: the scene's text fades out, the next one fades in (CSS reads data-phase) ----
   function startIn() {
-    S.phase = "in"; S.t = 0;
-    placeEgg();
-    readCards();
-    if (reduced) { S.tx = 0; enterRest(); } else S.tx = S.dir * (W + 80);
+    setPhase("in");
+    if (reduced) enterRest();
   }
   function enterRest() {
-    S.phase = "rest"; S.t = 0; S.tx = 0;
-    readCards();
-    bunnies.forEach((b, i) => { b.x = restX(i); b.z = lane[i]; b.vx = b.vz = 0; });
-    if (!reduced) carts.forEach((c, i) => i < rects.length && c.wheels.forEach((w) => spawnFx(fx, scene, new THREE.Vector3(w.position.x, 0.2, w.position.z + 0.6), "☁", "#d8d0bd", 1)));
+    setPhase("rest");
+    bunnies.forEach((b, i) => { b.vx = b.vz = 0; if (!reduced) setTimeout(() => hopNow(b), 120 * i); });
     setBusy(false);
   }
   // Called from the Back and Next buttons. Ignored while anything is moving.
@@ -148,7 +108,7 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
     if (S.phase !== "rest") return false;
     const target = S.scene + dir;
     if (target < 0 || target >= scenes.length) return false;
-    S.dir = dir; S.target = target; S.phase = "eat"; S.t = 0; S.eatT = 0; setBusy(true);
+    S.dir = dir; S.target = target; setPhase("eat"); S.eatT = 0; setBusy(true);
     hero.nod = 0;
     if (treat) scene.remove(treat.group);
     treat = makeTreat(dir > 0 ? "apple" : "carrot");
@@ -164,21 +124,15 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
     love(hero, 4);
     if (!reduced) { hopNow(hero); hooks.onToast(hooks.text.yum); }
     hero.nod = 0;
-    S.phase = "out"; S.t = 0;
+    setPhase("out");
     if (reduced) arrive();
   }
   function arrive() {
     S.scene = S.target;
     hooks.onScene(S.scene);
     sky?.setStep(scenes[S.scene].sky);
-    S.phase = "swap"; S.t = 0; S.tx = S.dir * (W + 80);
+    setPhase("swap");
     if (reduced) S.t = 0.2;
-  }
-  function collectEgg() {
-    if (eggObj.found || S.found[key()]) return;
-    S.found[key()] = true; eggObj.found = true; eggObj.t = 0;
-    spawnFx(fx, scene, new THREE.Vector3(eggObj.group.position.x, 1, eggObj.group.position.z), "✦", "#e9b93a", 6);
-    hooks.onFound(Object.keys(S.found).length);
   }
 
   // ---- input: the canvas sits over the cards and ignores the pointer, so the
@@ -186,19 +140,18 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
   let pointer = { x: 0, y: 0, over: false };
   const objectsHit = (cx, cy) => {
     pickRay(cx, cy);
-    if (eggObj.group.visible && !eggObj.found && ray.intersectObject(eggObj.group, true).length) return { kind: "egg" };
     for (const b of bunnies) if (ray.intersectObject(b.root, true).length) return { kind: "bunny", b };
     return null;
   };
   function petBunny(b) { b.pet = 1.5; b.squash = 0.12; b.liftV = 3.2; love(b, 3); if (b === hero && !reduced) hopNow(b); }
-  const onControl = (e) => !!e.target.closest?.("button, a, input, .tour-card, .tour-dialog");
+  const onControl = (e) => !!e.target.closest?.("button, a, input, .tour-dialog, .tour-scroll");
   function down(e) {
     pointer.x = e.clientX; pointer.y = e.clientY;
     if (e.button > 0 || onControl(e)) return;
     const h = objectsHit(e.clientX, e.clientY);
     if (!h) return;
     e.preventDefault();
-    if (h.kind === "egg") collectEgg(); else petBunny(h.b);
+    petBunny(h.b);
   }
   function move(e) { pointer.x = e.clientX; pointer.y = e.clientY; pointer.over = true; }
   window.addEventListener("pointerdown", down);
@@ -206,89 +159,28 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
   window.addEventListener("resize", resize);
 
   // ---- per-frame ----
-  const anchors = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
-  function placeCarts(prevTx, towing) {
-    const ws = wheelScale();
-    carts.forEach((c, i) => {
-      const r = rects[i];
-      c.group.visible = !!r && S.phase !== "swap";
-      if (!r) return;
-      // z puts a wheel centre (y = 0.85 ws) at the card's bottom edge on screen
-      const up = (H - r.b - E) / u;
-      const z = (0.85 * ws * cosP - up) / sinP;
-      const inset = Math.min(0.85 * ws * u + 6, (r.r - r.l) * 0.28);
-      c.wheels[0].position.set(toX(r.l + inset), 0.85 * ws, z);
-      c.wheels[1].position.set(toX(r.r - inset), 0.85 * ws, z);
-      c.wheels.forEach((w) => { w.scale.setScalar(ws); if (towing) w.rotation.z -= (S.tx - prevTx) / u / (0.85 * ws); });
-      c.hitch.scale.setScalar(ws);
-      c.hitch.position.set(hitchX(i), 0.15 * ws, z);
-      anchors[i].set(hitchX(i), 0.15 * ws + 0.9 * ws, z);
-    });
-  }
-  function updateRopes() {
-    ropes.forEach((r, i) => {
-      const b = bunnies[i], towing = S.phase === "in" || S.phase === "out";
-      r.visible = towing && !!rects.length && S.phase !== "swap";
-      if (!r.visible) return;
-      const anchor = anchors[Math.min(i, rects.length - 1)];
-      const a = b.mouth, d = a.distanceTo(anchor);
-      const pts = [];
-      for (let k = 0; k <= 12; k++) {
-        const s = k / 12, p = a.clone().lerp(anchor, s);
-        p.y = Math.max(0.06, p.y - 4 * s * (1 - s) * 0.12 * Math.min(d, 6) * 0.35);
-        pts.push(p);
-      }
-      r.geometry.dispose();
-      r.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 14, 0.05, 5);
-    });
-  }
-
   const tmpV = new THREE.Vector3();
   function tick(dt, t) {
     S.t += dt;
     const ph = S.phase;
-    const prevTx = S.tx;
-    readCards();
-
     if (ph === "swap") {
-      // wait for React to render the new cards before bringing them in
-      if (S.t > 0.15 && cards.dataset.scene === scenes[S.scene].key && rects.length) startIn();
+      // wait for React to render the new scene before fading it in
+      if (S.t > 0.15 && cards.dataset.scene === scenes[S.scene].key) startIn();
     } else if (ph === "in") {
-      const u1 = Math.min(1, S.t / 1.0); S.tx = S.dir * (W + 80) * (1 - ease(u1));
-      if (u1 >= 1) enterRest();
+      if (S.t >= 0.8) enterRest();
     } else if (ph === "out") {
-      // the gang gathers at the hitches first, then everything rolls off
-      const g = Math.min(1, S.t / 0.35), u1 = clamp((S.t - 0.35) / 0.85, 0, 1);
-      S.tx = -S.dir * (W + 80) * easeIn(u1);
-      if (u1 >= 1) arrive();
-      void g;
+      if (S.t >= 0.6) arrive();
     }
-    const moving = ph === "in" || ph === "out";
-    const vTx = (S.tx - prevTx) / Math.max(dt, 1e-4);
-    cards.style.transform = `translateX(${S.tx.toFixed(1)}px)`;
-    readCards(); // now including the translation, so wheels and hitches follow
+    // the hills drift a little as the scenes change
+    S.par += (-S.scene * 420 - S.par) * (1 - Math.exp(-dt * 1.5));
 
-    if (ph === "swap") {
-      bunnies.forEach((b, i) => { b.x = (S.dir > 0 ? 1 : -1) * (W / u / 2 + 6 + i); b.z = lane[i]; b.vx = b.vz = 0; });
-    } else if (moving && rects.length) {
-      const g = ph === "out" ? ease(Math.min(1, S.t / 0.35)) : 1;
-      bunnies.forEach((b, i) => {
-        const tx = towXof(i);
-        // on the way out they first walk from where they rested to the hitch
-        b.x = ph === "out" && S.t < 0.35 ? b.x + (tx - b.x) * Math.min(1, dt * 14) : tx;
-        b.z += (lane[i] - b.z) * Math.min(1, dt * 8);
-        b.vx = ph === "out" && S.t < 0.35 ? (tx - b.x) * 6 : vTx / u; b.vz = 0;
-        turn(b, towYaw() * g, dt);
-      });
-    } else if (ph === "rest" || ph === "eat") {
-      bunnies.forEach((b, i) => {
-        const rx = restX(i);
-        b.x += (rx - b.x) * Math.min(1, dt * 4); b.z += (lane[i] - b.z) * Math.min(1, dt * 4);
-        b.vx = b.vz = 0;
-        turn(b, ph === "eat" && b === hero ? 0 : glance(b), dt);
-        if (!reduced && (b.idle -= dt) <= 0) { b.idle = (key() === "end" ? 1.2 : 3) + Math.random() * 3; if (b !== hero || ph === "rest") { hopNow(b); if (key() === "end" && Math.random() < 0.5) love(b, 1); } }
-      });
-    }
+    bunnies.forEach((b, i) => {
+      const rx = restX(i);
+      b.x += (rx - b.x) * Math.min(1, dt * 4); b.z += (lane[i] - b.z) * Math.min(1, dt * 4);
+      b.vx = b.vz = 0;
+      turn(b, ph === "eat" && b === hero ? 0 : glance(b), dt);
+      if (!reduced && ph !== "swap" && (b.idle -= dt) <= 0) { b.idle = (key() === "end" ? 1.2 : 3) + Math.random() * 3; if (b !== hero || ph === "rest") { hopNow(b); if (key() === "end" && Math.random() < 0.5) love(b, 1); } }
+    });
 
     // the treat flies to the hero's mouth, she eats it
     if (ph === "eat" && treat && !reduced) {
@@ -303,21 +195,14 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
       if (S.eatT > 0.75) finishEat();
     }
 
-    // the egg: wiggles now and then so the curious find it
-    const eg = eggObj;
-    if (eg.found) { eg.t += dt; eg.egg.position.y = Math.sin(Math.min(1, eg.t * 1.6) * Math.PI) * 1.8; eg.egg.rotation.y += dt * 12; eg.group.scale.setScalar(Math.max(0.001, 1 - Math.max(0, eg.t - 0.6) * 2.5)); if (eg.t > 1) { eg.group.visible = false; eg.found = false; eg.group.scale.setScalar(1); eg.egg.position.y = 0; } }
-    else if (!reduced) eg.egg.rotation.z = Math.max(0, Math.sin(t * 1.3 + 2)) ** 24 * Math.sin(t * 30) * 0.25;
-
-    bunnies.forEach((b) => poseBunny(b, dt, t, ph === "swap"));
-    placeCarts(prevTx, moving);
-    updateRopes();
+    bunnies.forEach((b) => poseBunny(b, dt, t, false));
     updateFx(fx, scene, dt);
-    sky?.update(dt, t, S.tx);
+    sky?.update(dt, t, S.par);
 
     // cursor hint
     if (pointer.over) {
       const h = objectsHit(pointer.x, pointer.y);
-      if (!(pointer.x && document.elementFromPoint(pointer.x, pointer.y)?.closest?.("button, a, .tour-card, .tour-dialog"))) root.style.cursor = h ? "pointer" : "";
+      if (!(pointer.x && document.elementFromPoint(pointer.x, pointer.y)?.closest?.("button, a, .tour-dialog, .tour-scroll"))) root.style.cursor = h ? "pointer" : "";
     }
   }
 
@@ -333,11 +218,12 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
   S.busy = true;
   hooks.onScene(0);
   sky?.setStep(scenes[0].sky, true);
-  S.phase = "swap"; S.t = 0.1; S.tx = W + 80;
+  S.phase = "swap"; S.t = 0.1; cards.dataset.phase = "swap";
   raf = requestAnimationFrame(loop);
 
   return {
-    nav, collectEgg,
+    nav,
+    sky: (i) => sky?.setStep(i),
     dispose() {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);

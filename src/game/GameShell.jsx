@@ -1,15 +1,13 @@
-// The interactive tour. Bunnies (a Three.js scene, see stage.js) tow a handful of
-// small themed cards in; the two treat buttons send them off left or right.
-// Golden eggs are hidden in the grass. No progress is kept: it's a short tour.
+// The interactive tour. A Three.js sky, grass and bunnies (stage.js) sit behind
+// the text of each scene; the two treat buttons fade one scene into the next.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { tour, projects } from "../content.js";
 import { createStage } from "./stage.js";
-import { Card, Clouds, Detail } from "./cards.jsx";
+import { Scene, Detail } from "./cards.jsx";
 import "./game.css";
 
 const scenes = tour.scenes;
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const firstHouse = (s) => s.cards.find((c) => c.kind === "house")?.i ?? null;
 
 // The two treats, drawn flat. Back is a carrot, Next an apple.
 const Carrot = () => (
@@ -33,10 +31,8 @@ export default function GameShell({ onExit }) {
   const cardsRef = useRef(null);
   const stageRef = useRef(null);
   const [scene, setScene] = useState(0);
-  const [sel, setSel] = useState(firstHouse(scenes[0]));
-  const [hov, setHov] = useState(null);
-  const [item, setItem] = useState(null);
-  const [found, setFound] = useState(0);
+  const [sel, setSel] = useState(null);
+    const [item, setItem] = useState(null);
   const [toast, setToast] = useState("");
   const [busy, setBusy] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -55,10 +51,9 @@ export default function GameShell({ onExit }) {
         scenes, reduced: reducedMotion(),
         hooks: {
           text: tour,
-          onScene: (n) => { setScene(n); setSel(firstHouse(scenes[n])); setHov(null); },
+          onScene: (n) => { setScene(n); setSel(null); },
           onBusy: setBusy,
           onToast: (m) => flash(m, 1200),
-          onFound: (n) => { setFound(n); flash(tour.found(n, scenes.length), 2200); },
         },
       });
     } catch {
@@ -70,6 +65,7 @@ export default function GameShell({ onExit }) {
     return () => { stage.dispose(); clearTimeout(toastTimer.current); };
   }, []);
 
+  const progress = useCallback((p) => stageRef.current?.sky(p > 0.5 ? 3 : 2), []);
   const back = useCallback(() => { if (!itemRef.current) stageRef.current?.nav(-1); }, []);
   const next = useCallback(() => {
     if (itemRef.current) return;
@@ -100,7 +96,6 @@ export default function GameShell({ onExit }) {
     );
   }
 
-  const cloudProject = projects[hov ?? sel] || null;
   const nextLabel = last ? tour.last : tour.next(scenes[scene + 1].label);
   const backLabel = scene > 0 ? scenes[scene - 1].label : tour.back;
 
@@ -108,15 +103,8 @@ export default function GameShell({ onExit }) {
     <div className="tour" ref={rootRef}>
       <canvas ref={skyRef} className="tour-sky" aria-hidden="true" />
 
-      {firstHouse(s) !== null && <Clouds project={cloudProject} />}
-      <div className={`tour-cards n${s.cards.length}${firstHouse(s) !== null ? " has-clouds" : ""}`} ref={cardsRef} data-scene={s.key}>
-        {s.cards.map((c, i) => (
-          <Card
-            key={`${s.key}${i}`} card={c} index={i} selected={sel}
-            onSelect={setSel} onHover={setHov} onOpen={open}
-            found={found} total={scenes.length} onExit={onExit}
-          />
-        ))}
+      <div className="tour-layer" ref={cardsRef} data-scene={s.key}>
+        <Scene k={s.key} sel={sel} onSelect={setSel} onOpen={open} onExit={onExit} onProgress={progress} />
       </div>
       <canvas ref={canvasRef} className="tour-canvas" aria-hidden="true" />
 
@@ -140,7 +128,6 @@ export default function GameShell({ onExit }) {
         <span className="tour-treat-label">{nextLabel} →</span>
       </div>
 
-      <button className="btn tour-hunt" onClick={() => stageRef.current?.collectEgg()}>{tour.hunt}</button>
       {toast && <div className="tour-toast" role="status">{toast}</div>}
       {item && <Detail item={item} onClose={() => setItem(null)} />}
     </div>
