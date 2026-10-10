@@ -4,6 +4,7 @@
 // This file owns the canvas and the choreography; GameShell owns the text.
 import * as THREE from "three";
 import { COL, makeBunny, poseBunny, hopNow, makeTreat, makeFlower, makeTuft, spawnFx, updateFx } from "./bunny3d.js";
+import { setPose, stepPose } from "./bunnyPoses.js";
 import { createSky } from "./sky.js";
 
 THREE.ColorManagement.enabled = false; // match the look the mockup was tuned in
@@ -90,7 +91,12 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
   // ---- where the bunnies rest: a little group in the middle of the grass ----
   const stand = [0.5, 0.41, 0.59];
   const restX = (i) => toX(W * stand[i]);
-  const glance = (b) => clamp(-b.x / Math.max(1, W / u / 2), -1, 1) * 0.35;
+  // they face the screen, angled a little toward the middle and a little apart from each other
+  const angle = [0.3, -0.28, 0.22];
+  const glance = (b, i) => clamp(-b.x / Math.max(1, W / u / 2), -1, 1) * 0.3 + angle[i];
+  // who is doing what in each scene (the hero stands up for treats, everyone runs to their spot)
+  const POSE = { hello: ["stand", "sit", "sit"], village: ["sit", "loaf", "sit"], path: ["sit", "sit", "long"], end: ["sit", "sit", "sit"] };
+  const upright = (b) => b.poseName === "sit" || b.poseName === "stand";
   const setPhase = (ph) => { S.phase = ph; S.t = 0; cards.dataset.phase = ph; };
 
   // ---- phases: the scene's text fades out, the next one fades in (CSS reads data-phase) ----
@@ -100,7 +106,7 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
   }
   function enterRest() {
     setPhase("rest");
-    bunnies.forEach((b, i) => { b.vx = b.vz = 0; if (!reduced && key() !== "end") setTimeout(() => hopNow(b), 120 * i); });
+    bunnies.forEach((b, i) => { b.vx = b.vz = 0; if (!reduced && key() !== "end" && upright(b)) setTimeout(() => hopNow(b), 120 * i); });
     setBusy(false);
   }
   // Called from the Back and Next buttons. Ignored while anything is moving.
@@ -178,14 +184,16 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
       const rx = restX(i);
       b.x += (rx - b.x) * Math.min(1, dt * 4); b.z += (lane[i] - b.z) * Math.min(1, dt * 4);
       b.vx = b.vz = 0;
-      turn(b, ph === "eat" && b === hero ? 0 : glance(b), dt);
+      turn(b, ph === "eat" && b === hero ? 0 : glance(b, i), dt);
       // the last scene is bedtime: they curl up and drift off, a petting wakes one briefly
       const asleep = key() === "end" && (ph === "in" || ph === "rest") && b.pet <= 0;
       b.sleepT = asleep ? 1 : 0;
+      const far = Math.hypot(rx - b.x, lane[i] - b.z) > 0.5;
+      setPose(b, far ? "run" : asleep ? "flop" : ph === "eat" && b === hero ? "stand" : (POSE[key()] || POSE.end)[i]);
       if (!reduced && ph !== "swap" && (b.idle -= dt) <= 0) {
         b.idle = (asleep ? 2.4 : 3) + Math.random() * 3;
         if (asleep) { if (b.sleep > 0.8) spawnFx(fx, scene, headPos(b), "z", "#dfe6ff", 1); }
-        else if (b !== hero || ph === "rest") hopNow(b);
+        else if (upright(b) && (b !== hero || ph === "rest")) hopNow(b);
       }
     });
 
@@ -202,7 +210,7 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
       if (S.eatT > 0.75) finishEat();
     }
 
-    bunnies.forEach((b) => poseBunny(b, dt, t, false));
+    bunnies.forEach((b) => { stepPose(b, dt, t); poseBunny(b, dt, t, false); });
     updateFx(fx, scene, dt);
     sky?.update(dt, t, S.par);
 
