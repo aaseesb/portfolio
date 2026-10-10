@@ -14,7 +14,7 @@ const box = (w, h, d, color, pos, r = 0.05, line = 0) => {
 };
 
 // 1 unit wide at the walls; sits on y = 0 and faces +z
-export function makeHouse({ roof = 0xc2705a, image } = {}) {
+export function makeHouse({ roof = 0xc2705a, image, tree = 0, fence = 0 } = {}) {
   const root = new THREE.Group();
   const g = new THREE.Group(); // everything that fades together
   root.add(g);
@@ -50,6 +50,20 @@ export function makeHouse({ roof = 0xc2705a, image } = {}) {
   mound.scale.set(0.95, 0.1, 0.62); mound.position.y = -0.005; g.add(mound);
   const bush = (sx, sy, x, z) => blob(sx, sy, sx, 0x5f9a5a, [x, sy * 0.7, z], { line: 0.025, lineColor: 0xcfe3b0 });
   g.add(bush(0.16, 0.12, -0.62, 0.3), bush(0.11, 0.09, -0.46, 0.42), bush(0.13, 0.1, 0.66, 0.34));
+
+  // a round tree and a short picket fence, each on the side given (-1 left, 1 right)
+  if (tree) {
+    const x = tree * 1.0;
+    g.add(box(0.08, 0.34, 0.08, 0x7a5a38, [x, 0.17, -0.1], 0.03, 0.02));
+    g.add(blob(0.3, 0.27, 0.3, 0x5f9a5a, [x, 0.55, -0.1], { line: 0.03, lineColor: 0xcfe3b0 }));
+    g.add(blob(0.2, 0.18, 0.2, 0x73ac66, [x - tree * 0.07, 0.72, -0.06], { line: 0.025, lineColor: 0xcfe3b0 }));
+    const sh = makeShadow(0.3); sh.position.set(x, 0, -0.06); root.add(sh);
+  }
+  if (fence) {
+    const x0 = fence * 0.72;
+    for (let i = 0; i < 4; i++) g.add(box(0.05, 0.2, 0.05, 0xc2a273, [x0 + fence * i * 0.14, 0.1, 0.42], 0.02, 0.015));
+    g.add(box(0.46, 0.035, 0.03, 0xc2a273, [x0 + fence * 0.21, 0.14, 0.42], 0.012, 0.012));
+  }
 
   const shadow = makeShadow(0.85); shadow.position.z = 0.05; root.add(shadow);
 

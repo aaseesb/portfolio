@@ -58,11 +58,11 @@ void main(){
   float d0 = f0 - uv.y;
   vec3 far = hc0 * mix(1.0, 0.93, step(0.055, d0));
   far = mix(far, c2, smoothstep(f1 + 0.1, f1, uv.y) * 0.4 * hz);
-  far += smoothstep(0.012, 0.0, d0) * 0.05;
+  far = mix(far, vec3(0.95, 0.92, 0.85), smoothstep(0.006, 0.002, d0) * 0.5 * hz);
   col = mix(col, far, smoothstep(-aa, aa, d0));
   float d1 = f1 - uv.y;
   vec3 near = hc1 * mix(1.0, 0.9, step(0.05, d1));
-  near += smoothstep(0.012, 0.0, d1) * 0.05;
+  near = mix(near, vec3(0.95, 0.92, 0.85), smoothstep(0.007, 0.002, d1) * 0.55 * hz);
   col = mix(col, near, smoothstep(-aa, aa, d1));
   gl_FragColor = vec4(col, 1.0);
 }`;

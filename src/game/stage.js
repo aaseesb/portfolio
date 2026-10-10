@@ -389,7 +389,12 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
     if (el !== houseEl) {
       if (house) { scene.remove(house.root); house = null; }
       houseEl = el;
-      if (el) { house = makeHouse({ image: el.querySelector(".tour-window img")?.currentSrc }); scene.add(house.root); }
+      if (el) {
+        // the CSS props are hidden on a 3D house; their layout says which side each goes on
+        const side = (sel) => { const e = el.querySelector(sel), c = e && getComputedStyle(e); return !c || c.display === "none" ? 0 : c.left === "auto" ? 1 : -1; };
+        house = makeHouse({ image: el.querySelector(".tour-window img")?.currentSrc, tree: side(".tour-tree"), fence: side(".tour-fence") });
+        scene.add(house.root);
+      }
     }
     if (!house) return;
     const wall = el.querySelector(".tour-wall").getBoundingClientRect();

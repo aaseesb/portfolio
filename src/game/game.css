@@ -69,7 +69,7 @@
 .tour-house.t2 { --s: 1; --b: calc(var(--strip) - 2px); z-index: 4; }
 /* the trail winding between the houses, and what each house stands on and beside */
 .tour-trail { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 0; overflow: visible; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-.trail-edge { stroke: color-mix(in srgb, var(--hill-near, #7fae72) 70%, #5d4729); stroke-width: 11; opacity: 0.55; }
+.trail-edge { stroke: #f3ead8; stroke-width: 10; opacity: 0.6; }
 .trail-path { stroke: #e3cf9f; stroke-width: 7; opacity: 0.9; }
 :root[data-theme="dark"] .trail-path { stroke: #9a8a68; }
 .tour-ground { position: absolute; z-index: -1; left: -22%; right: -22%; bottom: -13px; height: 30px; border-radius: 50%; background: radial-gradient(ellipse at 50% 0, rgba(0, 0, 0, 0.22), transparent 62%); pointer-events: none; }
@@ -90,6 +90,7 @@
 .tour-house.is-3d .tour-roof, .tour-house.is-3d .tour-wall { visibility: hidden; }
 .tour-house.is-3d .tour-door { visibility: hidden; }
 .tour-house.is-3d .tour-ground, .tour-house.is-3d .tour-bush { display: none; }
+.tour-house.is-3d .tour-tree, .tour-house.is-3d .tour-fence { visibility: hidden; }
 .tour-house:hover .tour-window, .tour-house.is-sel .tour-window { filter: brightness(1.12) saturate(1.1); }
 .tour-wall::after { content: ""; position: absolute; left: -3px; right: -3px; bottom: 0; height: 6px; background: repeating-linear-gradient(90deg, #9a9288 0 9px, #867e74 9px 10px); }
 .tour-house:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
