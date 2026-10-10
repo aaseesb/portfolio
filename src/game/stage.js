@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { COL, makeBunny, poseBunny, hopNow, makeTreat, makeFlower, makeTuft, spawnFx, updateFx } from "./bunny3d.js";
 import { setPose, stepPose } from "./bunnyPoses.js";
 import { createSky } from "./sky.js";
+import { makeHouse } from "./house3d.js";
 
 THREE.ColorManagement.enabled = false; // match the look the mockup was tuned in
 
@@ -67,15 +68,29 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
   const bunnies = [
     makeBunny({ fur: COL.tan, mark: true }),
     makeBunny({ fur: COL.gray, tail: COL.cream }),
-    makeBunny({ fur: COL.brown, tail: COL.cream }),
-    makeBunny({ fur: 0xe4d2b4, tail: COL.cream, size: 0.62 }), // the babies
+    makeBunny({ fur: COL.brown, tail: COL.cream, lop: 1 }),
+    makeBunny({ fur: 0xe4d2b4, tail: COL.cream, size: 0.62, lop: 1 }), // the babies
     makeBunny({ fur: 0xb9bcc8, tail: COL.cream, size: 0.55 }),
     makeBunny({ fur: 0x9a7456, tail: COL.cream, size: 0.68 }),
   ];
-  bunnies.forEach((b) => scene.add(b.root));
+  bunnies.forEach((b) => { b.calm = reduced; scene.add(b.root); });
   const hero = bunnies[0];
   let treat = null;
   const fx = [];
+
+  // ---- treats scattered on the grass: tap one and the nearest bunny eats it; drag one and the bunnies follow it ----
+  const treats = ["apple", "carrot", "leaf", "apple", "carrot"].map((kind) => {
+    const tr = { ...makeTreat(kind), fx: 0, z: 0, gone: true, eater: null, respawn: 0.5 + Math.random() * 2, pop: 0 };
+    tr.ring.visible = false; tr.drag = false; tr.group.scale.setScalar(1.3); tr.group.visible = false; scene.add(tr.group);
+    return tr;
+  });
+  const placeTreat = (tr) => { // somewhere on the grass, not on top of another treat
+    for (let k = 0; k < 12; k++) {
+      tr.fx = 0.18 + Math.random() * 0.64; tr.z = 0.5 + Math.random() * 1.2;
+      if (treats.every((o) => o === tr || o.gone || Math.hypot((o.fx - tr.fx) * W / u, o.z - tr.z) > 1.4)) break;
+    }
+    tr.gone = false; tr.pop = 0;
+  };
 
   // ---- state ----
   // phases: swap -> in -> rest -> eat -> out -> swap ... ; `dir` is +1 for Next
@@ -132,6 +147,7 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
   // Called from the Back and Next buttons. Ignored while anything is moving.
   function nav(dir, to) {
     if (S.phase !== "rest") return false;
+    drop();
     const target = to ?? S.scene + dir;
     if (target < 0 || target >= scenes.length || target === S.scene) return false;
     S.dir = dir; S.target = target; setPhase("eat"); S.eatT = 0; setBusy(true);
@@ -167,8 +183,51 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
   const objectsHit = (cx, cy) => {
     pickRay(cx, cy);
     for (const b of bunnies) if (ray.intersectObject(b.root, true).length) return { kind: "bunny", b };
+    for (const tr of treats) if (!tr.gone && tr.group.visible && ray.intersectObject(tr.group, true).length) return { kind: "treat", tr };
     return null;
   };
+  // Press and hold to pick a bunny up (it dangles and kicks); let go and it drops back to the grass.
+  // A quick tap pets, and so does sweeping the cursor back and forth over one.
+  let hold = null; // { b, x, y, t, up } while the pointer is down on a bunny
+  const holdAt = (cx, cy, b) => { // where to carry it: under the cursor, at the depth it was grabbed
+    const z = b.z, yy = ((H - cy - E) / u + z * sinP) / cosP;
+    hold.wx = toX(cx); hold.wz = z; b.holdY = Math.max(1.1, yy - 0.7);
+  };
+  const releaseGoal = (b) => { if (b.goal) { b.goal.eater = null; b.goal = null; } };
+  function feed(tr) { // the nearest free bunny goes for it
+    if (S.phase !== "rest" || key() === "end" || tr.eater) return;
+    const tx = toX(W * tr.fx);
+    let best = null, bd = 1e9;
+    for (const b of bunnies) {
+      if (b.held || b.goal || b.pet > 0 || b === hold?.b) continue;
+      const d = Math.hypot(b.x - tx, b.z - tr.z);
+      if (d < bd) { bd = d; best = b; }
+    }
+    if (best) { best.goal = tr; tr.eater = best; }
+  }
+  function dragTreat(e) { // carry it under the cursor on the grass; the two nearest bunnies tag along
+    const tr = hold.tr;
+    tr.fx = Math.min(0.84, Math.max(0.16, e.clientX / W));
+    tr.z = Math.min(2.4, Math.max(0.2, -((H - e.clientY - E) / u) / sinP));
+    if (hold.up) return;
+    hold.up = true; tr.drag = true; root.style.cursor = "grabbing";
+    if (S.phase !== "rest" || key() === "end") return;
+    const tx = toX(W * tr.fx);
+    bunnies.filter((b) => !b.held && !b.goal).sort((a, b) => Math.hypot(a.x - tx, a.z - tr.z) - Math.hypot(b.x - tx, b.z - tr.z))
+      .slice(0, 2).forEach((b) => { b.goal = tr; b.pet = 0; });
+  }
+  function pickUp() {
+    const b = hold.b; releaseGoal(b); hold.up = true; b.held = true; b.hopImpulse = false; b.running = false; b.pet = 0;
+    if (!reduced) spawnFx(fx, scene, headPos(b), "!", "#f0b44c", 1);
+    root.style.cursor = "grabbing";
+  }
+  function drop() {
+    if (!hold) return;
+    if (hold.tr) { hold.tr.drag = false; root.style.cursor = ""; hold = null; return; }
+    const b = hold.b;
+    if (hold.up) { b.held = false; b.pet = 1.4; b.liftV = 0; love(b, 2); root.style.cursor = ""; }
+    hold = null;
+  }
   function petBunny(b) { b.pet = 1.5; b.squash = 0.12; b.liftV = 3.2; love(b, 3); if (b === hero && !reduced) hopNow(b); }
   const onScroll = (e) => { const el = e.target; if (el?.scrollHeight > el.clientHeight) { S.scroll = el.scrollTop / (el.scrollHeight - el.clientHeight); const st = Math.floor(S.scroll * 4); if (st !== scrollStep) { scrollStep = st; shuffle(); } } };
   cards.addEventListener("scroll", onScroll, true);
@@ -179,11 +238,36 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
     const h = objectsHit(e.clientX, e.clientY);
     if (!h) return;
     e.preventDefault();
-    petBunny(h.b);
+    drop();
+    if (h.kind === "treat") { hold = { tr: h.tr, x: e.clientX, y: e.clientY, up: false }; return; }
+    hold = { b: h.b, x: e.clientX, y: e.clientY, t: 0, up: false };
+    holdAt(e.clientX, e.clientY, h.b);
   }
-  function move(e) { pointer.x = e.clientX; pointer.y = e.clientY; pointer.over = true; }
+  function up() {
+    if (hold?.tr && !hold.up) feed(hold.tr);
+    else if (hold && !hold.tr && !hold.up) petBunny(hold.b);
+    drop();
+  }
+  function move(e) {
+    const dx = e.clientX - pointer.x, dy = e.clientY - pointer.y;
+    pointer.x = e.clientX; pointer.y = e.clientY; pointer.over = true;
+    if (hold?.tr) { if (hold.up || Math.hypot(e.clientX - hold.x, e.clientY - hold.y) > 8) dragTreat(e); return; }
+    if (hold) {
+      holdAt(e.clientX, e.clientY, hold.b);
+      if (!hold.up && Math.hypot(e.clientX - hold.x, e.clientY - hold.y) > 10) pickUp();
+      return;
+    }
+    if (e.pointerType !== "mouse" || e.buttons || onControl(e) || reduced) return;
+    const h = objectsHit(e.clientX, e.clientY);
+    bunnies.forEach((b) => { if (h?.b !== b) b.rub = Math.max(0, b.rub - 4); });
+    if (h?.kind !== "bunny") return;
+    h.b.rub += Math.hypot(dx, dy);
+    if (h.b.rub > 90) { h.b.rub = 0; h.b.pet = Math.max(h.b.pet, 0.9); love(h.b, 1); }
+  }
   window.addEventListener("pointerdown", down);
   window.addEventListener("pointermove", move);
+  window.addEventListener("pointerup", up);
+  window.addEventListener("pointercancel", up);
   window.addEventListener("resize", resize);
 
   // ---- per-frame ----
@@ -203,7 +287,13 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
     S.par += (-S.scene * 420 - S.par) * (1 - Math.exp(-dt * 1.5));
 
     if (ph === "rest" && !reduced && key() !== "end" && (moveT -= dt) <= 0) { moveT = 6 + Math.random() * 5; shuffle(); }
+    if (hold && !hold.up && (hold.t += dt) > 0.3) pickUp();
     bunnies.forEach((b, i) => {
+      if (b.held) { // carried: follows the cursor, faces the screen, flails
+        b.x += (hold.wx - b.x) * Math.min(1, dt * 16); b.z = hold.wz; b.vx = b.vz = 0; b.sleepT = 0;
+        turn(b, 0, dt); setPose(b, "held");
+        return;
+      }
       const rx = restX(i);
       // sitting bunnies potter about their spot; everyone else is eased to it
       const roam = upright(b) && ph === "rest" && !reduced && b.pet <= 0;
@@ -213,15 +303,23 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
         b.wx = (Math.random() - 0.5) * 0.3; b.wz = (Math.random() - 0.5) * 0.2;
       }
             let tx = rx + (b.wx || 0), tz = restZ(i) + (b.wz || 0);
+      if (b.goal && (ph !== "rest" || key() === "end")) releaseGoal(b);
+      if (b.goal?.gone) releaseGoal(b);
+      if (b.goal) { tx = toX(W * b.goal.fx) + (b.goal.drag ? (i % 2 ? 0.55 : -0.55) : 0); tz = b.goal.z; }
       // bedtime: everyone piles up around the hero, the little ones sleeping on top of the big ones
       const asleep = key() === "end" && (ph === "in" || ph === "rest") && b.pet <= 0;
       if (asleep) { tx = restX(0) + HUDDLE[i][0]; tz = 0.3 + HUDDLE[i][1]; }
       b.perch = (b.perch || 0) + ((asleep ? HUDDLE[i][2] : 0) - (b.perch || 0)) * Math.min(1, dt * 2.5);
       const gap = Math.hypot(tx - b.x, tz - b.z);
       b.vx = b.vz = 0;
+      if (b.goal && !b.goal.drag && gap < 0.3) { // reached the treat: munch
+        const tr = b.goal; releaseGoal(b);
+        tr.gone = true; tr.group.visible = false; tr.respawn = 5 + Math.random() * 5;
+        b.pet = 1.2; b.running = false; love(b, 3); if (!reduced) hopNow(b);
+      }
       // a bunny with somewhere to be sets off at a run, facing where it's going, and settles when it gets there
       if (b.pet > 0 || ph === "eat") b.running = false;
-      else if (!b.running && gap > 0.9 && !reduced) b.running = true;
+      else if (!b.running && gap > (b.goal ? 0.35 : 0.9) && !reduced) b.running = true;
       else if (b.running && gap < 0.12) b.running = false;
       if (reduced) { b.x = tx; b.z = tz; }
       else if (b.running) {
@@ -264,6 +362,14 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
       if (S.eatT > 0.75) finishEat();
     }
 
+    treats.forEach((tr, i) => {
+      if (tr.gone) { if ((tr.respawn -= dt) <= 0 && ph === "rest" && key() !== "end") placeTreat(tr); else { tr.group.visible = false; return; } }
+      tr.pop = Math.min(1, tr.pop + dt * 3);
+      tr.group.visible = key() !== "end";
+      tr.group.position.set(toX(W * tr.fx), tr.drag ? 0.7 : 0, tr.z);
+      tr.group.scale.setScalar(1.3 * (1 - Math.pow(1 - tr.pop, 3)));
+      if (!reduced) { tr.bob.rotation.y = t * 1.4 + i; tr.bob.position.y = 0.06 + Math.sin(t * 2.4 + i * 1.7) * 0.05; }
+    });
     bunnies.forEach((b) => { stepPose(b, dt, t); poseBunny(b, dt, t, false); });
     updateFx(fx, scene, dt);
     sky?.update(dt, t, S.par);
@@ -271,8 +377,28 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
     // cursor hint
     if (pointer.over) {
       const h = objectsHit(pointer.x, pointer.y);
-      if (!(pointer.x && document.elementFromPoint(pointer.x, pointer.y)?.closest?.("button, a, .tour-dialog, .tour-scroll"))) root.style.cursor = h ? "pointer" : "";
+      if (!(pointer.x && document.elementFromPoint(pointer.x, pointer.y)?.closest?.("button, a, .tour-dialog, .tour-scroll"))) root.style.cursor = hold?.up ? "grabbing" : h ? "grab" : "";
     }
+  }
+
+  // ---- the 3D house: fitted over its DOM button (the button stays as the hit area) ----
+  let house = null, houseEl = null;
+  const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), hit = new THREE.Vector3();
+  function syncHouse() {
+    const el = cards.querySelector(".tour-house.is-3d");
+    if (el !== houseEl) {
+      if (house) { scene.remove(house.root); house = null; }
+      houseEl = el;
+      if (el) { house = makeHouse({ image: el.querySelector(".tour-window img")?.currentSrc }); scene.add(house.root); }
+    }
+    if (!house) return;
+    const wall = el.querySelector(".tour-wall").getBoundingClientRect();
+    pickRay(wall.left + wall.width / 2, wall.bottom);
+    if (!ray.ray.intersectPlane(groundPlane, hit)) return;
+    house.root.position.copy(hit);
+    const k = (wall.width / u) * 0.9;
+    house.root.scale.set(k, k / cosP, k);
+    house.set(Number(getComputedStyle(cards).opacity), el.classList.contains("is-sel") ? 1 : 0);
   }
 
   let last = performance.now(), raf = 0, t0 = last;
@@ -281,6 +407,7 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
     tick(dt, (now - t0) / 1000);
     sky?.render();
+    syncHouse();
     renderer.render(scene, camera);
   }
   resize();
@@ -300,6 +427,8 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointerdown", down);
       window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
       sky?.dispose();
       renderer.dispose();
     },

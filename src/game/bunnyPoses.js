@@ -96,6 +96,22 @@ export const POSES = {
     pair("ear", { r: [-0.85, 0, 0.12] }),
   ),
 
+  // dangling from a hand: stretched out, front paws up, hind legs hanging out (the flailing is in poseBunny)
+  held: merge(
+    {
+      torso: { p: [0, 0.6, 0], s: [0.9, 0.8, 1.55] },
+      chest: { p: [0, 0.5, 0.62], s: [0.95, 1.05, 1.2] },
+      tail: { p: [0, 0.6, -0.95] },
+      head: { p: [0, 1.15, 0.85], r: [-0.1, 0, 0] },
+      shadow: { s: [0.7, 1, 1] },
+      eyeL: { s: [1.15, 1.25, 1] }, eyeR: { s: [1.15, 1.25, 1] },
+    },
+    pair("haunch", { p: [0.4, 0.45, -0.6], s: [0.9, 1, 1.05] }),
+    pair("hind", { p: [0.4, 0.2, -1.15], r: [0.2, 0.3, 0], s: [1.1, 1, 1.3] }),
+    pair("paw", { p: [0.28, 0.5, 0.95], r: [0, 0.15, 0], s: [1, 1.2, 1.2] }),
+    pair("ear", { r: [-0.3, 0, 0.2] }),
+  ),
+
   // sprawled flat and boneless, head dropped sideways, ears slack, hind legs kicked out behind
   flop: merge(
     {
@@ -143,7 +159,7 @@ const RUN_GATHER = merge(
 );
 
 // Lying poses settle in slowly so a bunny lowers itself instead of getting smushed.
-const RATE = { run: 30, flop: 2.2, long: 3, loaf: 4 };
+const RATE = { run: 30, flop: 2.2, long: 3, loaf: 4, held: 14 };
 
 // ---- engine ----
 const KEYS = ["body", "head", "shadow", "tail", "haunchL", "haunchR", "torso", "chest", "earL", "earR",

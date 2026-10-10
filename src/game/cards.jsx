@@ -102,6 +102,7 @@ const jit = (i) => ((i * 37) % 11) - 5;
 const norm = (t) => t.toLowerCase();
 
 const VILLAGE_SCENE = 1; // the hills have drifted this many scenes by the time the village shows
+const HOUSE_3D = 1; // the project drawn in 3D so far (the prototype)
 const TIER_SCALE = [0.6, 0.8, 1];
 
 function Village({ sel, onSelect, onOpen }) {
@@ -192,7 +193,7 @@ function Village({ sel, onSelect, onOpen }) {
           const q = projects[i];
           return (
             <button
-              key={i} className={`tour-house t${tier}${sel === i ? " is-sel" : ""}`} data-tier={tier} style={{ "--x": `${x}%`, "--xm": `${xm}%` }}
+              key={i} className={`tour-house t${tier}${sel === i ? " is-sel" : ""}${i === HOUSE_3D ? " is-3d" : ""}`} data-tier={tier} style={{ "--x": `${x}%`, "--xm": `${xm}%` }}
               aria-label={tour.openLabel(q.name)}
               onPointerDown={(e) => { pointer.current = e.pointerType; }}
               onPointerEnter={(e) => { if (e.pointerType === "mouse") onSelect(i); }}

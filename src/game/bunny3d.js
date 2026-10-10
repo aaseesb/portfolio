@@ -50,7 +50,7 @@ export function makeShadow(r) {
 }
 
 // A bunny faces +z. `root` is what gets positioned and turned.
-export function makeBunny({ fur, mark, tail, size = 1 }) {
+export function makeBunny({ fur, mark, tail, size = 1, lop = 0 }) {
   const T = 0.05;
   const root = new THREE.Group(), body = new THREE.Group();
   root.add(body);
@@ -64,7 +64,7 @@ export function makeBunny({ fur, mark, tail, size = 1 }) {
   const head = new THREE.Group(); head.position.set(0, 1.16, 0.16); body.add(head);
   const ears = [];
   [-1, 1].forEach((sd) => {
-    const piv = new THREE.Group(); piv.position.set(sd * 0.22, 0.34, -0.04); piv.rotation.z = -sd * 0.06;
+    const piv = new THREE.Group(); piv.position.set(sd * 0.22, 0.34, -0.04); piv.rotation.z = -sd * 0.06; piv.scale.y = 1 - lop * 0.3;
     piv.add(blob(0.16, 0.52, 0.1, fur, [0, 0.44, 0], { line: T }));
     piv.add(blob(0.085, 0.38, 0.05, COL.pink, [0, 0.42, 0.075], { line: 0 }));
     head.add(piv); ears.push(piv);
@@ -82,7 +82,7 @@ export function makeBunny({ fur, mark, tail, size = 1 }) {
   const hind = [-1, 1].map((sd) => { const f = blob(0.17, 0.1, 0.3, COL.belly, [sd * 0.42, 0.1, 0.1], { line: T }); f.scale.setScalar(0.001); body.add(f); return f; });
   root.scale.setScalar(0.95 * size);
   const b = {
-    root, body, head, ears, eyes, shadow, sleep: 0, sleepT: 0,
+    root, body, head, ears, eyes, shadow, sleep: 0, sleepT: 0, lop, held: false, hold: 0, holdY: 0, rub: 0,
     parts: { body, head, shadow, tail: tailB, haunchL, haunchR, torso, chest, earL: ears[0], earR: ears[1],
       pawL: paws[0], pawR: paws[1], hindL: hind[0], hindR: hind[1], eyeL: eyes[0], eyeR: eyes[1] },
     x: 0, z: 0, yaw: 0, vx: 0, vz: 0, hop: 0, lift: 0, liftV: 0, squash: 0, pet: 0, lean: 0, nod: 0,
@@ -102,6 +102,9 @@ export function poseBunny(b, dt, t, still) {
   if (moving) b.hop += dt * 9; else if (b.hopImpulse) { b.hop += dt * 9; if (Math.sin(b.hop) <= 0.02 && b.hop > b.hopStart + 1) b.hopImpulse = false; } else b.hop = 0;
   const j = moving || b.hopImpulse ? Math.max(0, Math.sin(b.hop)) : 0;
   b.liftV -= 22 * dt; b.lift += b.liftV * dt;
+  if (b.held) { b.lift += (b.holdY - b.lift) * Math.min(1, dt * 18); b.liftV = 0; }
+  b.hold += ((b.held ? 1 : 0) - b.hold) * (1 - Math.exp(-dt * 12));
+  const hd = b.hold;
   if (b.lift <= 0) { const imp = -b.liftV; b.lift = 0; b.liftV = 0; if (imp > 2) b.squash = Math.min(0.25, imp * 0.04); }
   b.squash *= Math.exp(-dt * 8);
   if (b.pet > 0) b.pet -= dt;
@@ -116,9 +119,26 @@ export function poseBunny(b, dt, t, still) {
   b.body.scale.multiply(_v.set(1 + sq * 0.6 + sl * 0.12 - br * 0.02, 1 - sq - sl * 0.08 + br * 0.045, 1 + sq * 0.6 + sl * 0.12 - br * 0.02));
   b.body.rotation.x += -b.lean * 0.5 + j * -0.1;
   b.body.position.z += -b.lean * 0.15;
+  if (hd > 0.001) { // scooped up: leaning back with the belly out, spinning about the middle of the body
+    const th = -0.95 * hd, w = b.calm ? 0 : hd;
+    b.body.rotation.x += th; b.body.position.y += 0.6 - 0.6 * Math.cos(th); b.body.position.z -= 0.6 * Math.sin(th);
+    b.body.rotation.z += w * Math.sin(t * 17) * 0.16;
+    b.head.rotation.x += 0.45 * hd; b.head.rotation.z += w * Math.sin(t * 20) * 0.18;
+    const { pawL, pawR, hindL, hindR, haunchL, haunchR } = b.parts;
+    pawL.rotation.x += w * Math.sin(t * 24) * 0.9; pawR.rotation.x += w * Math.sin(t * 24 + 2.4) * 0.9;
+    pawL.position.y += w * Math.max(0, Math.sin(t * 24)) * 0.12; pawR.position.y += w * Math.max(0, Math.sin(t * 24 + 2.4)) * 0.12;
+    hindL.rotation.x += w * Math.sin(t * 19 + 1) * 1.0; hindR.rotation.x += w * Math.sin(t * 19 + 3.6) * 1.0;
+    hindL.position.z += w * Math.sin(t * 19 + 1) * 0.18; hindR.position.z += w * Math.sin(t * 19 + 3.6) * 0.18;
+    haunchL.rotation.x += w * Math.sin(t * 19 + 1) * 0.3; haunchR.rotation.x += w * Math.sin(t * 19 + 3.6) * 0.3;
+  }
   b.head.rotation.x += sl * (0.55 + Math.sin(t * 1.6) * 0.04) + b.lean * 0.55 + Math.sin(b.nod * Math.PI * 6) * 0.4 * (b.nod > 0 ? 1 : 0) + happy * Math.sin(t * 22) * 0.08;
   b.head.rotation.z += happy * Math.sin(t * 18) * 0.12;
-  b.ears.forEach((e, i) => { e.rotation.x += -j * 0.5 - happy * 0.3 - b.lean * 0.2 - sl * 0.9; e.rotation.z += (i ? 1 : -1) * (happy * 0.1 + Math.sin(t * 2 + i) * 0.03); });
+  b.ears.forEach((e, i) => {
+    e.rotation.x += -j * 0.5 - happy * 0.3 - b.lean * 0.2 - sl * 0.9 + (b.calm ? 0 : hd * Math.sin(t * 18 + i * 2) * 0.45);
+    e.rotation.z += (i ? 1 : -1) * (happy * 0.1 + Math.sin(t * 2 + i) * 0.03);
+    // a lop-eared bunny's ears hang down beside its face instead of standing up
+    e.rotation.z += (i ? -1 : 1) * b.lop * 2.3 * (1 - sl * 0.2); e.rotation.x += b.lop * 0.35;
+  });
   const s = 1 - Math.min(0.5, b.lift * 0.5);
   b.shadow.scale.x *= 0.95 * s; b.shadow.scale.y *= 0.76 * s;
   b.head.updateWorldMatrix(true, false);
