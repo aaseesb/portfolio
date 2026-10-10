@@ -114,6 +114,7 @@ export default function Room({ rooms, dir, origin, closing, onWalk, onLeave }) {
           <div className="room-doors left">
             <Door kind="back" label={backLabel} mark="←" onClick={() => onLeave(n - 1)} />
           </div>
+          <i className={`room-prop prop-${room.type}`} aria-hidden="true" />
           <figure className="room-bunny">
             <Bunny2D pose={pose} />
             {line && <figcaption className="room-say">{line}</figcaption>}

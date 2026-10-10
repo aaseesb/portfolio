@@ -65,17 +65,22 @@
 .tour-house.t1 { --s: 0.8; --b: calc(var(--strip) + 34px); z-index: 2; }
 .tour-house.t2 { --s: 1; --b: calc(var(--strip) - 2px); z-index: 3; }
 .tour-house:hover, .tour-house.is-sel { --k: 1.1; }
+.tour-house:hover .tour-window, .tour-house.is-sel .tour-window { filter: brightness(1.12) saturate(1.1); }
+.tour-wall::after { content: ""; position: absolute; left: -3px; right: -3px; bottom: 0; height: 6px; background: repeating-linear-gradient(90deg, #9a9288 0 9px, #867e74 9px 10px); }
 .tour-house:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
-.tour-roof { position: relative; height: 36px; margin: 0 -8px; background: #b5584a; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
-:root[data-theme="dark"] .tour-roof { background: #8e4439; }
-.tour-chimney { position: absolute; right: 22%; top: 9px; width: 11px; height: 16px; background: #8a6b45; }
-.tour-wall { position: relative; padding: 8px 10px 0; min-height: 88px; background: var(--paper); border: 3px solid var(--wood); border-bottom: 0; display: flex; align-items: flex-end; gap: 6px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); }
+.tour-roof { --roof: #b5584a; position: relative; height: 36px; margin: 0 -8px; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0 2px, transparent 2px 7px), linear-gradient(90deg, rgba(255, 255, 255, 0.16), transparent 50%, rgba(0, 0, 0, 0.14)), var(--roof); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.tour-house:nth-child(3n+2) .tour-roof { --roof: #5f7f9a; }
+.tour-house:nth-child(3n) .tour-roof { --roof: #7d8f4f; }
+:root[data-theme="dark"] .tour-roof { filter: brightness(0.8); }
+.tour-chimney { position: absolute; right: 22%; top: 9px; width: 11px; height: 16px; background: repeating-linear-gradient(#8a6b45 0 5px, #735834 5px 6px); border-top: 3px solid #5d4729; }
+.tour-wall { position: relative; padding: 8px 10px 6px; min-height: 88px; background: repeating-linear-gradient(0deg, rgba(120, 90, 50, 0.1) 0 1px, transparent 1px 8px), var(--paper); border: 3px solid var(--wood); border-bottom: 0; display: flex; align-items: flex-end; gap: 6px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); }
 .tour-house.is-sel .tour-wall { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 40%, transparent), 0 10px 24px rgba(0, 0, 0, 0.2); }
-.tour-window { flex: 1; align-self: center; aspect-ratio: 1 / 0.82; min-width: 0; border: 3px solid var(--wood-dark); border-radius: 5px; overflow: hidden; background: #a9d4ee; }
+.tour-window { position: relative; flex: 1; align-self: center; box-shadow: -5px 0 0 -1px var(--wood), 5px 0 0 -1px var(--wood), 0 4px 0 -1px var(--wood-dark); transition: filter 0.3s; aspect-ratio: 1 / 0.82; min-width: 0; border: 3px solid var(--wood-dark); border-radius: 5px; overflow: hidden; background: #a9d4ee; }
 .tour-window img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .tour-pane { display: grid; place-content: center; width: 100%; height: 100%; color: #2d5d85; }
 .tour-pane svg { width: 26px; height: 26px; }
-.tour-door { flex: none; width: 18px; height: 44px; border-radius: 9px 9px 0 0; background: var(--wood); }
+.tour-door { position: relative; flex: none; width: 18px; height: 44px; border-radius: 9px 9px 0 0; background: linear-gradient(90deg, var(--wood), var(--wood-dark)); box-shadow: 0 3px 0 #9a9288; }
+.tour-door::after { content: ""; position: absolute; right: 3px; top: 55%; width: 3px; height: 3px; border-radius: 50%; background: #e9c46a; }
 .tour-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .tour-badge { font-size: 0.7rem; padding: 1px 8px; border-radius: 999px; background: var(--accent); color: var(--bg); text-shadow: none; }
 .tour-open { display: inline-block; margin-top: 2px; color: var(--accent); font-size: 0.85rem; font-weight: 600; pointer-events: none; }
@@ -252,3 +257,17 @@
   .room-wrap, .room-wrap.is-closing, .room.from-right, .room.from-left, .bunny2d { animation: none; }
   .door-leaf { transition: none; }
 }
+
+/* per-type props standing beside the bunny */
+.room-prop { flex: none; position: relative; width: 70px; height: 78px; }
+.room-prop::before, .room-prop::after { content: ""; position: absolute; }
+/* project: a workbench with a desk lamp */
+.prop-project::before { left: 0; right: 0; bottom: 0; height: 30px; border-radius: 3px 3px 0 0; background: linear-gradient(var(--wood), var(--wood-dark)); box-shadow: 0 -4px 0 #a9835a; }
+.prop-project::after { left: 14px; bottom: 34px; width: 5px; height: 34px; background: #3b3b42; border-radius: 3px; box-shadow: 8px -26px 0 3px #e9c46a, 16px -26px 0 -2px #3b3b42; rotate: -10deg; }
+/* role: a filing cabinet and a pot plant */
+.prop-role::before { left: 0; bottom: 0; width: 38px; height: 62px; border-radius: 3px; background: linear-gradient(#8c97a3, #6f7a86); box-shadow: inset 0 0 0 2px #5a636d, inset 0 -30px 0 -28px #5a636d, inset 0 28px 0 -27px #5a636d, 0 0 0 0 transparent; }
+.prop-role::after { right: 6px; bottom: 0; width: 18px; height: 14px; border-radius: 2px 2px 5px 5px; background: #b5584a; box-shadow: -5px -10px 0 -2px #5c8a4a, 5px -14px 0 -2px #6f9b57, 0 -20px 0 -3px #4f7a40; }
+/* school: a stack of books and a pennant */
+.prop-school::before { left: 4px; bottom: 0; width: 46px; height: 12px; border-radius: 2px; background: #3f6aa0; box-shadow: 4px -12px 0 -1px #b5584a, -2px -24px 0 -1px #5c8a4a, 2px -36px 0 -2px #e9c46a; }
+.prop-school::after { right: 8px; bottom: 0; width: 3px; height: 60px; background: var(--wood-dark); box-shadow: 0 0 0 0 transparent; border-radius: 2px; }
+@media (max-width: 560px) { .room-prop { display: none; } }
