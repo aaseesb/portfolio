@@ -23,18 +23,27 @@ function Door({ kind, label, sub, mark, href, onClick }) {
     : <button type="button" className={`door ${kind}`} onClick={onClick}>{inner}</button>;
 }
 
-export default function Room({ rooms, dir, origin, closing, onWalk, onLeave }) {
+export default function Room({ rooms, dir, origin, closing, onWalk, onStep, onLeave }) {
   const scrollRef = useRef(null);
   const n = rooms.length;
   const room = rooms[n - 1];
   const title = roomTitle(room);
 
+  const at = room.type === "project" ? projects.indexOf(room.p) : -1;
+  const prev = at > 0 ? projects[at - 1] : null;
+  const next = at >= 0 && at < projects.length - 1 ? projects[at + 1] : null;
+  const go = (p, d) => onStep({ type: "project", p }, d);
+
   useEffect(() => { scrollRef.current?.focus({ preventScroll: true }); }, [n, title]);
   useEffect(() => {
-    const key = (e) => { if (e.key === "Escape") { e.stopPropagation(); onLeave(n - 1); } };
+    const key = (e) => {
+      if (e.key === "Escape") { e.stopPropagation(); onLeave(n - 1); }
+      else if (e.key === "ArrowRight" && next) { e.stopPropagation(); go(next, "fwd"); }
+      else if (e.key === "ArrowLeft" && prev) { e.stopPropagation(); go(prev, "back"); }
+    };
     window.addEventListener("keydown", key, true);
     return () => window.removeEventListener("keydown", key, true);
-  }, [n, onLeave]);
+  }, [n, onLeave, prev, next]);
 
   let meta = "", body, pose = "sit", line = "";
   const doors = [];
@@ -96,6 +105,12 @@ export default function Room({ rooms, dir, origin, closing, onWalk, onLeave }) {
               </span>
             ))}
           </nav>
+          {at >= 0 && (
+            <div className="room-pager">
+              <button type="button" disabled={!prev} onClick={() => go(prev, "back")} aria-label={prev ? T.prev(prev.name) : T.prev("")}>‹<span> {prev?.name}</span></button>
+              <button type="button" disabled={!next} onClick={() => go(next, "fwd")} aria-label={next ? T.next(next.name) : T.next("")}><span>{next?.name} </span>›</button>
+            </div>
+          )}
           <button type="button" className="room-x" onClick={() => onLeave(0)} aria-label={T.leave}>×</button>
         </div>
 
@@ -114,7 +129,7 @@ export default function Room({ rooms, dir, origin, closing, onWalk, onLeave }) {
           <div className="room-doors left">
             <Door kind="back" label={backLabel} mark="←" onClick={() => onLeave(n - 1)} />
           </div>
-          <i className={`room-prop prop-${room.type}`} aria-hidden="true" />
+          <i className={`room-prop prop-${room.type}`} aria-hidden="true"><b /></i>
           <figure className="room-bunny">
             <Bunny2D pose={pose} />
             {line && <figcaption className="room-say">{line}</figcaption>}

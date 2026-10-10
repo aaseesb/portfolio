@@ -117,6 +117,11 @@ export default function GameShell({ onExit }) {
     if (it.type === "project") setSel(projects.indexOf(it.p));
     setDir("fwd"); setRooms((r) => [...r, it]);
   }, []);
+  // Swap the current project room for its neighbour (next = forward, previous = back).
+  const step = useCallback((it, d) => {
+    setSel(projects.indexOf(it.p));
+    setDir(d); setRooms((r) => [...r.slice(0, -1), it]);
+  }, []);
   // Keep `keep` rooms: back through the doors, or 0 to step back outside.
   const leave = useCallback((keep) => {
     const cur = roomsRef.current;
@@ -176,7 +181,7 @@ export default function GameShell({ onExit }) {
       </div>
 
       {toast && <div className="tour-toast" role="status">{toast}</div>}
-      {item && <Room rooms={rooms} dir={dir} origin={origin} closing={closing} onWalk={walk} onLeave={leave} />}
+      {item && <Room rooms={rooms} dir={dir} origin={origin} closing={closing} onWalk={walk} onStep={step} onLeave={leave} />}
     </div>
   );
 }

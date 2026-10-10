@@ -328,6 +328,8 @@ export const tour = {
     code: "GitHub",
     video: "Full video",
     leave: "Leave the house",
+  prev: (name) => `Previous project${name ? `: ${name}` : ""}`,
+  next: (name) => `Next project${name ? `: ${name}` : ""}`,
   },
   clickHouse: "Click the house to look inside",
   openLabel: (name) => `Open ${name}`,

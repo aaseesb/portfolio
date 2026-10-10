@@ -95,7 +95,7 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
   const SLOT = [0.16, 0.28, 0.39, 0.5, 0.61, 0.72, 0.84], SLOT_Z = [0.9, -0.3, 1.2, 0.3, 1.0, -0.6, 0.8];
   const slotOf = [3, 1, 5, 2, 0, 6];
   const restX = (i) => toX(W * SLOT[slotOf[i]]);
-  const restZ = (i) => SLOT_Z[slotOf[i]];
+  const restZ = (i) => (key() === "village" ? Math.max(SLOT_Z[slotOf[i]], 0.8) : SLOT_Z[slotOf[i]]); // keep clear of the houses
   const shuffle = (n = 1) => { // one bunny at a time picks a free spot (or trades) and runs over to it
     for (let k = 0; k < n; k++) {
       const i = 1 + Math.floor(Math.random() * (bunnies.length - 1));

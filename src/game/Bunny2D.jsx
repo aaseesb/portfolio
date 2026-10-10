@@ -1,6 +1,6 @@
 // A flat, front-on bunny for the rooms. Same colours and poses as the 3D one
 // (bunny3d.js / bunnyPoses.js): sit, stand and loaf.
-const C = { body: "#ddd2c5", tan: "#c4a276", belly: "#f0e5d1", pink: "#d9a9a0", line: "#5b4a3a", eye: "#262626" };
+const C = { body: "#c4a276", tan: "#a88a5f", belly: "#f0e5d1", pink: "#d9a9a0", line: "#5b4a3a", eye: "#262626" };
 const st = { stroke: C.line, strokeWidth: 2, strokeLinejoin: "round" };
 
 const Ear = ({ x, tilt, y = 15, ry = 17 }) => (
