@@ -1,6 +1,7 @@
 // Little low-poly bunnies, and treats for the interactive tour, ported
 // from the island mockup: ellipsoid blobs with a cream outline shell.
 import * as THREE from "three";
+import { bakeSit } from "./bunnyPoses.js";
 
 export const COL = {
   grass: 0x88a567, grassLight: 0xa4c17c, grassDark: 0x748f57, cream: 0xddd3c5,
@@ -87,11 +88,13 @@ export function makeBunny({ fur, mark, tail }) {
     x: 0, z: 0, yaw: 0, vx: 0, vz: 0, hop: 0, lift: 0, liftV: 0, squash: 0, pet: 0, lean: 0, nod: 0,
     idle: 1 + Math.random() * 3, mouth: new THREE.Vector3(),
   };
+  bakeSit(b.parts); // the resting bunny is the on-all-fours pose from bunnyPoses.js
   root.userData.bunny = b;
   return b;
 }
 
-// Pose from state. `moving` drives the hop cycle, `lean` stands her up to beg,
+const _v = new THREE.Vector3();
+// Pose from state. Layers on top of whatever stepPose (bunnyPoses.js) just set, so call that first. `moving` drives the hop cycle, `lean` stands her up to beg,
 // `nod` is the eating dip, `pet` makes her wriggle happy.
 export function poseBunny(b, dt, t, still) {
   const speed = Math.hypot(b.vx, b.vz);
@@ -105,18 +108,18 @@ export function poseBunny(b, dt, t, still) {
   const happy = b.pet > 0 ? 1 : 0;
   b.sleep += (b.sleepT - b.sleep) * (1 - Math.exp(-dt * 2.5));
   const sl = b.sleep;
-  b.eyes.forEach((e) => e.scale.y = 1 - sl * 0.9);
+  b.eyes.forEach((e) => e.scale.y *= 1 - sl * 0.9);
   b.root.position.set(b.x, j * 0.42 + b.lift, b.z);
   b.root.rotation.y = b.yaw;
   const sq = b.squash - j * 0.05;
-  b.body.scale.set(1 + sq * 0.6 + sl * 0.12, 1 - sq - sl * 0.25, 1 + sq * 0.6 + sl * 0.12);
-  b.body.rotation.x = -b.lean * 0.5 + j * -0.1;
-  b.body.position.z = -b.lean * 0.15;
-  b.head.rotation.x = sl * (0.55 + Math.sin(t * 1.6) * 0.04) + b.lean * 0.55 + Math.sin(b.nod * Math.PI * 6) * 0.4 * (b.nod > 0 ? 1 : 0) + happy * Math.sin(t * 22) * 0.08;
-  b.head.rotation.z = happy * Math.sin(t * 18) * 0.12;
-  b.ears.forEach((e, i) => { e.rotation.x = -j * 0.5 - happy * 0.3 - b.lean * 0.2 - sl * 0.9; e.rotation.z = (i ? 1 : -1) * (0.06 + happy * 0.1 + Math.sin(t * 2 + i) * 0.03); });
+  b.body.scale.multiply(_v.set(1 + sq * 0.6 + sl * 0.12, 1 - sq - sl * 0.25, 1 + sq * 0.6 + sl * 0.12));
+  b.body.rotation.x += -b.lean * 0.5 + j * -0.1;
+  b.body.position.z += -b.lean * 0.15;
+  b.head.rotation.x += sl * (0.55 + Math.sin(t * 1.6) * 0.04) + b.lean * 0.55 + Math.sin(b.nod * Math.PI * 6) * 0.4 * (b.nod > 0 ? 1 : 0) + happy * Math.sin(t * 22) * 0.08;
+  b.head.rotation.z += happy * Math.sin(t * 18) * 0.12;
+  b.ears.forEach((e, i) => { e.rotation.x += -j * 0.5 - happy * 0.3 - b.lean * 0.2 - sl * 0.9; e.rotation.z += (i ? 1 : -1) * (happy * 0.1 + Math.sin(t * 2 + i) * 0.03); });
   const s = 1 - Math.min(0.5, b.lift * 0.5);
-  b.shadow.scale.set(0.95 * s, 0.76 * s, 1);
+  b.shadow.scale.x *= 0.95 * s; b.shadow.scale.y *= 0.76 * s;
   b.head.updateWorldMatrix(true, false);
   b.mouth.set(0, -0.15, 0.5).applyMatrix4(b.head.matrixWorld);
 }
