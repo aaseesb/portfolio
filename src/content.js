@@ -286,14 +286,18 @@ export const bunnyLines = {
 // secret treat is hidden in that section (percent of the section).
 export const tour = {
   steps: [
-    { key: "intro", treat: "carrot", icon: "🥕", ask: "Hi! Is that a carrot? Can I have it? Please?", egg: { x: 0.9, z: -1.2 } },
-    { key: "work", treat: "apple", icon: "🍎", ask: "Ooh, an apple! Give it here and I'll fetch the next slide.", egg: { x: 0.06, z: 1.4 } },
-    { key: "path", treat: "leaf", icon: "🌿", ask: "A leaf for the road? Then we're nearly done.", egg: { x: 0.5, z: -2 } },
+    { key: "intro", treat: "carrot", icon: "🥕", next: "my work", ask: "A carrot! Feed me and we'll fetch my work!", egg: { x: 0.9, z: -1.2 } },
+    { key: "work", treat: "apple", icon: "🍎", next: "my path", ask: "Ooh, an apple! Feed me and we'll fetch my path.", egg: { x: 0.06, z: 1.4 } },
+    { key: "path", treat: "leaf", icon: "🌿", next: "the finish", ask: "A leaf for the road? Feed me and we're nearly there.", egg: { x: 0.5, z: -1.1 } },
     { key: "end", egg: { x: 0.95, z: 1.8 } },
   ],
   hold: "Ooh ooh ooh!",
   yum: "Yum!",
   hint: "Drag the treat to the bunny. Pet the bunnies. Hunt for golden eggs.",
+  read: "Scroll to the end and the bunnies will ask for a treat.",
+  feed: (next) => `Feed the bunny to see ${next}`,
+  scroll: "Scroll for more",
+  stepOf: (n, of) => `Step ${n} of ${of}`,
   give: "Give the treat",
   hunt: "Collect a hidden golden egg",
   found: (n, of) => `Golden egg found! ${n}/${of}`,

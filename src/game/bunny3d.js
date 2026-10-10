@@ -129,7 +129,34 @@ export function makeTreat(kind) {
     bob.add(blob(0.06, 0.06, 0.17, COL.stem, [-0.05, 0.16, -0.48], { line: 0 }));
   }
   const shadow = makeShadow(0.4); g.add(shadow);
-  return { group: g, bob, shadow, held: false, lift: 0, size: 1 };
+  // a soft gold ring on the grass so it reads as the thing to pick up
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.68, 28), new THREE.MeshBasicMaterial({ color: COL.gold, transparent: true, opacity: 0.8, depthWrite: false, side: THREE.DoubleSide }));
+  ring.rotation.x = -Math.PI / 2; ring.position.y = 0.02; ring.renderOrder = 1; g.add(ring);
+  return { group: g, bob, shadow, ring, held: false, lift: 0, size: 1 };
+}
+
+// The cart the bunnies tow: two spoked wheels (placed by the stage under the
+// DOM board's corners) and a hitch post the ropes tie to.
+export function makeCart() {
+  const group = new THREE.Group();
+  const wood = lam(0x8a6b45), dark = lam(0x5f4730);
+  const wheels = [0, 1].map(() => {
+    const w = new THREE.Group();
+    w.add(new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.13, 8, 28), wood));
+    for (let i = 0; i < 3; i++) {
+      const sp = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.11, 0.11), dark);
+      sp.rotation.z = (i * Math.PI) / 3; w.add(sp);
+    }
+    w.add(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.3, 12), dark)).rotation.x = 0;
+    w.children[w.children.length - 1].rotation.x = Math.PI / 2;
+    group.add(w);
+    return w;
+  });
+  const hitch = new THREE.Group();
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.9, 8), dark); post.position.y = 0.45; hitch.add(post);
+  const loop = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.05, 6, 14), lam(0x9a9a9a)); loop.position.y = 0.9; hitch.add(loop);
+  group.add(hitch);
+  return { group, wheels, hitch };
 }
 
 export function makeEgg() {
