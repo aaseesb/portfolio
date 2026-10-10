@@ -314,6 +314,7 @@ export const tour = {
   next: (label) => `Next: ${label}`,
   last: "See the summary",
   open: "Open",
+  clickHouse: "Click the house to look inside",
   openLabel: (name) => `Open ${name}`,
   close: "Close",
   tech: "Built with",

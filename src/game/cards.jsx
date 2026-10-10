@@ -117,7 +117,7 @@ function Village({ sel, onSelect, onOpen }) {
           <>
             <h2>{p.name}{p.badge && <span className="tour-badge">{p.badge}</span>}</h2>
             <p>{p.blurb}</p>
-            <button className="tour-open" onClick={() => onOpen({ type: "project", p, i: sel })} aria-label={tour.openLabel(p.name)}>{tour.open}</button>
+            <span className="tour-open">{tour.clickHouse}</span>
           </>
         ) : <p>{tour.village.hint}</p>}
       </div>

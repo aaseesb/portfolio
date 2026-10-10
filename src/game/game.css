@@ -78,8 +78,7 @@
 .tour-door { flex: none; width: 18px; height: 44px; border-radius: 9px 9px 0 0; background: var(--wood); }
 .tour-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .tour-badge { font-size: 0.7rem; padding: 1px 8px; border-radius: 999px; background: var(--accent); color: var(--bg); text-shadow: none; }
-.tour-open { padding: 5px 16px; border-radius: 999px; border: 1px solid var(--accent); background: var(--bg); color: var(--accent); font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-shadow: none; }
-.tour-open:hover, .tour-open:focus-visible { background: var(--accent); color: var(--bg); }
+.tour-open { display: inline-block; margin-top: 2px; color: var(--accent); font-size: 0.85rem; font-weight: 600; pointer-events: none; }
 
 /* ---- skill clouds: soft puffs in the sky; the chosen project's get brighter and bigger ---- */
 .tour-clouds { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; pointer-events: none; --cb: #d7e8fb; --cs: 120, 150, 200; }
