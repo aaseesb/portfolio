@@ -281,9 +281,18 @@
 .prop-school::before { left: 4px; bottom: 0; width: 46px; height: 12px; border-radius: 2px; background: #3f6aa0; box-shadow: 4px -12px 0 -1px #b5584a, -2px -24px 0 -1px #5c8a4a, 2px -36px 0 -2px #e9c46a; }
 .prop-school::after { right: 8px; bottom: 0; width: 3px; height: 60px; background: var(--wood-dark); box-shadow: 0 0 0 0 transparent; border-radius: 2px; }
 @media (max-width: 560px) { .room-prop { display: none; } }
-
-.room-pager { display: flex; gap: 6px; margin-left: auto; }
-.room-pager button { padding: 3px 10px; border-radius: 999px; border: 1px solid rgba(255, 244, 220, 0.5); background: rgba(0, 0, 0, 0.18); color: #fff4dc; font: inherit; font-size: 0.78rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
-.room-pager button:hover:not(:disabled), .room-pager button:focus-visible { background: rgba(0, 0, 0, 0.35); }
-.room-pager button:disabled { opacity: 0.35; cursor: default; }
-@media (max-width: 560px) { .room-pager button span { display: none; } .room-pager button { padding: 3px 12px; font-size: 1rem; } }
+.room-wrap { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.room { flex: 0 1 780px; min-width: 0; width: auto; }
+.room-sign { flex: none; align-self: stretch; position: relative; display: grid; justify-items: center; align-content: center; gap: 4px; width: 62px; padding: 0; border: 0; background: none; color: #fff4dc; font: inherit; cursor: pointer; }
+.room-sign.gap { cursor: default; }
+.room-sign::before { content: ""; position: absolute; left: 50%; top: 50%; bottom: 80px; width: 8px; translate: -50% 0; background: linear-gradient(90deg, var(--wood), var(--wood-dark)); border-radius: 0 0 3px 3px; z-index: -1; }
+.room-sign-arrow { display: grid; place-content: center; width: 56px; height: 44px; padding-bottom: 4px; font-size: 2rem; font-weight: 700; line-height: 1; background: linear-gradient(var(--wood), var(--wood-dark)); box-shadow: inset 0 0 0 2px rgba(255, 244, 220, 0.25), 0 4px 0 rgba(0, 0, 0, 0.3); transition: translate 0.2s; }
+.room-sign.prev .room-sign-arrow { clip-path: polygon(0 50%, 22% 0, 100% 0, 100% 100%, 22% 100%); padding-left: 10px; }
+.room-sign.next .room-sign-arrow { clip-path: polygon(100% 50%, 78% 0, 0 0, 0 100%, 78% 100%); padding-right: 10px; }
+.room-sign-name { position: relative; max-width: 62px; padding: 2px 5px; border-radius: 3px; background: var(--wood-dark); font-size: 0.66rem; line-height: 1.15; text-align: center; overflow-wrap: anywhere; }
+.room-sign.prev:hover .room-sign-arrow, .room-sign.prev:focus-visible .room-sign-arrow { translate: -4px 0; }
+.room-sign.next:hover .room-sign-arrow, .room-sign.next:focus-visible .room-sign-arrow { translate: 4px 0; }
+.room-sign:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+@media (max-width: 700px) { .room-sign { width: 30px; } .room-sign-arrow { width: 30px; height: 40px; font-size: 1.5rem; padding: 0 0 4px; } .room-sign-name { display: none; } .room-sign::before { display: none; } }
+@media (prefers-reduced-motion: reduce) { .room-sign-arrow { transition: none; } }
+.room-sign.gap::before { display: none; }

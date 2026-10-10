@@ -23,6 +23,18 @@ function Door({ kind, label, sub, mark, href, onClick }) {
     : <button type="button" className={`door ${kind}`} onClick={onClick}>{inner}</button>;
 }
 
+// A wooden signpost beside the house pointing to the neighbouring project.
+function Signpost({ side, project, onGo }) {
+  if (!project) return <span className="room-sign gap" aria-hidden="true" />;
+  const label = side === "prev" ? T.prev(project.name) : T.next(project.name);
+  return (
+    <button type="button" className={`room-sign ${side}`} aria-label={label} title={label} onClick={(e) => { e.stopPropagation(); onGo(); }}>
+      <span className="room-sign-arrow" aria-hidden="true">{side === "prev" ? "‹" : "›"}</span>
+      <span className="room-sign-name" aria-hidden="true">{project.name}</span>
+    </button>
+  );
+}
+
 export default function Room({ rooms, dir, origin, closing, onWalk, onStep, onLeave }) {
   const scrollRef = useRef(null);
   const n = rooms.length;
@@ -90,6 +102,7 @@ export default function Room({ rooms, dir, origin, closing, onWalk, onStep, onLe
 
   return (
     <div className={`room-wrap${closing ? " is-closing" : ""}`} style={style} onClick={() => onLeave(0)}>
+      {at >= 0 && <Signpost side="prev" project={prev} onGo={() => go(prev, "back")} />}
       <div
         key={`${n}:${title}`} className={`room kind-${room.type} ${dir === "fwd" ? "from-right" : dir === "back" ? "from-left" : ""}`}
         role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}
@@ -105,12 +118,6 @@ export default function Room({ rooms, dir, origin, closing, onWalk, onStep, onLe
               </span>
             ))}
           </nav>
-          {at >= 0 && (
-            <div className="room-pager">
-              <button type="button" disabled={!prev} onClick={() => go(prev, "back")} aria-label={prev ? T.prev(prev.name) : T.prev("")}>‹<span> {prev?.name}</span></button>
-              <button type="button" disabled={!next} onClick={() => go(next, "fwd")} aria-label={next ? T.next(next.name) : T.next("")}><span>{next?.name} </span>›</button>
-            </div>
-          )}
           <button type="button" className="room-x" onClick={() => onLeave(0)} aria-label={T.leave}>×</button>
         </div>
 
@@ -140,6 +147,7 @@ export default function Room({ rooms, dir, origin, closing, onWalk, onStep, onLe
         </div>
         <div className="room-floor" aria-hidden="true" />
       </div>
+      {at >= 0 && <Signpost side="next" project={next} onGo={() => go(next, "fwd")} />}
     </div>
   );
 }
