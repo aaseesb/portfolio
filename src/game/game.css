@@ -68,7 +68,8 @@
 .tour-house:hover .tour-window, .tour-house.is-sel .tour-window { filter: brightness(1.12) saturate(1.1); }
 .tour-wall::after { content: ""; position: absolute; left: -3px; right: -3px; bottom: 0; height: 6px; background: repeating-linear-gradient(90deg, #9a9288 0 9px, #867e74 9px 10px); }
 .tour-house:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
-.tour-roof { --roof: #b5584a; position: relative; height: 36px; margin: 0 -8px; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0 2px, transparent 2px 7px), linear-gradient(90deg, rgba(255, 255, 255, 0.16), transparent 50%, rgba(0, 0, 0, 0.14)), var(--roof); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.tour-roof { --roof: #b5584a; position: relative; height: 36px; margin: 0 -8px; }
+.tour-roof::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0 2px, transparent 2px 7px), linear-gradient(90deg, rgba(255, 255, 255, 0.16), transparent 50%, rgba(0, 0, 0, 0.14)), var(--roof); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
 .tour-house:nth-child(3n+2) .tour-roof { --roof: #5f7f9a; }
 .tour-house:nth-child(3n) .tour-roof { --roof: #7d8f4f; }
 :root[data-theme="dark"] .tour-roof { filter: brightness(0.8); }
