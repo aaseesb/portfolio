@@ -133,7 +133,7 @@
 .tour-meta { margin: 4px 0 0; font-size: 0.85rem; opacity: 0.75; }
 .tour-frame { position: relative; margin: 14px 0 6px; padding: 10px; background: var(--wood); border: 3px solid var(--wood-dark); border-radius: 4px; box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), inset 0 0 0 2px rgba(255, 244, 220, 0.25); display: grid; gap: 8px; }
 .tour-frame::before { content: ""; position: absolute; left: 50%; top: -16px; width: 44%; height: 14px; translate: -50% 0; border: 2px solid var(--wood-dark); border-bottom: 0; clip-path: polygon(0 100%, 50% 0, 100% 100%, 98% 100%, 50% 6%, 2% 100%); }
-.tour-frame .visual { margin: 0; border-radius: 2px; overflow: hidden; background: #000; }
+.tour-frame .visual { margin: 0 auto; border-radius: 2px; overflow: hidden; background: #000; }
 .tour-tabs { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 .tour-tabs button { padding: 4px 12px; border-radius: 999px; border: 2px solid var(--wood-dark); background: var(--paper); color: var(--text); font: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
 .tour-tabs button.on, .tour-tabs button:hover { background: var(--accent); color: var(--bg); }
@@ -181,3 +181,6 @@
 .tour-glow { position: absolute; inset: 0; z-index: 4; pointer-events: none; mix-blend-mode: soft-light; opacity: var(--glow, 0); transition: opacity 0.6s; background: radial-gradient(circle 260px at var(--mx, 50%) var(--my, 50%), rgba(255, 238, 170, 0.95), rgba(255, 214, 120, 0.35) 45%, transparent 72%); }
 .tour-glow::after { content: ""; position: absolute; inset: 0; mix-blend-mode: screen; background: radial-gradient(circle 150px at var(--mx, 50%) var(--my, 50%), rgba(255, 240, 190, 0.28), transparent 70%); }
 .tour-end-links { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 4px 0 6px; }
+
+.tour-back { display: block; margin: 0 0 6px; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; opacity: 0.85; text-decoration: underline; }
+.tour-back:hover, .tour-back:focus-visible { opacity: 1; }

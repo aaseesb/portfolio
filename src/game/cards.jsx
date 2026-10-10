@@ -218,7 +218,7 @@ export function Scene({ k, sel, onSelect, onOpen, onExit, onProgress }) {
 }
 
 // The only scrolling surface. Esc, the backdrop and the button all close it.
-export function Detail({ item, onClose }) {
+export function Detail({ item, onClose, onBack }) {
   const ref = useRef(null);
   useEffect(() => {
     ref.current?.focus();
@@ -286,7 +286,10 @@ export function Detail({ item, onClose }) {
     <div className="tour-dialog" onClick={onClose}>
       <div className="tour-dialog-box" role="dialog" aria-modal="true" aria-label={tour.open} onClick={(e) => e.stopPropagation()}>
         <button ref={ref} className="tour-close" onClick={onClose} aria-label={tour.close}>×</button>
-        <header>{head}</header>
+        <header>
+          {onBack && <button className="tour-back" onClick={onBack}>{tour.backToRole}</button>}
+          {head}
+        </header>
         <div className="tour-dialog-body" tabIndex={0}>{body}</div>
         <div className="tour-floor" aria-hidden="true" />
       </div>

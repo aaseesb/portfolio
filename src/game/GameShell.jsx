@@ -101,7 +101,9 @@ export default function GameShell({ onExit }) {
 
   const open = useCallback((it) => {
     if (it.type === "project") setSel(it.i ?? projects.indexOf(it.p));
-    setItem(it.type === "role" ? { ...it, go: (p) => open({ type: "project", p }) } : it);
+    if (it.type !== "role") { setItem(it); return; }
+    const role = { ...it, go: (p) => open({ type: "project", p, from: role }) };
+    setItem(role);
   }, []);
 
   if (failed) {
@@ -153,7 +155,7 @@ export default function GameShell({ onExit }) {
       </div>
 
       {toast && <div className="tour-toast" role="status">{toast}</div>}
-      {item && <Detail item={item} onClose={() => setItem(null)} />}
+      {item && <Detail item={item} onClose={() => setItem(null)} onBack={item.from ? () => setItem(item.from) : null} />}
     </div>
   );
 }
