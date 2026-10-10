@@ -24,7 +24,7 @@ function ellip(sx, sy, sz) {
 }
 const lam = (c) => new THREE.MeshPhongMaterial({ color: c, specular: 0x000000, shininess: 0 });
 const outlines = {};
-function outlineMat(t, color) {
+export function outlineMat(t, color) {
   const k = `${t}_${color}`;
   return (outlines[k] ||= new THREE.ShaderMaterial({
     uniforms: { t: { value: t }, c: { value: new THREE.Color(color) } },
