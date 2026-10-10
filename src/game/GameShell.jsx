@@ -20,7 +20,7 @@ const Carrot = () => (
     </defs>
     <g strokeLinecap="round" strokeLinejoin="round" transform="rotate(25 32 32)">
       <path d="M32 18c-5-4-7-9-5-14M32 18c0-6 1-11 5-14M33 18c5-3 10-3 14 0" fill="none" stroke="#5f9a42" strokeWidth="6" />
-      <path d="M16 25C16 15 48 15 48 25 48 38 38 52 32 61 26 52 16 38 16 25Z" fill="url(#carrot-body)" stroke="#8a4a1c" strokeWidth="3" />
+      <path d="M16 25C16 15 48 15 48 25 48 37 39 49 36 56Q32 64 28 56C25 49 16 37 16 25Z" fill="url(#carrot-body)" stroke="#8a4a1c" strokeWidth="3" />
       <path d="M22 28q4 2 8 0M34 37q4 2 7 0M27 46q3 1.5 6 0" fill="none" stroke="#c4631c" strokeWidth="2.5" />
       <path d="M21 26q2-5 8-6" fill="none" stroke="#ffd9a3" strokeWidth="3" opacity="0.85" />
     </g>
@@ -180,13 +180,13 @@ export default function GameShell({ onExit }) {
         <button className="tour-treat-btn" onClick={back} disabled={scene === 0 || busy} aria-label={tour.back}>
           <Carrot />
         </button>
-        <button type="button" className="tour-treat-label" onClick={back} disabled={scene === 0 || busy} tabIndex={-1} aria-hidden="true">{scene > 0 ? backLabel : tour.back}</button>
+        <span className="tour-treat-label">{scene > 0 ? backLabel : tour.back}</span>
       </div>
       <div className="tour-treat tour-treat-next">
         <button className={`tour-treat-btn${busy ? "" : " is-ready"}`} onClick={next} disabled={busy} aria-label={nextLabel}>
           <Apple />
         </button>
-        <button type="button" className="tour-treat-label" onClick={next} disabled={busy} tabIndex={-1} aria-hidden="true">{nextLabel}</button>
+        <span className="tour-treat-label">{nextLabel}</span>
       </div>
 
       {toast && <div className="tour-toast" role="status">{toast}</div>}
