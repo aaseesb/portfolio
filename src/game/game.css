@@ -89,6 +89,7 @@
 /* a 3D house is drawn by the stage over its button; the button keeps the hit area, focus ring and door position */
 .tour-house.is-3d .tour-roof, .tour-house.is-3d .tour-wall { visibility: hidden; }
 .tour-house.is-3d .tour-door { visibility: hidden; }
+.tour-house.is-3d .tour-ground, .tour-house.is-3d .tour-bush { display: none; }
 .tour-house:hover .tour-window, .tour-house.is-sel .tour-window { filter: brightness(1.12) saturate(1.1); }
 .tour-wall::after { content: ""; position: absolute; left: -3px; right: -3px; bottom: 0; height: 6px; background: repeating-linear-gradient(90deg, #9a9288 0 9px, #867e74 9px 10px); }
 .tour-house:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }

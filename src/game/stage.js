@@ -398,7 +398,7 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
     house.root.position.copy(hit);
     const k = (wall.width / u) * 0.9;
     house.root.scale.set(k, k / cosP, k);
-    house.set(Number(getComputedStyle(cards).opacity), el.classList.contains("is-sel") ? 1 : 0);
+    house.set(Number(getComputedStyle(cards).opacity), el.classList.contains("is-sel") ? 1 : 0, getComputedStyle(document.documentElement).getPropertyValue("--hill-near").trim());
   }
 
   let last = performance.now(), raf = 0, t0 = last;

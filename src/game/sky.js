@@ -37,7 +37,7 @@ void main(){
   col = mix(col, c0 * 1.12, smoothstep(0.5, 0.92, n2) * 0.22);
   col *= mix(1.0, 0.56, dark * (1.0 - night));
   // sun by day, moon at night
-  vec2 sp = vec2(sun * asp, 0.74);
+  vec2 sp = vec2(sun * asp, 0.80);
   float d = length(p - sp);
   col += (1.0 - night) * vec3(1.0, 0.92, 0.74) * (smoothstep(0.2, 0.0, d) * 0.3 + smoothstep(0.052, 0.046, d) * 0.7);
   col += night * vec3(0.9, 0.93, 1.0) * (smoothstep(0.12, 0.0, d) * 0.12 + smoothstep(0.045, 0.04, d) * 0.9);
