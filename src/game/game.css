@@ -80,18 +80,14 @@
 .tour-open:hover, .tour-open:focus-visible { background: var(--accent); color: var(--bg); }
 
 /* ---- skill clouds: soft puffs in the sky; the chosen project's get brighter and bigger ---- */
-.tour-clouds { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; pointer-events: none; --cl: 255, 255, 255; }
-:root[data-theme="dark"] .tour-clouds { --cl: 206, 218, 244; }
-.tour-cloud { position: absolute; left: var(--x); top: var(--y); transform: translate(-50%, -50%); padding: 17px 34px; color: #36445f; font-size: 0.85rem; font-weight: 700; white-space: nowrap; text-shadow: 0 0 6px rgba(var(--cl), 0.9); opacity: 0.6; scale: 1; filter: blur(0.4px); transition: scale 0.5s, opacity 0.5s, filter 0.5s;
-  background:
-    radial-gradient(ellipse 30% 62% at 24% 58%, rgba(var(--cl), 0.82), transparent 74%),
-    radial-gradient(ellipse 30% 84% at 46% 38%, rgba(var(--cl), 0.9), transparent 74%),
-    radial-gradient(ellipse 28% 70% at 70% 52%, rgba(var(--cl), 0.86), transparent 74%),
-    radial-gradient(ellipse 22% 52% at 88% 68%, rgba(var(--cl), 0.7), transparent 74%),
-    radial-gradient(ellipse 58% 48% at 50% 72%, rgba(var(--cl), 0.85), transparent 78%);
-  animation: tour-drift 11s ease-in-out var(--d, 0s) infinite alternate; }
-.tour-cloud.on { scale: 1.32; opacity: 1; z-index: 2; color: #6b3410; --cl: 255, 244, 214; filter: drop-shadow(0 0 14px rgba(255, 214, 120, 0.85)); }
-.tour-cloud.off { scale: 0.92; opacity: 0.3; }
+.tour-clouds { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; pointer-events: none; --cb: #d7e8fb; --cs: 120, 150, 200; }
+:root[data-theme="dark"] .tour-clouds { --cb: #a9bbe0; --cs: 40, 55, 110; }
+.tour-cloud { position: absolute; left: var(--x); top: var(--y); transform: translate(-50%, -50%); padding: 8px 20px; border-radius: 999px; background: var(--cb); color: #2f4468; font-size: 0.85rem; font-weight: 600; white-space: nowrap; opacity: 0.8; scale: 1; box-shadow: 0 5px 0 rgba(var(--cs), 0.22), 0 8px 16px rgba(var(--cs), 0.14); transition: scale 0.4s, opacity 0.4s, box-shadow 0.4s, background 0.4s; animation: tour-drift 9s ease-in-out var(--d, 0s) infinite alternate; }
+.tour-cloud::before, .tour-cloud::after { content: ""; position: absolute; background: inherit; border-radius: 50%; z-index: -1; }
+.tour-cloud::before { width: 38%; height: 130%; left: 12%; top: -45%; }
+.tour-cloud::after { width: 30%; height: 110%; right: 14%; top: -30%; }
+.tour-cloud.on { scale: 1.3; opacity: 1; z-index: 2; color: #6b3410; background: #fff6df; box-shadow: 0 5px 0 rgba(230, 160, 60, 0.4), 0 0 26px rgba(255, 214, 120, 0.9); }
+.tour-cloud.off { scale: 0.92; opacity: 0.4; }
 @keyframes tour-drift { from { translate: -9px 0; } to { translate: 9px -5px; } }
 
 
