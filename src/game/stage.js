@@ -72,7 +72,6 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
     makeBunny({ fur: 0xb9bcc8, tail: COL.cream, size: 0.55 }),
     makeBunny({ fur: 0x9a7456, tail: COL.cream, size: 0.68 }),
   ];
-  const lane = [0.3, -0.9, 1.3, 0.6, -0.4, 1.0];
   bunnies.forEach((b) => scene.add(b.root));
   const hero = bunnies[0];
   let treat = null;
@@ -92,8 +91,22 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
   const setBusy = (v) => { if (S.busy !== v) { S.busy = v; hooks.onBusy?.(v); } };
 
   // ---- where the bunnies rest: a little group in the middle of the grass ----
-  const stand = [0.5, 0.41, 0.59, 0.69, 0.3, 0.78];
-  const restX = (i) => toX(W * stand[i]);
+  // seven evenly spread spots across the meadow; the hero keeps the middle one, the rest take turns at the others
+  const SLOT = [0.16, 0.28, 0.39, 0.5, 0.61, 0.72, 0.84], SLOT_Z = [0.9, -0.3, 1.2, 0.3, 1.0, -0.6, 0.8];
+  const slotOf = [3, 1, 5, 2, 0, 6];
+  const restX = (i) => toX(W * SLOT[slotOf[i]]);
+  const restZ = (i) => SLOT_Z[slotOf[i]];
+  const shuffle = (n = 1) => { // one bunny at a time picks a free spot (or trades) and runs over to it
+    for (let k = 0; k < n; k++) {
+      const i = 1 + Math.floor(Math.random() * (bunnies.length - 1));
+      const free = SLOT.map((_, j) => j).filter((j) => j !== 3 && !slotOf.includes(j));
+      const j = free.length ? free[Math.floor(Math.random() * free.length)] : slotOf[1 + Math.floor(Math.random() * (bunnies.length - 1))];
+      const o = slotOf.indexOf(j);
+      if (o > 0 && o !== i) slotOf[o] = slotOf[i];
+      slotOf[i] = j;
+    }
+  };
+  let moveT = 5, scrollStep = 0;
   // they face the screen, angled a little toward the middle and a little apart from each other
   // sitting and standing bunnies turn a good way round, lying ones go side-on; never away from the screen
   const side = [1, -1, 1, -1, 1, -1];
@@ -141,7 +154,7 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
     if (reduced) arrive();
   }
   function arrive() {
-    S.scene = S.target; S.scroll = 0;
+    S.scene = S.target; S.scroll = 0; scrollStep = 0; shuffle(2);
     hooks.onScene(S.scene);
     sky?.setStep(scenes[S.scene].sky);
     setPhase("swap");
@@ -157,7 +170,7 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
     return null;
   };
   function petBunny(b) { b.pet = 1.5; b.squash = 0.12; b.liftV = 3.2; love(b, 3); if (b === hero && !reduced) hopNow(b); }
-  const onScroll = (e) => { const el = e.target; if (el?.scrollHeight > el.clientHeight) S.scroll = el.scrollTop / (el.scrollHeight - el.clientHeight); };
+  const onScroll = (e) => { const el = e.target; if (el?.scrollHeight > el.clientHeight) { S.scroll = el.scrollTop / (el.scrollHeight - el.clientHeight); const st = Math.floor(S.scroll * 4); if (st !== scrollStep) { scrollStep = st; shuffle(); } } };
   cards.addEventListener("scroll", onScroll, true);
   const onControl = (e) => !!e.target.closest?.("button, a, input, .tour-dialog, .tour-scroll");
   function down(e) {
@@ -189,6 +202,7 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
     // the hills drift a little as the scenes change
     S.par += (-S.scene * 420 - S.par) * (1 - Math.exp(-dt * 1.5));
 
+    if (ph === "rest" && !reduced && key() !== "end" && (moveT -= dt) <= 0) { moveT = 6 + Math.random() * 5; shuffle(); }
     bunnies.forEach((b, i) => {
       const rx = restX(i);
       // sitting bunnies potter about their spot; everyone else is eased to it
@@ -196,12 +210,9 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
       if (!roam) { b.wx = b.wz = 0; }
       else if ((b.wander = (b.wander ?? 2 + i * 1.7) - dt) <= 0) {
         b.wander = 4 + Math.random() * 6;
-        b.wx = (Math.random() - 0.5) * 0.6; b.wz = (Math.random() - 0.5) * 0.4;
+        b.wx = (Math.random() - 0.5) * 0.3; b.wz = (Math.random() - 0.5) * 0.2;
       }
-      // the group also reshuffles with every scene and drifts as you scroll; the hero hardly moves so she stays the centre
-      const ph2 = S.scroll * 5 + i * 1.7 + S.scene * 2.1, spread = i ? 0.9 : 0.1;
-      const form = roam ? [spread * Math.sin(ph2), (i ? 0.45 : 0) * Math.cos(ph2 + 1)] : [0, 0];
-      let tx = rx + (b.wx || 0) + form[0], tz = lane[i] + (b.wz || 0) + form[1];
+            let tx = rx + (b.wx || 0), tz = restZ(i) + (b.wz || 0);
       // bedtime: everyone piles up around the hero, the little ones sleeping on top of the big ones
       const asleep = key() === "end" && (ph === "in" || ph === "rest") && b.pet <= 0;
       if (asleep) { tx = restX(0) + HUDDLE[i][0]; tz = 0.3 + HUDDLE[i][1]; }

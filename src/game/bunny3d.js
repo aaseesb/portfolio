@@ -70,7 +70,7 @@ export function makeBunny({ fur, mark, tail, size = 1 }) {
     head.add(piv); ears.push(piv);
   });
   head.add(blob(0.5, 0.46, 0.46, fur, [0, 0, 0], { line: T }));
-  const eyes = [-1, 1].map((sd) => { const e = blob(0.095, 0.11, 0.06, COL.black, [sd * 0.2, 0.05, 0.42], { line: 0 }); head.add(e); return e; });
+  const eyes = [-1, 1].map((sd) => { const e = blob(0.095, 0.11, 0.06, COL.black, [sd * 0.3, 0.04, 0.34], { line: 0 }); head.add(e); return e; });
   const nose = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.08, 3), lam(COL.pink));
   nose.rotation.set(Math.PI / 2, 0, Math.PI); nose.scale.set(1, 1, 0.35); nose.position.set(0, -0.07, 0.46); head.add(nose);
   if (mark) {
