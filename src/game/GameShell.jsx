@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { tour, projects } from "../content.js";
 import { createStage } from "./stage.js";
-import { Scene, Detail } from "./cards.jsx";
+import { Scene } from "./cards.jsx";
+import Room from "./Room.jsx";
 import "./game.css";
 
 const scenes = tour.scenes;
@@ -32,11 +33,18 @@ export default function GameShell({ onExit }) {
   const stageRef = useRef(null);
   const [scene, setScene] = useState(0);
   const [sel, setSel] = useState(null);
-    const [item, setItem] = useState(null);
+  const [rooms, setRooms] = useState([]);
+  const [dir, setDir] = useState("in");
+  const [origin, setOrigin] = useState(null);
+  const [closing, setClosing] = useState(false);
+  const closeTimer = useRef(0);
   const [toast, setToast] = useState("");
   const [busy, setBusy] = useState(true);
   const [failed, setFailed] = useState(false);
   const toastTimer = useRef(0);
+  const roomsRef = useRef([]);
+  roomsRef.current = rooms;
+  const item = rooms.length ? rooms[rooms.length - 1] : null;
   const itemRef = useRef(null);
   itemRef.current = item;
   const s = scenes[scene];
@@ -62,7 +70,7 @@ export default function GameShell({ onExit }) {
     }
     stageRef.current = stage;
     if (import.meta.env.DEV) window.__tour = stage;
-    return () => { stage.dispose(); clearTimeout(toastTimer.current); };
+    return () => { stage.dispose(); clearTimeout(toastTimer.current); clearTimeout(closeTimer.current); };
   }, []);
 
   const progress = useCallback((p) => stageRef.current?.sky(p > 0.5 ? 3 : 2), []);
@@ -99,11 +107,24 @@ export default function GameShell({ onExit }) {
     return () => window.removeEventListener("keydown", key);
   }, [next, back]);
 
-  const open = useCallback((it) => {
+  // Step through a house's front door: the first room zooms out of the clicked spot.
+  const open = useCallback((it, from) => {
     if (it.type === "project") setSel(it.i ?? projects.indexOf(it.p));
-    if (it.type !== "role") { setItem(it); return; }
-    const role = { ...it, go: (p) => open({ type: "project", p, from: role }) };
-    setItem(role);
+    setOrigin(from || null); setDir("in"); setClosing(false); setRooms([it]);
+  }, []);
+  // Walk through a door inside the house into the next room.
+  const walk = useCallback((it) => {
+    if (it.type === "project") setSel(projects.indexOf(it.p));
+    setDir("fwd"); setRooms((r) => [...r, it]);
+  }, []);
+  // Keep `keep` rooms: back through the doors, or 0 to step back outside.
+  const leave = useCallback((keep) => {
+    const cur = roomsRef.current;
+    if (keep >= cur.length || closeTimer.current) return;
+    if (keep > 0) { setDir("back"); setRooms(cur.slice(0, keep)); return; }
+    if (reducedMotion()) { setRooms([]); return; }
+    setClosing(true);
+    closeTimer.current = setTimeout(() => { closeTimer.current = 0; setRooms([]); setClosing(false); }, 380);
   }, []);
 
   if (failed) {
@@ -155,7 +176,7 @@ export default function GameShell({ onExit }) {
       </div>
 
       {toast && <div className="tour-toast" role="status">{toast}</div>}
-      {item && <Detail item={item} onClose={() => setItem(null)} onBack={item.from ? () => setItem(item.from) : null} />}
+      {item && <Room rooms={rooms} dir={dir} origin={origin} closing={closing} onWalk={walk} onLeave={leave} />}
     </div>
   );
 }

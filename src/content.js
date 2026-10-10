@@ -156,6 +156,9 @@ export const leadership = [
 // `engagement` is the credibility line in the panel — who it was for, what you
 // were to them, and when. Leave it off for personal projects.
 //
+// `video` is an optional link to a full-length video; it shows up as a door in
+// the project's room, next to `repo` and `demo`.
+//
 // `clip` is a demo video (muted, looping) and `image` is its poster frame.
 // Give a project just an `image` for a still, or neither for a placeholder.
 export const projects = [
@@ -314,7 +317,18 @@ export const tour = {
   next: (label) => `Next: ${label}`,
   last: "See the summary",
   open: "Open",
-  backToRole: "← Back to role",
+  room: {
+    outside: "Back outside",
+    backTo: (name) => `Back to ${name}`,
+    trailHome: "Outside",
+    trail: "Rooms you have walked through",
+    walkIn: "walk in",
+    leaves: "new tab ↗",
+    site: "Visit site",
+    code: "GitHub",
+    video: "Full video",
+    leave: "Leave the house",
+  },
   clickHouse: "Click the house to look inside",
   openLabel: (name) => `Open ${name}`,
   close: "Close",

@@ -1,6 +1,6 @@
 // What each tour scene lays over the sky: overlaid text, a village of houses with
 // the skills as clouds, a long scroll of roles. Anything longer than a line opens
-// in the Detail dialog. All copy comes from content.js.
+// as a room (room.jsx). All copy comes from content.js.
 import { useEffect, useRef, useState } from "react";
 import { profile, projects, education, experience, leadership, tour } from "../content.js";
 import { byRecency } from "../dates.js";
@@ -13,14 +13,20 @@ const mainRoles = roles.filter((e) => !e.aside);
 const asideRoles = roles.filter((e) => e.aside);
 const leadRoles = leadership.slice().sort(byRecency);
 
-const roleName = (e) => (e.leadWithTitle ? e.title : e.org);
-const roleSub = (e) => (e.leadWithTitle ? e.org : e.title);
+export const roleName = (e) => (e.leadWithTitle ? e.title : e.org);
+export const roleSub = (e) => (e.leadWithTitle ? e.org : e.title);
+
+// Where on screen a click landed (viewport px), so a room can open out of that spot.
+export function originOf(el) {
+  const r = el?.getBoundingClientRect();
+  return r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : null;
+}
 
 // A row of the path cards: what and where on the face, the bullets in the dialog.
 function Row({ e, onOpen }) {
   return (
     <li className="reveal">
-      <button className="tour-row" onClick={() => onOpen({ type: "role", e })}>
+      <button className="tour-row" onClick={(ev) => onOpen({ type: "role", e }, originOf(ev.currentTarget))}>
         <span className="tour-row-dates">{e.dates}</span>
         <span className="tour-row-name">{roleName(e)}</span>
         <span className="tour-row-sub">{roleSub(e)}</span>
@@ -30,7 +36,7 @@ function Row({ e, onOpen }) {
 }
 
 // A project's demo videos: one view at a time, with a tab for each when there are several.
-function Demos({ p }) {
+export function Demos({ p }) {
   const clips = p.clips?.length ? p.clips : p.clip ? [{ src: p.clip, poster: p.image }] : [];
   const [n, setN] = useState(0);
   const c = clips[n];
@@ -48,7 +54,7 @@ function Demos({ p }) {
   );
 }
 
-function Chips({ items }) {
+export function Chips({ items }) {
   return <ul className="tour-chips">{items.map((t) => <li key={t}>{t}</li>)}</ul>;
 }
 
@@ -133,7 +139,7 @@ function Village({ sel, onSelect, onOpen }) {
               onPointerLeave={(e) => { if (e.pointerType === "mouse") onSelect(null); }}
               onFocus={() => onSelect(i)}
               onBlur={() => onSelect(null)}
-              onClick={() => { if (pointer.current !== "mouse" && sel !== i) onSelect(i); else onOpen({ type: "project", p: q, i }); pointer.current = "mouse"; }}
+              onClick={(e) => { if (pointer.current !== "mouse" && sel !== i) onSelect(i); else onOpen({ type: "project", p: q, i }, originOf(e.currentTarget.querySelector(".tour-door"))); pointer.current = "mouse"; }}
             >
               <span className="tour-roof" aria-hidden="true"><i className="tour-chimney" /></span>
               <span className="tour-wall" aria-hidden="true">
@@ -180,7 +186,7 @@ function Path({ onOpen, onProgress }) {
       <h2 className="reveal">{t.education}</h2>
       <ul className="tour-rows">
         <li className="reveal">
-          <button className="tour-row" onClick={() => onOpen({ type: "school" })}>
+          <button className="tour-row" onClick={(ev) => onOpen({ type: "school" }, originOf(ev.currentTarget))}>
             <span className="tour-row-dates">{education.dates}</span>
             <span className="tour-row-name">{education.org}</span>
             <span className="tour-row-sub">{education.degree}</span>
@@ -215,84 +221,4 @@ export function Scene({ k, sel, onSelect, onOpen, onExit, onProgress }) {
   if (k === "village") return <Village sel={sel} onSelect={onSelect} onOpen={onOpen} />;
   if (k === "path") return <Path onOpen={onOpen} onProgress={onProgress} />;
   return <End onExit={onExit} />;
-}
-
-// The only scrolling surface. Esc, the backdrop and the button all close it.
-export function Detail({ item, onClose, onBack }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    ref.current?.focus();
-    const key = (e) => { if (e.key === "Escape") { e.stopPropagation(); onClose(); } };
-    window.addEventListener("keydown", key, true);
-    return () => window.removeEventListener("keydown", key, true);
-  }, [onClose]);
-
-  let head = null, body = null;
-  if (item.type === "project") {
-    const p = item.p;
-    head = (
-      <>
-        <h2>{p.name}</h2>
-        {p.engagement
-          ? <p className="tour-meta">{[p.engagement.role, p.engagement.client, p.engagement.period].filter(Boolean).join(" · ")}</p>
-          : p.badge && <p className="tour-meta">{p.badge}</p>}
-      </>
-    );
-    body = (
-      <>
-        <Demos p={p} />
-        <p>{p.description}</p>
-        <h3>{tour.tech}</h3>
-        <div className="tour-shelf"><Chips items={p.tech} /></div>
-        <div className="tour-links">
-          {p.demo && <a className="btn primary" href={p.demo} target="_blank" rel="noopener">Visit site ↗</a>}
-          {p.repo && <a className="btn" href={p.repo} target="_blank" rel="noopener">Code</a>}
-        </div>
-      </>
-    );
-  } else if (item.type === "role") {
-    const e = item.e;
-    head = (
-      <>
-        <h2>{roleName(e)}</h2>
-        <p className="tour-meta">{[roleSub(e), e.orgNote, e.dates].filter(Boolean).join(" · ")}</p>
-      </>
-    );
-    body = (
-      <>
-        <h3>{tour.pointsTitle}</h3>
-        <ul className="tour-points">{(e.points || []).map((x) => <li key={x}>{x}</li>)}</ul>
-        {e.projectSlugs && (
-          <div className="tour-links">
-            {e.projectSlugs.map((s) => {
-              const p = projects.find((x) => x.slug === s);
-              return p ? <button key={s} className="btn" onClick={() => item.go?.(p)}>{p.name}</button> : null;
-            })}
-          </div>
-        )}
-      </>
-    );
-  } else {
-    head = (
-      <>
-        <h2>{education.org}</h2>
-        <p className="tour-meta">{[education.degree, education.dates].join(" · ")}</p>
-      </>
-    );
-    body = <ul className="tour-points">{education.details.map((x) => <li key={x}>{x}</li>)}</ul>;
-  }
-
-  return (
-    <div className="tour-dialog" onClick={onClose}>
-      <div className="tour-dialog-box" role="dialog" aria-modal="true" aria-label={tour.open} onClick={(e) => e.stopPropagation()}>
-        <button ref={ref} className="tour-close" onClick={onClose} aria-label={tour.close}>×</button>
-        <header>
-          {onBack && <button className="tour-back" onClick={onBack}>{tour.backToRole}</button>}
-          {head}
-        </header>
-        <div className="tour-dialog-body" tabIndex={0}>{body}</div>
-        <div className="tour-floor" aria-hidden="true" />
-      </div>
-    </div>
-  );
 }
