@@ -13,8 +13,18 @@ const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)"
 // The two treats, drawn flat. Back is a carrot, Next an apple.
 const Carrot = () => (
   <svg viewBox="0 0 64 64" aria-hidden="true">
-    <path d="M14 30c10-8 26-8 34 2L30 56c-6-2-14-10-16-26z" fill="#e8934a" stroke="#8a4a1c" strokeWidth="3" strokeLinejoin="round" transform="rotate(-35 32 32)" />
-    <path d="M44 14c2-6 8-8 12-6M44 14c-4-6-10-6-12-2M44 14c6 0 10 4 10 8" fill="none" stroke="#5f8a42" strokeWidth="4" strokeLinecap="round" />
+    <defs>
+      <linearGradient id="carrot-body" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#ffb25f" /><stop offset="0.55" stopColor="#f08a30" /><stop offset="1" stopColor="#d96a1c" />
+      </linearGradient>
+    </defs>
+    <g strokeLinecap="round" strokeLinejoin="round">
+      <path d="M40 18c-3-8-1-13 4-14M42 19c4-7 10-9 15-6M40 20c7-1 12 3 13 9" fill="none" stroke="#4f7f35" strokeWidth="6" />
+      <path d="M40 18c-3-8-1-13 4-14M42 19c4-7 10-9 15-6M40 20c7-1 12 3 13 9" fill="none" stroke="#7cb05a" strokeWidth="2.5" />
+      <path d="M30 20c6-3 14-1 16 6 2 6-1 12-6 18L16 60c-3 1-6-1-6-4-1-9 1-16 6-22 4-6 8-11 14-14z" fill="url(#carrot-body)" stroke="#8a4a1c" strokeWidth="3" transform="rotate(0)" />
+      <path d="M33 29l7 3M28 38l6 3M22 47l5 2" fill="none" stroke="#b9561a" strokeWidth="2.5" />
+      <path d="M33 25c3-1 7 0 9 3" fill="none" stroke="#ffd9a3" strokeWidth="2.5" opacity="0.8" />
+    </g>
   </svg>
 );
 const Apple = () => (
