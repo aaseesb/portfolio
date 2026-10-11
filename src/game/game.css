@@ -355,3 +355,14 @@
 .room-clean-foot { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 24px 14px; }
 .room-clean-foot button { padding: 6px 14px; border: 1.5px solid currentColor; border-radius: 999px; background: none; color: inherit; font: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; }
 .room-clean-foot button:hover, .room-clean-foot button:focus-visible { background: rgba(128, 128, 128, 0.2); }
+
+/* a row opens a line of detail on hover or focus; the click opens the full card */
+.tour-row { position: relative; }
+.tour-row-peek { font-size: 0.85rem; line-height: 1.4; opacity: 0.9; }
+.tour-li { transition: transform 0.2s ease; }
+.tour-row-more { position: absolute; top: 100%; left: -1px; right: -1px; z-index: 6; display: grid; gap: 6px; padding: 0 12px 10px; text-align: center; font-size: 0.85rem; line-height: 1.4; border: 1px solid var(--accent); border-top: 0; border-radius: 0 0 12px 12px; background: color-mix(in srgb, var(--bg) 55%, transparent); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.2s; }
+.tour-row:has(.tour-row-more):hover, .tour-row:has(.tour-row-more):focus-visible { border-bottom-width: 0; padding-bottom: 9px; border-radius: 12px 12px 0 0; }
+.tour-row:hover .tour-row-more, .tour-row:focus-visible .tour-row-more { opacity: 1; visibility: visible; }
+.tour-row:hover, .tour-row:focus-visible { z-index: 6; }
+@media (hover: none) { .tour-row-more { display: none; } }
+@media (prefers-reduced-motion: reduce) { .tour-row-more, .tour-li { transition: none; } }
