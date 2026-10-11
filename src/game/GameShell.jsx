@@ -82,6 +82,13 @@ export default function GameShell({ onExit }) {
     return () => { stage.dispose(); clearTimeout(toastTimer.current); clearTimeout(closeTimer.current); };
   }, []);
 
+  // closing a project hands focus back to its house
+  const hadRoom = useRef(false);
+  useEffect(() => {
+    if (item) hadRoom.current = true;
+    else if (hadRoom.current) { hadRoom.current = false; rootRef.current?.querySelector(".tour-house.is-sel")?.focus({ preventScroll: true }); }
+  }, [item]);
+
   const progress = useCallback((p) => stageRef.current?.sky(p > 0.5 ? 3 : 2), []);
   const back = useCallback(() => { if (!itemRef.current) stageRef.current?.nav(-1); }, []);
   const next = useCallback(() => {
@@ -173,6 +180,7 @@ export default function GameShell({ onExit }) {
             />
           ))}
         </span>
+        <span className="tour-where" aria-hidden="true">{String(scene + 1).padStart(2, "0")} / {String(scenes.length).padStart(2, "0")} · {s.label}</span>
         <span className="tour-hint">{tour.hint}</span>
       </div>
 

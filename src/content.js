@@ -169,7 +169,7 @@ export const projects = [
     badge: "personal project",
     blurb: "A camera watches a chessboard and plays back.",
     description:
-      "ARGM — Artificial Robotic GrandMaster — is an autonomous chess robot. A YOLO-assisted pipeline locates the board, OpenCV warps it flat and splits it into 64 squares, and occupancy changes between frames are read as moves, validated, and handed to Stockfish — all coordinated by a finite state machine, with a live visualizer mirroring the physical game. The hard parts were the physical ones: shadows cast onto neighbouring squares, hands occluding the board mid-move, and wood grain under changing light. Board detection, move tracking and engine play work today; the Python-to-Arduino link and the arm itself are the next milestone.",
+      "An autonomous chess robot. YOLO and OpenCV find the board and read each of its 64 squares, frame to frame, to spot moves; Stockfish picks the reply. Board detection, move tracking and engine play work today — the Arduino link and the arm itself are next.",
     tech: ["Python", "OpenCV", "YOLO", "C++"],
     repo: "https://github.com/ZawarG/ARGM-Robotic-Chess-Arm",
     demo: "",
@@ -192,7 +192,7 @@ export const projects = [
     },
     blurb: "A bookstore's storefront, rebuilt and automated.",
     description:
-      "Re-architected the store from a WordPress and PHP monolith to a headless Next.js stack on Vercel with Sanity. Built an API that pulls from Google Books and Open Library to create products and fill in metadata and pricing automatically — around 500 hours of manual cataloguing that no longer happens — plus browsing and checkout with overdraft and oversell protection. The migration off WordPress is still in progress.",
+      "Rebuilt a bookstore's WordPress and PHP site as a headless Next.js and Sanity stack. An API fills in each book's metadata and pricing automatically, replacing about 500 hours of manual cataloguing. The migration is still in progress.",
     tech: ["Next.js", "React", "JavaScript", "Sanity", "Tailwind CSS"],
     repo: "",
     demo: "", // TODO — the store URL, once the migration is live.
@@ -211,7 +211,7 @@ export const projects = [
     },
     blurb: "A non-profit's site, editable by the people who run it.",
     description:
-      "A responsive web app for a non-profit, built on a headless Sanity CMS so non-technical staff can publish and edit everything themselves without touching code or waiting on a developer. Live on a temporary deployment while the domain and the remaining sub-pages are finished.",
+      "A responsive site for a non-profit, built on Sanity so non-technical staff can publish and edit everything themselves. Live on a temporary deployment while the domain and remaining pages are finished.",
     tech: ["Next.js", "React", "Sanity", "Tailwind CSS"],
     repo: "",
     demo: "https://my-sanity-site-teal.vercel.app/", // Temporary — swap for the real domain.
@@ -230,7 +230,7 @@ export const projects = [
     badge: "hackathon",
     blurb: "Tinder for movies, learning as you swipe.",
     description:
-      "A movie recommender built at McGill CodeJam 15. Every swipe updates a Bayesian-style score over genres, actors, countries and decades, and the next pick mixes 90% exploitation with a decaying exploration rate — so it gets sharper the longer you use it, and tells you why it picked what it picked.",
+      "A movie recommender from McGill CodeJam 15. Every swipe updates a score over genres, actors and decades, so the picks get sharper the longer you use it — and it tells you why it chose each one.",
     tech: ["Python", "Flask", "JavaScript", "Tailwind CSS"],
     repo: "https://github.com/aaseesb/SwipeFlix",
     demo: "https://devpost.com/software/swipeflix",
@@ -244,7 +244,7 @@ export const projects = [
     badge: "open source",
     blurb: "Watches for a seat in a full class and tells you.",
     description:
-      "A course availability monitor for McGill's Visual Schedule Builder. Runs free on GitHub Actions every hour, filters by CRN, and alerts by email or phone push the moment a section frees up. An open-source contribution: rebuilt for the current VSB site with per-section filtering and new notification backends.",
+      "Watches McGill's Visual Schedule Builder for an open seat and alerts you by email or phone push. Runs free on GitHub Actions every hour. An open-source contribution, rebuilt for the current site.",
     tech: ["Python", "Selenium", "Git"],
     repo: "https://github.com/aaseesb/McGill-Seat-Alert",
     demo: "",
@@ -258,7 +258,7 @@ export const projects = [
     badge: "personal project",
     blurb: "An agent that teaches itself tic-tac-toe.",
     description:
-      "A reinforcement learning agent that learns tic-tac-toe from self-play, updating its Q-table with a value-iteration update and balancing exploration against exploitation with an epsilon-greedy strategy. Playable in the browser against the trained agent.",
+      "A reinforcement learning agent that teaches itself tic-tac-toe through self-play. Playable in the browser against the trained agent.",
     tech: ["Python", "Flask", "JavaScript"],
     repo: "https://github.com/aaseesb/Tic-Tac-Toe-ML",
     demo: "",
@@ -305,7 +305,7 @@ export const tour = {
     finish: "Thank you for visiting",
   },
   village: {
-    hint: "Hover or tap a house to light up the clouds it was built with",
+    hint: "Hover a house to see what it's built with",
     cloudsLabel: "Skills",
   },
   yum: "Yum!",

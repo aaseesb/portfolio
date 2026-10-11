@@ -1,7 +1,7 @@
 // What each tour scene lays over the sky: overlaid text, a village of houses with
 // the skills as clouds, a long scroll of roles. Anything longer than a line opens
 // as a room (room.jsx). All copy comes from content.js.
-import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { profile, projects, education, experience, leadership, tour } from "../content.js";
 import { byRecency } from "../dates.js";
 import ProjectVisual from "../components/ProjectVisual.jsx";
@@ -13,6 +13,8 @@ const roles = experience.slice().sort(byRecency);
 const mainRoles = roles.filter((e) => !e.aside);
 const asideRoles = roles.filter((e) => e.aside);
 const leadRoles = leadership.slice().sort(byRecency);
+// the popups in the order their rows read down the Path scene
+export const PATH_ORDER = [...mainRoles.map((e) => ({ type: "role", e })), { type: "school" }, ...asideRoles.map((e) => ({ type: "role", e })), ...leadRoles.map((e) => ({ type: "role", e }))];
 
 export const roleName = (e) => (e.leadWithTitle ? e.title : e.org);
 export const roleSub = (e) => (e.leadWithTitle ? e.org : e.title);
@@ -82,23 +84,11 @@ function Hello() {
 // x is a percentage across; tier 0 is the far hill, 2 the foreground.
 // Spaced so no house overlaps another, on wide and (xm) narrow screens.
 const PLACES = [
-  { i: 1, x: 9, xm: 8, tier: 1, d: 30 }, { i: 0, x: 27, xm: 26, tier: 1, d: 16, big: 1 }, { i: 2, x: 45, xm: 45, tier: 1, d: 30, big: 1 },
-  { i: 3, x: 62, xm: 63, tier: 0, d: 14 }, { i: 5, x: 77, xm: 78, tier: 0, d: 24 }, { i: 4, x: 91, xm: 91, tier: 0, d: 12 },
+  { i: 0, x: 9, xm: 8, tier: 1, d: 30, big: 1 }, { i: 2, x: 27, xm: 26, tier: 1, d: 16, big: 1 }, { i: 4, x: 45, xm: 45, tier: 1, d: 30 },
+  { i: 1, x: 62, xm: 63, tier: 0, d: 14 }, { i: 3, x: 77, xm: 78, tier: 0, d: 24 }, { i: 5, x: 91, xm: 91, tier: 0, d: 12 },
 ];
-// Each group gets its own rows (4 clouds a row, 3 on narrow screens), its own tint,
-// and a small label in the sky, so it's clear which group a skill belongs to before
-// any house is hovered.
-const layoutSkills = (per) => {
-  let row = 0;
-  return profile.skills.flatMap((g, gi) => {
-    const out = g.items.map((t, k) => ({ t, gi, r: row + Math.floor(k / per), c: k % per, n: Math.min(per, g.items.length - Math.floor(k / per) * per), first: k === 0, group: g.group }));
-    row += Math.ceil(g.items.length / per);
-    return out;
-  });
-};
-const skillsWide = layoutSkills(4), skillsNarrow = layoutSkills(3);
-const skillList = skillsWide.map((s) => s.t);
-const jit = (i) => ((i * 37) % 11) - 5;
+// the projects left to right, as the houses stand on the hills
+export const VILLAGE_ORDER = PLACES.map((q) => projects[q.i]);
 const norm = (t) => t.toLowerCase();
 
 const VILLAGE_SCENE = 1; // the hills have drifted this many scenes by the time the village shows
@@ -154,45 +144,20 @@ function Village({ sel, onSelect, onOpen }) {
   }, []);
   const p = sel === null ? null : projects[sel];
   const used = p ? new Set(p.tech.map(norm)) : null;
-  // the chosen project's clouds gather on an ellipse round the explanation
-  const chosen = used ? skillList.filter((t) => used.has(norm(t))) : [];
-  const ring = (t, rx, ry, cy) => {
-    const a = (-90 + (360 * chosen.indexOf(t)) / chosen.length) * (Math.PI / 180);
-    return [`${50 + rx * Math.cos(a)}%`, `${cy + ry * Math.sin(a)}%`];
-  };
+  // the chosen project's technologies, listed under their skill group
+  const groups = used ? profile.skills.map((g) => ({ group: g.group, items: g.items.filter((t) => used.has(norm(t))) })).filter((g) => g.items.length) : [];
   return (
     <>
-      <ul className={`tour-clouds${used ? " has-sel" : ""}`} aria-label={tour.village.cloudsLabel}>
-        {skillsWide.map(({ t, gi, r, c, n, first, group }, i) => {
-          const state = used ? (used.has(norm(t)) ? " on" : " off") : "";
-          const [ox, oy] = state === " on" ? ring(t, 37, 19, 37) : [];
-          const [oxm, oym] = state === " on" ? ring(t, 36, 17, 33) : [];
-          const { r: rm, c: cm, n: nm } = skillsNarrow[i];
-          // spread each row across the sky (not packed from the left), staggered up and down
-          const y = 18 + r * 8.5 + (i % 2 ? 1.2 : -1.2), ym = 8 + rm * 5.6 + (gi + 1) * 3.4;
-          const x = Math.min(93, 24 + ((c + 0.5) / n) * 72 + ((r % 2) - 0.5) * 16 + jit(i) * 0.5);
-          const xm = Math.min(90, 14 + ((cm + 0.5) / nm) * 80 + ((rm % 2) - 0.5) * 12 + jit(i) * 0.4);
-          return (
-            <Fragment key={t}>
-              {first && <li className="tour-glabel" aria-hidden="true" style={{ "--y": `${y}%`, "--ym": `${ym - 3.6}%` }}>{group}</li>}
-              <li
-                className={`tour-cloud g${gi}${state}`} title={group}
-                style={{
-                  "--x": `${x}%`, "--y": `${y}%`,
-                  "--xm": `${xm}%`, "--ym": `${ym}%`,
-                  "--ox": ox, "--oy": oy, "--oxm": oxm, "--oym": oym,
-                }}
-              >{t}</li>
-            </Fragment>
-          );
-        })}
-      </ul>
       <div className={`tour-info${p ? " has" : ""}`} aria-live="polite">
         {p ? (
           <>
-            <h2>{p.name}{p.badge && <span className="tour-badge">{p.badge}</span>}</h2>
+            <h2>{p.name}</h2>
             <p>{p.blurb}</p>
-            <span className="tour-open">{tour.clickHouse}</span>
+            <dl className="tour-tech" aria-label={tour.village.cloudsLabel}>
+              {groups.map((g) => (
+                <div key={g.group}><dt>{g.group}</dt><dd>{g.items.join(" · ")}</dd></div>
+              ))}
+            </dl>
           </>
         ) : <p>{tour.village.hint}</p>}
       </div>
