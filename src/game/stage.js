@@ -6,7 +6,6 @@ import * as THREE from "three";
 import { COL, makeBunny, poseBunny, hopNow, makeTreat, makeFlower, makeTuft, spawnFx, updateFx } from "./bunny3d.js";
 import { setPose, stepPose } from "./bunnyPoses.js";
 import { createSky } from "./sky.js";
-import { makeHouse } from "./house3d.js";
 
 THREE.ColorManagement.enabled = false; // match the look the mockup was tuned in
 
@@ -381,33 +380,12 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
     }
   }
 
-  // ---- the 3D house: fitted over its DOM button (the button stays as the hit area) ----
-  let house = null, houseEl = null;
-  const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), hit = new THREE.Vector3();
-  function syncHouse() {
-    const el = cards.querySelector(".tour-house.is-3d");
-    if (el !== houseEl) {
-      if (house) { scene.remove(house.root); house = null; }
-      houseEl = el;
-      if (el) { house = makeHouse({ image: el.querySelector(".tour-window img")?.currentSrc }); scene.add(house.root); }
-    }
-    if (!house) return;
-    const wall = el.querySelector(".tour-wall").getBoundingClientRect();
-    pickRay(wall.left + wall.width / 2, wall.bottom);
-    if (!ray.ray.intersectPlane(groundPlane, hit)) return;
-    house.root.position.copy(hit);
-    const k = (wall.width / u) * 0.9;
-    house.root.scale.set(k, k / cosP, k);
-    house.set(Number(getComputedStyle(cards).opacity), el.classList.contains("is-sel") ? 1 : 0);
-  }
-
   let last = performance.now(), raf = 0, t0 = last;
   function loop(now) {
     raf = requestAnimationFrame(loop);
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
     tick(dt, (now - t0) / 1000);
     sky?.render();
-    syncHouse();
     renderer.render(scene, camera);
   }
   resize();

@@ -82,8 +82,8 @@ function Hello() {
 // x is a percentage across; tier 0 is the far hill, 2 the foreground.
 // Spaced so no house overlaps another, on wide and (xm) narrow screens.
 const PLACES = [
-  { i: 1, x: 11, xm: 9, tier: 1 }, { i: 0, x: 29, xm: 27, tier: 2 }, { i: 2, x: 44, xm: 43, tier: 0 },
-  { i: 3, x: 56, xm: 56, tier: 0 }, { i: 5, x: 71, xm: 71, tier: 2 }, { i: 4, x: 89, xm: 90, tier: 1 },
+  { i: 1, x: 9, xm: 8, tier: 1, d: 30 }, { i: 0, x: 27, xm: 26, tier: 1, d: 16, big: 1 }, { i: 2, x: 45, xm: 45, tier: 1, d: 30, big: 1 },
+  { i: 3, x: 62, xm: 63, tier: 0, d: 14 }, { i: 5, x: 77, xm: 78, tier: 0, d: 24 }, { i: 4, x: 91, xm: 91, tier: 0, d: 12 },
 ];
 // Each group gets its own rows (4 clouds a row, 3 on narrow screens), its own tint,
 // and a small label in the sky, so it's clear which group a skill belongs to before
@@ -102,8 +102,10 @@ const jit = (i) => ((i * 37) % 11) - 5;
 const norm = (t) => t.toLowerCase();
 
 const VILLAGE_SCENE = 1; // the hills have drifted this many scenes by the time the village shows
-const HOUSE_3D = 1; // the project drawn in 3D so far (the prototype)
-const TIER_SCALE = [0.6, 0.8, 1];
+const TIER_SCALE = [0.42, 0.58, 1];
+const FLOWERS = ["#f2c640", "#fff", "#f08aa8", "#c9a6ec"];
+const lerp = (a, b, t) => a + (b - a) * t;
+const rnd = (n) => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
 
 function Village({ sel, onSelect, onOpen }) {
   const pointer = useRef("mouse");
@@ -118,26 +120,38 @@ function Village({ sel, onSelect, onOpen }) {
       const W = v.clientWidth, H = v.clientHeight;
       if (!W || !H) return;
       const strip = parseFloat(getComputedStyle(v.closest(".tour")).getPropertyValue("--strip")) || 140;
-      const feet = [...v.querySelectorAll(".tour-house")].map((el) => {
-        const tier = +el.dataset.tier, s = TIER_SCALE[tier];
-        const cx = el.offsetLeft;
-        let b = strip - 2;
-        if (tier < 2) b = Math.max(hillY(tier, (cx / W) * (W / H) + PAR_PER_SCENE * VILLAGE_SCENE) * H - 2 * s, strip + 6);
+      const surf = (tier, xp) => H - hillY(tier, (xp / W) * (W / H) + PAR_PER_SCENE * VILLAGE_SCENE) * H; // svg y of a hill's surface
+      const top = H - strip - 3;
+      [...v.querySelectorAll(".tour-house")].forEach((el) => {
+        const tier = +el.dataset.tier, s = TIER_SCALE[tier], d = +el.dataset.drop || 0;
+        const b = Math.max(H - surf(tier, el.offsetLeft) - 2 * s - d, strip + 6); // d settles it down the slope, not on the crest
         el.style.setProperty("--b", `${b.toFixed(1)}px`);
-        return [cx, Math.min(H - b + 3 * s, H - strip - 3)]; // the grass strip covers anything lower
-      }).sort((a, c) => a[0] - c[0]);
-      setTrail({ W, H, feet });
+      });
+      // a winding path up each hill, and flowers and trees scattered over them like the bunny grass
+      const snake = (pts, y0, y1) => pts.reduce((dd, [fx, t], k, arr) => {
+        const x = fx * W, y = lerp(y0(fx * W), y1(fx * W), t);
+        if (k === 0) return `M${x},${y}`;
+        const [px, pt] = arr[k - 1], ppy = lerp(y0(px * W), y1(px * W), pt), my = (ppy + y) / 2;
+        return `${dd} C${px * W},${my} ${x},${my} ${x},${y}`;
+      }, "");
+      const paths = [
+        { d: snake([[.27, 0], [.34, .3], [.24, .55], [.31, .78], [.27, 1]], () => top + 4, (x) => surf(1, x) + 8), w: 15 },
+        { d: snake([[.66, 0], [.74, .3], [.68, .6], [.77, .92]], (x) => Math.min(surf(1, x), top), (x) => surf(0, x) + 6), w: 9 },
+      ];
+      const deco = [];
+      for (let k = 0; k < 70; k++) {
+        const tier = k % 2 ? 0 : 1, x = rnd(k + 1) * W, kind = k % 7 === 3 ? "round" : k % 7 === 6 ? "pine" : "flower";
+        const lo = tier ? top : Math.min(surf(1, x), top), hi = surf(tier, x);
+        if (hi >= lo - 6) continue;
+        deco.push({ k, tier, kind, x, y: lerp(hi + 4, lo, rnd(k + 90)), s: tier ? 1 : 0.7, c: FLOWERS[k % FLOWERS.length] });
+      }
+      setTrail({ W, H, paths, deco });
     };
     place();
     const ro = new ResizeObserver(place);
     ro.observe(v);
     return () => ro.disconnect();
   }, []);
-  const trailD = trail && trail.feet.length > 1 ? trail.feet.reduce((d, [x, y], k, a) => {
-    if (k === 0) return `M${x},${y}`;
-    const [px, py] = a[k - 1], mx = (px + x) / 2;
-    return `${d} C${mx},${py} ${mx},${y} ${x},${y}`;
-  }, "") : null;
   const p = sel === null ? null : projects[sel];
   const used = p ? new Set(p.tech.map(norm)) : null;
   // the chosen project's clouds gather on an ellipse round the explanation
@@ -183,17 +197,17 @@ function Village({ sel, onSelect, onOpen }) {
         ) : <p>{tour.village.hint}</p>}
       </div>
       <div className="tour-village" ref={villageRef}>
-        {trailD && (
+        {trail && (
           <svg className="tour-trail" width={trail.W} height={trail.H} viewBox={`0 0 ${trail.W} ${trail.H}`} aria-hidden="true">
-            <path d={trailD} className="trail-edge" />
-            <path d={trailD} className="trail-path" />
+            {trail.paths.map((q, n) => <path key={n} d={q.d} className="trail-path" strokeWidth={q.w} />)}
           </svg>
         )}
-        {PLACES.map(({ i, x, xm, tier }) => {
+        {trail && trail.deco.map((o) => <i key={o.k} className={`tour-deco ${o.kind} d${o.tier}`} aria-hidden="true" style={{ left: o.x, top: o.y, "--c": o.c, "--sc": o.s }} />)}
+        {PLACES.map(({ i, x, xm, tier, d, big }) => {
           const q = projects[i];
           return (
             <button
-              key={i} className={`tour-house t${tier}${sel === i ? " is-sel" : ""}${i === HOUSE_3D ? " is-3d" : ""}`} data-tier={tier} style={{ "--x": `${x}%`, "--xm": `${xm}%` }}
+              key={i} className={`tour-house t${tier}${big ? " big" : ""}${sel === i ? " is-sel" : ""}`} data-tier={tier} data-drop={d} style={{ "--x": `${x}%`, "--xm": `${xm}%` }}
               aria-label={tour.openLabel(q.name)}
               onPointerDown={(e) => { pointer.current = e.pointerType; }}
               onPointerEnter={(e) => { if (e.pointerType === "mouse") onSelect(i); }}
