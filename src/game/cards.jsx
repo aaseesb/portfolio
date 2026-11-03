@@ -25,45 +25,16 @@ export function originOf(el) {
   return r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : null;
 }
 
-// First bullet always shown; the rest float over what is below on hover or focus.
+// Only the first bullet shows on the face; the full list opens with a click.
 function Peek({ items }) {
   if (!items?.length) return null;
-  return (
-    <>
-      <span className="tour-row-peek">{items[0]}</span>
-      {items.length > 1 && (
-        <span className="tour-row-more">{items.slice(1).map((x) => <span key={x}>{x}</span>)}</span>
-      )}
-    </>
-  );
+  return <span className="tour-row-peek">{items[0]}</span>;
 }
-
-// Floating extras only push the rows below them when they would cover them.
-function nudge(li, on) {
-  const more = li.querySelector(".tour-row-more");
-  const list = li.parentElement;
-  if (!more || !list) return;
-  const sibs = [...list.children];
-  const below = sibs.slice(sibs.indexOf(li) + 1).filter((x) => Math.abs(x.offsetLeft - li.offsetLeft) < 8);
-  let push = 0;
-  if (on) {
-    const first = below[0];
-    const top = first ? first.getBoundingClientRect().top - (parseFloat(first.dataset.push) || 0) : Infinity;
-    push = Math.max(0, more.getBoundingClientRect().bottom + 10 - top);
-  }
-  below.forEach((x) => { x.dataset.push = push; x.style.transform = push ? `translateY(${push}px)` : ""; });
-}
-const nudgeProps = {
-  onPointerEnter: (e) => e.pointerType === "mouse" && nudge(e.currentTarget, true),
-  onPointerLeave: (e) => nudge(e.currentTarget, false),
-  onFocus: (e) => e.currentTarget.matches(":focus-within") && e.target.matches(":focus-visible") && nudge(e.currentTarget, true),
-  onBlur: (e) => nudge(e.currentTarget, false),
-};
 
 // A row of the path cards: what and where on the face, the bullets in the dialog.
 function Row({ e, onOpen }) {
   return (
-    <li className="reveal tour-li" {...nudgeProps}>
+    <li className="reveal tour-li">
       <button className="tour-row" onClick={(ev) => onOpen({ type: "role", e }, originOf(ev.currentTarget))}>
         <span className="tour-row-dates">{e.dates}</span>
         <span className="tour-row-name">{roleName(e)}</span>
@@ -266,7 +237,7 @@ function Path({ onOpen, onProgress }) {
       <div>
       <h2 className="reveal">{t.education}</h2>
       <ul className="tour-rows">
-        <li className="reveal tour-li" {...nudgeProps}>
+        <li className="reveal tour-li">
           <button className="tour-row" onClick={(ev) => onOpen({ type: "school" }, originOf(ev.currentTarget))}>
             <span className="tour-row-dates">{education.dates}</span>
             <span className="tour-row-name">{education.org}</span>
