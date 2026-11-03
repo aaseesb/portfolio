@@ -7,7 +7,7 @@ export const profile = {
   name: "Aasees Badesha",
   tagline: "Software engineer · Montreal & Toronto",
   summary:
-    "Software engineering student at McGill focused on robotics and computer vision, with production full-stack experience. I like problems where the software has to meet something real — a camera, a motor, or a customer's checkout.",
+    "Software Engineering student with production full-stack and AI experience, building computer vision and robotics software.",
 
   // The resume gets its own button — it's the thing a recruiter is here for.
   // Put resume.pdf in public/. Leave href empty to hide the button entirely.
@@ -37,10 +37,10 @@ export const profile = {
   // Selecting a project lights up the entries it used and dims the rest, so
   // these strings have to match the `tech` arrays below exactly.
   skills: [
-    { group: "Languages", items: ["Python", "Java", "C++", "TypeScript", "JavaScript", "SQL"] },
-    { group: "Frameworks", items: ["React", "Next.js", "Flask", "Tailwind CSS"] },
-    { group: "Machine vision", items: ["YOLO", "OpenCV"] },
-    { group: "Platforms & tools", items: ["AWS", "Sanity", "Selenium", "Git"] },
+    { group: "Languages", items: ["C++", "Python", "Rust", "TypeScript", "Java", "SQL", "Bash"] },
+    { group: "Frameworks", items: ["React", "Next.js", "Node.js", "FastAPI"] },
+    { group: "Tools & cloud", items: ["PostgreSQL", "Docker", "Google Cloud Run", "GitHub Actions", "Appium", "Linux"] },
+    { group: "Robotics & vision", items: ["ROS 2", "OpenCV", "YOLO", "Arduino"] },
   ],
 };
 
@@ -49,8 +49,8 @@ export const education = {
   org: "McGill University",
   dates: "Aug 2024 – Apr 2029",
   details: [
-    "GPA 3.77 / 4.0",
     "Wadad Stamboulie Entrance Award",
+    "GPA 3.77 / 4.0",
   ],
 };
 
@@ -74,24 +74,27 @@ export const experience = [
     // flips: `leadWithTitle` puts the role on the big line and "Independent"
     // underneath where a company name would be.
     leadWithTitle: true,
-    title: "Freelance Developer",
-    org: "Independent",
-    dates: "May 2025 – present",
+    title: "Full-Stack Engineer",
+    org: "Freelance",
+    dates: "May 2025 – Aug 2026",
     projectSlugs: ["books-galore", "shea-tree"],
     points: [
-      "Build and ship production sites for small businesses and non-profits end to end — scoping, build, deploy, and handover.",
-      "Clients include Books Galore and Save the Shea Tree — both in the projects.",
-      "Available for freelance and contract work alongside full-time roles.",
+      "Built an API that automated product creation for 650 books on Books Galore\u2019s new Next.js and Sanity storefront by pulling metadata and pricing from the Google Books and Open Library APIs, cutting listing time from ~40 minutes to seconds per product.",
+      "Consulted Save the Shea Tree on their site architecture, then built it with Next.js and a headless Sanity CMS.",
     ],
   },
   {
-    title: "Software Engineer (AI)",
+    title: "AI Software Engineer",
     org: "Xsolla",
     orgNote: "Internship",
     dates: "Aug 2026 – present",
     points: [
-      "Build internal applications and integrations against the company's APIs and SDKs.",
-      "Shipped production apps in React with Neo4j and PostgreSQL behind them, used by hundreds of employees.",
+      "Built the all-in-one platform for Xsolla\u2019s 100-person AI internship program, used by ~200 interns, mentors, and project owners across 9 offices (React, TypeScript, Node.js, PostgreSQL).",
+      "Owned the platform as a project admin: led 4 intern developers and triaged and fixed bugs from interns, mentors, and VPs.",
+      "Added a customizable LLM assistant that answers users\u2019 questions about any part of the platform, from onboarding and project matching to reviews and delivery tracking.",
+      "Integrated a configurable Slack notification system with per-notification schedules, recipient lists, and manual send backups (Google Cloud Run), doubling weekly progress-report submissions from 148 interns and mentors.",
+      "Designed a company-wide AI-assisted hiring platform that screens and scores Lever applicants, currently driving the 30-intern hiring push for a newly launched office, with role- and region-based access enforced through PostgreSQL row-level security.",
+      "Extended an AI agent that plays 34 mobile games for monetization research from Android to iPhones on a 12-device farm (Python, Appium), and built a human review tool that creates its evaluation dataset.",
     ],
   },
   {
@@ -103,38 +106,15 @@ export const experience = [
     orgNote: "Part-time",
     dates: "May 2026 – present",
     points: [
-      "Refactor legacy pages to clean, WCAG-compliant HTML.",
-      "Mapped 100+ URLs and their metadata for a site migration, and documented the workflow so it could be repeated.",
+      "Refactored legacy web pages to meet WCAG accessibility standards, and mapped 1000+ URLs for a site migration.",
     ],
   },
   {
-    title: "Computer Vision Engineer",
-    org: "McGill Aerial Design",
-    orgNote: "Student team",
-    dates: "Sep 2025 – May 2026",
-    points: [
-      "Built a YOLOv8 model in Python for autonomous target detection from the drone's camera.",
-      "Tuned confidence thresholds and retrained on low-light and occluded samples to cut false positives in competition conditions.",
-    ],
-  },
-  {
-    title: "Software Engineer",
-    org: "Anchor Repair Co.",
-    orgNote: "Internship",
-    dates: "May – Aug 2025",
-    points: [
-      "Built a Flask, SQL and React application that replaced paper client and service records.",
-      "Deployed it on AWS EC2 and S3 with GitHub Actions CI/CD.",
-      "Redesigned the UI and cut page load times by roughly 30%.",
-    ],
-  },
-  {
-    title: "Software Engineering Instructor",
+    title: "STEM Instructor",
     org: "City of Brampton",
     dates: "Sep 2023 – Aug 2024",
     points: [
-      "Led 5+ STEM courses for over 100 students.",
-      "Mentored 30+ student projects from idea to working demo.",
+      "Taught 6 STEM programs, from early-years robotics to high-school full-stack development, to 200+ students, and mentored 30+ projects.",
     ],
   },
 ];
@@ -148,7 +128,7 @@ export const leadership = [
     org: "McGill Women in Computer Science",
     dates: "Sep 2026 – present",
     points: [
-      "Planning and directing McWiCS\u2019 annual hackathon.",
+      "Directing the annual hackathon with an expected 150 participants, and secured sponsorships from Google DeepMind and Squarepoint.",
     ],
   },
 ];
@@ -169,8 +149,8 @@ export const projects = [
     badge: "personal project",
     blurb: "A camera watches a chessboard and plays back.",
     description:
-      "An autonomous chess robot. YOLO and OpenCV find the board and read each of its 64 squares, frame to frame, to spot moves; Stockfish picks the reply. Board detection, move tracking and engine play work today — the Arduino link and the arm itself are next.",
-    tech: ["Python", "OpenCV", "YOLO", "C++"],
+      "An autonomous chess robot. OpenCV and YOLO localize the board and classify occupancy of all 64 squares from HSV colour statistics, confirming moves by majority vote across 17 frames, including castling, en passant and promotion. Stockfish generates the replies, and a ROS 2 architecture turns them into ordered pick-and-place steps. Arm actuation, with Arduino (C++) firmware and a Rust serial driver, is in progress.",
+    tech: ["Python", "OpenCV", "YOLO", "C++", "Rust", "ROS 2", "Arduino"],
     repo: "https://github.com/ZawarG/ARGM-Robotic-Chess-Arm",
     demo: "",
     image: "/images/argm-board.jpg",
@@ -192,7 +172,7 @@ export const projects = [
     },
     blurb: "A bookstore's storefront, rebuilt and automated.",
     description:
-      "Rebuilt a bookstore's WordPress and PHP site as a headless Next.js and Sanity stack. An API fills in each book's metadata and pricing automatically, replacing about 500 hours of manual cataloguing. The migration is still in progress.",
+      "Rebuilt a bookstore's WordPress and PHP site as a headless Next.js and Sanity stack. An API pulls each book's metadata and pricing from the Google Books and Open Library APIs, automating product creation for 650 books and cutting listing time from ~40 minutes to seconds per product.",
     tech: ["Next.js", "React", "JavaScript", "Sanity", "Tailwind CSS"],
     repo: "",
     demo: "", // TODO — the store URL, once the migration is live.
@@ -276,7 +256,7 @@ export const projects = [
 export const bunnyLines = {
   idle: "I'm just a wooden bunny. Pick something up 🥕",
   argm: "It watches the board, picks a move, and is still waiting on its arm.",
-  "books-galore": "Five hundred hours of typing, gone. Nobody misses them.",
+  "books-galore": "650 books listed automatically. Nobody misses the typing.",
   "shea-tree": "They edit it themselves now. No developer required.",
   swipeflix: "Swipe twice and it already has your number.",
   "tic-tac-toe-ml": "It beat itself a few thousand times until it got good.",
