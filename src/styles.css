@@ -989,3 +989,7 @@ button.lp-entry-btn:hover .lp-entry-title { color: var(--accent); }
   .btn:hover, .view-toggle:hover, .theme-toggle:hover { transform: translateY(-2px) scale(1.04); }
   .btn:active, .view-toggle:active, .theme-toggle:active { transform: scale(0.94, 0.9); }
 }
+
+/* An open project room is a modal: the page-level switches tuck behind it so
+   they can't sit on top of its close button on a narrow screen. */
+body:has(.room-wrap) .view-controls { z-index: 0; }
