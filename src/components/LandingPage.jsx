@@ -477,6 +477,19 @@ export default function LandingPage({ selectedSlug, onFrontChange, only }) {
         </div>
       </section>}
 
+      {/* ---------- The real bunny ---------- */}
+      {show("end") && <section className="lp-pet" aria-label="My bunny">
+        <Reveal>
+          <h2>Meet the real one</h2>
+          <p className="lp-pet-note">The bunny the whole site is based on. She supervises my studying.</p>
+          <div className="lp-pet-row">
+            <figure><img src="/images/bunny-study.jpg" alt="My tan bunny sitting beside an open computer architecture textbook" loading="lazy" /><figcaption>Studying with me</figcaption></figure>
+            <figure><img src="/images/bunny-stand.jpg" alt="My bunny standing up tall next to her pink cardboard house" loading="lazy" /><figcaption>Standing guard</figcaption></figure>
+            <figure><img src="/images/bunny-nap.jpg" alt="My bunny flopped over asleep on the carpet" loading="lazy" /><figcaption>Nap time</figcaption></figure>
+          </div>
+        </Reveal>
+      </section>}
+
       {/* ---------- The end ---------- */}
       {show("end") && <footer className="lp-end">
         <Reveal>

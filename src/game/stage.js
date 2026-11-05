@@ -56,6 +56,12 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
   try { sky = createSky(skyCanvas, { reduced }); } catch { /* the sky is decoration */ }
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 15.5), new THREE.MeshPhongMaterial({ color: COL.grass, specular: 0, shininess: 0 }));
   ground.rotation.x = -Math.PI / 2; ground.position.set(0, 0, 4.25); scene.add(ground);
+  // Dark theme: the grass goes deep green so it sits with the dimmed hills.
+  const grassDay = new THREE.Color(COL.grass), grassNight = grassDay.clone().multiplyScalar(0.42);
+  const readGrass = () => ground.material.color.copy(document.documentElement.dataset.theme === "dark" ? grassNight : grassDay);
+  readGrass();
+  const grassMo = new MutationObserver(readGrass);
+  grassMo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   const rand = rng(11), scatter = [];
   for (let i = 0; i < 70; i++) {
     const g = rand() < 0.4 ? makeFlower(rand() < 0.5 ? COL.petalPink : COL.petalYellow) : makeTuft();
@@ -407,6 +413,7 @@ export function createStage({ canvas, skyCanvas, root, cards, scenes, reduced, h
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
       window.removeEventListener("pointercancel", up);
+      grassMo.disconnect();
       sky?.dispose();
       renderer.dispose();
     },
