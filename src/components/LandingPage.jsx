@@ -477,6 +477,16 @@ export default function LandingPage({ selectedSlug, onFrontChange, only }) {
         </div>
       </section>}
 
+      {/* ---------- The end ---------- */}
+      {show("end") && <footer className="lp-end">
+        <Reveal>
+          <h2>{profile.contactTitle}</h2>
+          <p className="lp-end-text">{profile.lookingFor}</p>
+          <ContactLinks />
+          <ContactForm endpoint={profile.formEndpoint} email={profile.email} />
+        </Reveal>
+      </footer>}
+
       {/* ---------- The real bunny ---------- */}
       {show("end") && <section className="lp-pet" aria-label="My bunny">
         <Reveal>
@@ -489,16 +499,6 @@ export default function LandingPage({ selectedSlug, onFrontChange, only }) {
           </div>
         </Reveal>
       </section>}
-
-      {/* ---------- The end ---------- */}
-      {show("end") && <footer className="lp-end">
-        <Reveal>
-          <h2>{profile.contactTitle}</h2>
-          <p className="lp-end-text">{profile.lookingFor}</p>
-          <ContactLinks />
-          <ContactForm endpoint={profile.formEndpoint} email={profile.email} />
-        </Reveal>
-      </footer>}
     </main>
   );
 }
