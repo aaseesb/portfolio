@@ -972,3 +972,20 @@ button.lp-entry-btn:hover .lp-entry-title { color: var(--accent); }
 }
 
 .contact-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+
+/* ---------- Cute: blinking, squish and click sparkles ---------- */
+.sparkle-layer { position: fixed; inset: 0; z-index: 9999; pointer-events: none; overflow: hidden; }
+.sparkle { position: absolute; translate: -50% -50%; line-height: 1; text-shadow: 0 0 4px rgba(0, 0, 0, 0.25); animation: sparkle-pop 0.8s cubic-bezier(0.2, 0.7, 0.3, 1) forwards; }
+@keyframes sparkle-pop {
+  0% { opacity: 1; transform: translate(0, 0) scale(0.3) rotate(0); }
+  30% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1.2) rotate(40deg); }
+}
+.btn, .view-toggle, .theme-toggle { transition-property: transform, background-color, color, border-color; }
+@media (prefers-reduced-motion: no-preference) {
+  .bunny-eye { transform-box: fill-box; transform-origin: 50% 50%; animation: b2-blink-svg 5s infinite; }
+  @keyframes b2-blink-svg { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+  .btn, .view-toggle, .theme-toggle { transition-duration: 0.3s; transition-timing-function: cubic-bezier(0.34, 1.7, 0.5, 1); }
+  .btn:hover, .view-toggle:hover, .theme-toggle:hover { transform: translateY(-2px) scale(1.04); }
+  .btn:active, .view-toggle:active, .theme-toggle:active { transform: scale(0.94, 0.9); }
+}

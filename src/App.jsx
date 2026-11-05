@@ -8,6 +8,7 @@ import { lazy, Suspense, useEffect, useState, useCallback } from "react";
 import { profile, projects } from "./content.js";
 import LandingPage from "./components/LandingPage.jsx";
 import Chooser from "./game/Chooser.jsx";
+import { startSparkles } from "./sparkles.js";
 // Three.js is only paid for by people who press Interactive.
 const GameShell = lazy(() => import("./game/GameShell.jsx"));
 
@@ -36,6 +37,8 @@ export default function App() {
   const [selectedSlug, setSelectedSlug] = useState(() =>
     findProject(slugFromUrl()) ? slugFromUrl() : null
   );
+
+  useEffect(() => startSparkles(), []);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;

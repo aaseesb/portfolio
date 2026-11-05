@@ -1,12 +1,17 @@
+import { useState } from "react";
 // A flat, front-on bunny for the rooms. Same colours and poses as the 3D one
 // (bunny3d.js / bunnyPoses.js): sit, stand and loaf.
 const C = { body: "#c4a276", tan: "#a88a5f", belly: "#f0e5d1", pink: "#d9a9a0", line: "#5b4a3a", eye: "#262626" };
 const st = { stroke: C.line, strokeWidth: 2, strokeLinejoin: "round" };
 
+// The outer <g> is only there so CSS can wiggle the ear; the inner one keeps
+// the pose's own tilt as an attribute, which a CSS transform would replace.
 const Ear = ({ x, tilt, y = 15, ry = 17 }) => (
-  <g transform={`rotate(${tilt} ${x} ${y + ry - 4})`}>
-    <ellipse cx={x} cy={y} rx="6.5" ry={ry} fill={C.tan} {...st} />
-    <ellipse cx={x} cy={y + 2} rx="3" ry={ry - 6} fill={C.pink} />
+  <g className={`b2-ear ${x < 50 ? "l" : "r"}`}>
+    <g transform={`rotate(${tilt} ${x} ${y + ry - 4})`}>
+      <ellipse cx={x} cy={y} rx="6.5" ry={ry} fill={C.tan} {...st} />
+      <ellipse cx={x} cy={y + 2} rx="3" ry={ry - 6} fill={C.pink} />
+    </g>
   </g>
 );
 
@@ -18,8 +23,8 @@ function Face({ x, y, sleepy }) {
         <path d={`M${x - 11} ${y} q3 3 6 0 M${x + 5} ${y} q3 3 6 0`} fill="none" stroke={C.eye} strokeWidth="2" strokeLinecap="round" />
       ) : (
         <>
-          <circle cx={x - 8} cy={y} r="2.6" fill={C.eye} />
-          <circle cx={x + 8} cy={y} r="2.6" fill={C.eye} />
+          <circle className="b2-eye" cx={x - 8} cy={y} r="2.6" fill={C.eye} />
+          <circle className="b2-eye" cx={x + 8} cy={y} r="2.6" fill={C.eye} />
         </>
       )}
       <ellipse cx={x} cy={y + 6} rx="2.6" ry="2" fill={C.pink} stroke={C.line} strokeWidth="1" />
@@ -77,8 +82,16 @@ const POSES = {
   ),
 };
 
+// Pokes and hops: click her and she jumps (the key restarts the animation).
 export default function Bunny2D({ pose = "sit", className = "" }) {
+  const [hops, setHops] = useState(0);
   return (
-    <svg className={`bunny2d ${className}`} viewBox="0 -8 100 108" aria-hidden="true">{POSES[pose] || POSES.sit}</svg>
+    <svg
+      className={`bunny2d ${hops ? `hop-${hops % 2}` : "hop-in"} ${className}`}
+      viewBox="0 -8 100 108" aria-hidden="true"
+      onClick={() => setHops((n) => n + 1)}
+    >
+      {POSES[pose] || POSES.sit}
+    </svg>
   );
 }

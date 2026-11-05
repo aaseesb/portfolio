@@ -361,3 +361,39 @@
 .tour-row-peek { font-size: 0.85rem; line-height: 1.4; opacity: 0.9; }
 .tour-li { transition: transform 0.2s ease; }
 @media (prefers-reduced-motion: reduce) { .tour-li { transition: none; } }
+
+/* ---- cute: squish, bounce and little signs of life ---- */
+/* Overshoot easing makes things feel springy without a library. */
+.tour-house { transition: transform 0.4s cubic-bezier(0.34, 1.7, 0.5, 1); }
+.tour-house:active { --k: 0.95; }
+.tour-treat-btn { transition: transform 0.3s cubic-bezier(0.34, 1.7, 0.5, 1), box-shadow 0.12s; }
+.door-frame { transition: transform 0.3s cubic-bezier(0.34, 1.7, 0.5, 1); }
+.door:hover .door-frame { transform: scale(1.07) rotate(-1.5deg); }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* the room bunny: blinks, flicks an ear now and then, hops when poked */
+  .bunny2d { cursor: pointer; }
+  .b2-ear { transform-box: fill-box; transform-origin: 50% 100%; animation: b2-ear 6s ease-in-out infinite; }
+  .b2-ear.r { animation-delay: -2.1s; animation-duration: 7.3s; }
+  @keyframes b2-ear { 0%, 84%, 100% { transform: rotate(0); } 88% { transform: rotate(7deg); } 92% { transform: rotate(-5deg); } 96% { transform: rotate(3deg); } }
+  .b2-eye { transform-box: fill-box; transform-origin: 50% 50%; animation: b2-blink 4.6s infinite; }
+  @keyframes b2-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+  .bunny2d.hop-in { animation: b2-hop 0.7s 0.45s cubic-bezier(0.3, 0.7, 0.4, 1) both, room-breathe 3.6s 1.2s ease-in-out infinite; }
+  .bunny2d.hop-0, .bunny2d.hop-1 { animation: b2-hop 0.6s cubic-bezier(0.3, 0.7, 0.4, 1) both, room-breathe 3.6s 0.6s ease-in-out infinite; }
+  .bunny2d.hop-1 { animation-name: b2-hop2, room-breathe; }
+  @keyframes b2-hop { 0% { transform: scale(1.08, 0.88); } 30% { transform: translateY(-26px) scale(0.94, 1.08); } 60% { transform: translateY(0) scale(1.1, 0.88); } 80% { transform: scale(0.97, 1.03); } 100% { transform: none; } }
+  @keyframes b2-hop2 { 0% { transform: scale(1.08, 0.88); } 30% { transform: translateY(-26px) scale(0.94, 1.08); } 60% { transform: translateY(0) scale(1.1, 0.88); } 80% { transform: scale(0.97, 1.03); } 100% { transform: none; } }
+
+  /* chimney smoke: three soft puffs rising and fading */
+  .tour-chimney::before, .tour-chimney::after { content: ""; position: absolute; left: 50%; top: -4px; width: 9px; height: 9px; margin-left: -4px; border-radius: 50%; background: rgba(255, 255, 255, 0.75); opacity: 0; animation: puff 4.4s ease-out infinite; }
+  .tour-chimney::after { animation-delay: -2.2s; width: 7px; height: 7px; margin-left: -3px; }
+  @keyframes puff { 0% { opacity: 0; transform: translate(0, 0) scale(0.5); } 15% { opacity: 0.8; } 100% { opacity: 0; transform: translate(14px, -34px) scale(1.9); } }
+  /* flowers on the hills sway; `rotate` is separate from the placement transform */
+  .tour-deco.flower { transform-origin: 50% 100%; animation: sway 3.6s ease-in-out infinite; }
+  .tour-deco.flower:nth-child(3n) { animation-delay: -1.2s; animation-duration: 4.4s; }
+  .tour-deco.flower:nth-child(3n+1) { animation-delay: -2.4s; }
+  @keyframes sway { 50% { rotate: 14deg; } 0%, 100% { rotate: -10deg; } }
+  .tour-deco.round, .tour-deco.pine { animation: sway 6s ease-in-out infinite; transform-origin: 50% 100%; }
+  .tour-deco.round { animation-delay: -1.7s; } .tour-deco.pine { animation-name: sway-small; animation-duration: 7s; }
+  @keyframes sway-small { 50% { rotate: 2.5deg; } 0%, 100% { rotate: -2.5deg; } }
+}

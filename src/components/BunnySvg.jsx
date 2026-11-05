@@ -43,8 +43,8 @@ export default function BunnySvg({
           <ellipse cx="-20" cy="2" rx="5" ry="11" fill={fur} {...outline} transform="rotate(-18 -20 12)" />
         </g>
       )}
-      <circle cx="-6" cy="-2" r="3" fill="var(--bunny-eye)" />
-      <circle cx="6" cy="-2" r="3" fill="var(--bunny-eye)" />
+      <circle className="bunny-eye" cx="-6" cy="-2" r="3" fill="var(--bunny-eye)" />
+      <circle className="bunny-eye" cx="6" cy="-2" r="3" fill="var(--bunny-eye)" />
       <path d="M0 4 l-3 3 h6 z" fill="var(--bunny-inner)" />
     </g>
   );
