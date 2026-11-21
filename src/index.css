@@ -940,3 +940,43 @@
     scroll-behavior: auto !important;
   }
 }
+
+.ttt {
+  max-width: 420px;
+  margin: 0 auto;
+  display: grid;
+  gap: 18px;
+  justify-items: start;
+}
+.ttt h1 {
+  font-size: clamp(40px, 6vw, 56px);
+  letter-spacing: -1.6px;
+  line-height: 1.08;
+}
+.ttt-status {
+  font-weight: 550;
+  color: var(--accent);
+}
+.ttt-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+.ttt-cell {
+  aspect-ratio: 1;
+  background: #fffdf9;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font-family: var(--font-serif);
+  font-size: 56px;
+  color: #40382f;
+  cursor: pointer;
+}
+.ttt-cell:not(:disabled):hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.ttt-cell:disabled {
+  cursor: default;
+}

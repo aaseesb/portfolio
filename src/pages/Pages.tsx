@@ -180,8 +180,13 @@ export function ProjectPage() {
           </h1>
           <p>{project.summary}</p>
         </div>
-        {(project.demo || project.source) && (
+        {(project.demo || project.play || project.source) && (
           <div className="inline-actions">
+            {project.play && (
+              <Link className="button" to={project.play}>
+                Play it <ArrowRight size={15} />
+              </Link>
+            )}
             {project.demo && (
               <a className="button" href={project.demo} target="_blank" rel="noopener noreferrer">
                 Visit site <ExternalLink size={15} />
@@ -194,7 +199,7 @@ export function ProjectPage() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Source code <CodeXml size={15} />
+                GitHub <CodeXml size={15} />
               </a>
             )}
           </div>

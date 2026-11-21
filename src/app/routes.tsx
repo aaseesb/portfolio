@@ -18,6 +18,7 @@ import {
   LinksPage,
   AboutPage,
 } from "../pages/Pages";
+import { TicTacToePlay } from "../demos/TicTacToePlay";
 import { NotFound } from "../components/Shared";
 
 const navigation = [
@@ -33,7 +34,7 @@ function Layout() {
   const main = useRef<HTMLElement>(null);
   const previous = useRef(pathname);
   useEffect(() => {
-    const project = projects.find((item) => pathname === `/projects/${item.slug}`);
+    const project = projects.find((item) => pathname.startsWith(`/projects/${item.slug}`));
     const page =
       navigation.find(([, path]) => path === pathname)?.[0] ??
       project?.title ??
@@ -104,6 +105,7 @@ export const router = createBrowserRouter(
         { path: "experience", Component: ExperiencePage },
         { path: "projects", Component: ProjectsPage },
         { path: "projects/:slug", Component: ProjectPage },
+        { path: "projects/tic-tac-toe-ml/play", Component: TicTacToePlay },
         { path: "links", Component: LinksPage },
         { path: "about", Component: AboutPage },
         { path: "*", Component: NotFound },

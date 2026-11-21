@@ -130,6 +130,7 @@ export interface Project {
   sections: { title: string; body: string }[];
   source?: string;
   demo?: string;
+  play?: string; // in-site route for a playable demo
 }
 
 export const projects: Project[] = [
@@ -264,6 +265,7 @@ export const projects: Project[] = [
     role: "Personal project",
     image: "images/tictactoe.jpg",
     clips: [{ label: "Demo", src: "images/tictactoe.mp4", poster: "images/tictactoe.jpg" }],
+    play: "/projects/tic-tac-toe-ml/play",
     source: "https://github.com/aaseesb/Tic-Tac-Toe-ML",
     sections: [
       {
