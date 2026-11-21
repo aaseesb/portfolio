@@ -945,6 +945,7 @@
   max-width: 420px;
   margin: 0 auto;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
   justify-items: start;
 }
@@ -979,4 +980,57 @@
 }
 .ttt-cell:disabled {
   cursor: default;
+}
+.ttt-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+.ttt-form .inline-actions {
+  grid-column: 1 / -1;
+}
+.ttt-field {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.ttt-field input {
+  font: inherit;
+  font-size: 16px;
+  color: #40382f;
+  background: #fffdf9;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  width: 100%;
+}
+.ttt-source,
+.ttt-note,
+.ttt-check {
+  font-size: 13px;
+  color: var(--muted);
+}
+.ttt-note:empty {
+  display: none;
+}
+.ttt-check {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.ttt-cell {
+  position: relative;
+}
+.ttt-q {
+  position: absolute;
+  inset: auto 0 8px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--muted);
+}
+.ttt-cell.is-best {
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }

@@ -224,7 +224,7 @@ export const projects: Project[] = [
     image: "images/swipeflix.jpg",
     clips: [{ label: "Demo", src: "images/swipeflix.mp4", poster: "images/swipeflix.jpg" }],
     source: "https://github.com/aaseesb/SwipeFlix",
-    demo: "https://devpost.com/software/swipeflix",
+    demo: "https://swipeflix.aasees.dev",
     sections: [
       {
         title: "The idea",
