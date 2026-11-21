@@ -266,7 +266,6 @@ export const projects: Project[] = [
     role: "Personal project",
     image: "images/tictactoe.jpg",
     clips: [{ label: "Demo", src: "images/tictactoe.mp4", poster: "images/tictactoe.jpg" }],
-    play: "/projects/tic-tac-toe-ml/play",
     demo: "https://tictactoe.aasees.dev",
     source: "https://github.com/aaseesb/Tic-Tac-Toe-ML",
     sections: [

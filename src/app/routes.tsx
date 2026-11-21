@@ -18,7 +18,6 @@ import {
   LinksPage,
   AboutPage,
 } from "../pages/Pages";
-import { TicTacToePlay } from "../demos/TicTacToePlay";
 import { NotFound } from "../components/Shared";
 
 const navigation = [
@@ -105,7 +104,6 @@ export const router = createBrowserRouter(
         { path: "experience", Component: ExperiencePage },
         { path: "projects", Component: ProjectsPage },
         { path: "projects/:slug", Component: ProjectPage },
-        { path: "projects/tic-tac-toe-ml/play", Component: TicTacToePlay },
         { path: "links", Component: LinksPage },
         { path: "about", Component: AboutPage },
         { path: "*", Component: NotFound },
