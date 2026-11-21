@@ -169,6 +169,7 @@ export const projects: Project[] = [
     title: "Books Galore",
     category: "Client work",
     summary: "A bookstore’s storefront, rebuilt and automated.",
+    image: "images/books-galore.jpg",
     tags: ["Next.js", "React", "Sanity", "Tailwind CSS"],
     year: "2025",
     role: "Front-end developer",
