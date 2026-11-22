@@ -96,7 +96,7 @@
   border-top: 1px solid var(--line);
   font-size: 10px;
   letter-spacing: 0.3px;
-  color: var(--muted);
+  color: var(--accent);
 }
 .social-links {
   display: flex;
@@ -110,7 +110,7 @@
 }
 .social-links a:hover,
 .social-links a:focus-visible {
-  color: var(--accent);
+  text-decoration: underline;
 }
 .home-main {
   display: flex;
@@ -159,42 +159,31 @@
 }
 .home-nav {
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
-  align-items: center;
-  gap: 12px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  border-bottom: 1px solid #dcc3b5;
 }
 .home-nav a {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  justify-content: center;
-  min-height: 46px;
-  font-size: 12px;
+  padding: 12px 26px;
+  margin-bottom: -1px;
+  font-size: 14px;
   font-weight: 500;
-  position: relative;
-  padding: 13px 22px;
-  border: 1px solid #c69b86;
-  border-radius: 6px;
   color: var(--accent);
-  background: #fffaf5;
-  box-shadow: 0 2px 0 #a14f380b;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
 }
 .home-nav a svg {
-  color: currentColor;
-  transition: transform 0.2s;
-}
-.home-nav a:is(:hover, :focus-visible) svg {
-  transform: translate(2px, -2px);
+  display: none;
 }
 .home-nav a:is(:hover, :focus-visible) {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  transform: translateY(-2px);
+  border-bottom-color: var(--accent);
 }
 .home-description {
   margin: 27px auto 0;
-  max-width: 390px;
+  max-width: none;
+  white-space: nowrap;
   padding: 0 15px;
   color: #827462;
   font-size: 12px;
@@ -385,6 +374,10 @@
   height: 100%;
   object-fit: contain;
   padding: 16%;
+}
+/* Wide logos have less height to fill, so give them more of the tile. */
+.org-logo img[src*="shea-tree"] {
+  padding: 8%;
 }
 /* A multi-client role: each client's logo gets a full-size square of its own. */
 .org-logo.is-split {
@@ -934,23 +927,13 @@
   .home-eyebrow .tiny-line {
     width: 16px;
   }
-  .home-nav {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-width: 340px;
-    margin: 0 auto;
-    gap: 10px;
-  }
   .home-nav a {
-    font-size: 11px;
-    gap: 15px;
-    padding: 12px 16px;
-  }
-  .home-nav a svg {
-    width: 14px;
+    padding: 10px 11px;
+    font-size: 12px;
   }
   .home-description {
     max-width: 310px;
+    white-space: normal;
     font-size: 11px;
   }
   .site-footer {
