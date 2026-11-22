@@ -11,7 +11,7 @@ import {
   FileText,
 } from "lucide-react";
 import { Link, useParams } from "react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { profile, experiences, projects, asset, type Project } from "../data/portfolio";
 import {
   NotFound,
@@ -48,6 +48,9 @@ export function Home() {
   );
 }
 
+// Timeline sections in page order; `undefined` is the main list of roles.
+const SECTIONS = [undefined, "Education", "Leadership"] as const;
+
 export function ExperiencePage() {
   return (
     <>
@@ -58,7 +61,8 @@ export function ExperiencePage() {
       >
         <ResumeLink />
       </PageHeading>
-      {([undefined, "Leadership", "Education"] as const).map((section) => (
+      <LogoStrip />
+      {SECTIONS.map((section) => (
         <Timeline
           key={section ?? "work"}
           title={section}
@@ -69,36 +73,151 @@ export function ExperiencePage() {
   );
 }
 
+type Role = (typeof experiences)[number];
+
+const initialsOf = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter((w) => /^[A-Z]/.test(w))
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("");
+
+// A logo slot: the image if there is one, otherwise the organization's initials.
+function LogoImage({ name, logo }: { name: string; logo?: string }) {
+  return logo ? (
+    <img src={logo} alt="" />
+  ) : (
+    <span className="logo-initials">{initialsOf(name)}</span>
+  );
+}
+
+// The role's logo tile. A role with several clients shows each client's logo,
+// split down the middle of one tile.
+function OrgLogo({ item, className = "" }: { item: Role; className?: string }) {
+  const parts = item.clients ?? [{ name: item.organization, logo: item.logo }];
+  return (
+    <span
+      className={`org-logo ${parts.length > 1 ? "is-split" : ""} ${className}`}
+      aria-hidden="true"
+    >
+      {parts.map((part) => (
+        <span className="org-logo-part" key={part.name}>
+          <LogoImage name={part.name} logo={part.logo} />
+        </span>
+      ))}
+    </span>
+  );
+}
+
+// One tile per organization (or per client) at the top of the page; each
+// jumps to its role in the timeline.
+function LogoStrip() {
+  // Same order as the roles appear on the page, section by section.
+  const tiles = SECTIONS.flatMap((section) => experiences.filter((item) => item.section === section))
+    .filter((item) => item.section !== "Education")
+    .flatMap((item) =>
+      (item.clients ?? [{ name: item.organization, logo: item.logo }]).map((part) => ({
+        ...part,
+        roleId: item.id,
+      })),
+    )
+    .filter((tile, i, all) => all.findIndex((t) => t.name === tile.name) === i);
+  const jump = (id: string) => {
+    const el = document.getElementById(`role-${id}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.remove("is-flashing");
+    void el.offsetWidth; // restart the highlight if the same tile is clicked twice
+    el.classList.add("is-flashing");
+  };
+  return (
+    <nav className="logo-strip" aria-label="Organizations I’ve worked with">
+      <span className="eyebrow">Worked with</span>
+      <ul>
+        {tiles.map((tile) => (
+          <li key={tile.name}>
+            <button type="button" onClick={() => jump(tile.roleId)} aria-label={tile.name} title={tile.name}>
+              <span className="org-logo org-logo-lg" aria-hidden="true">
+                <span className="org-logo-part">
+                  <LogoImage name={tile.name} logo={tile.logo} />
+                </span>
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
+function useReveal<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !("IntersectionObserver" in window)) return setVisible(true);
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "0px 0px -10% 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return [ref, visible] as const;
+}
+
+function TimelineItem({ item, current }: { item: Role; current: boolean }) {
+  const [ref, visible] = useReveal<HTMLElement>();
+  return (
+    <article
+      ref={ref}
+      id={`role-${item.id}`}
+      className={`timeline-item reveal ${visible ? "is-visible" : ""}`}
+    >
+      <div className="timeline-date">
+        <span>{item.dates}</span>
+        {!item.end && (
+          <small>
+            <span className="status-dot" />
+            Currently
+          </small>
+        )}
+      </div>
+      <div className={`timeline-marker ${current ? "current" : ""}`} />
+      <div className="timeline-content">
+        <div className="role-head">
+          <OrgLogo item={item} />
+          <div>
+            <span className="eyebrow">{item.type}</span>
+            <h2>{item.organization}</h2>
+            <p className="role">{item.role}</p>
+          </div>
+        </div>
+        {item.bullets.length > 0 && (
+          <ul>
+            {item.bullets.map((bullet) => (
+              <li key={bullet}>{bullet}</li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </article>
+  );
+}
+
 function Timeline({ title, items }: { title?: string; items: typeof experiences }) {
   return (
     <>
       {title && <h2 className="timeline-heading">{title}</h2>}
       <div className="timeline">
         {items.map((item, i) => (
-          <article className="timeline-item" key={item.id}>
-            <div className="timeline-date">
-              <span>{item.dates}</span>
-              {!item.end && (
-                <small>
-                  <span className="status-dot" />
-                  Currently
-                </small>
-              )}
-            </div>
-            <div className={`timeline-marker ${i === 0 ? "current" : ""}`} />
-            <div className="timeline-content">
-              <span className="eyebrow">{item.type}</span>
-              <h2>{item.role}</h2>
-              <p className="organization">{item.organization}</p>
-              {item.bullets.length > 0 && (
-                <ul>
-                  {item.bullets.map((bullet) => (
-                    <li key={bullet}>{bullet}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </article>
+          <TimelineItem key={item.id} item={item} current={i === 0 && !title} />
         ))}
       </div>
     </>
@@ -176,7 +295,6 @@ export function ProjectPage() {
           <span className="eyebrow">{project.category}</span>
           <h1>
             {project.title}
-            <span className="title-dot">.</span>
           </h1>
           <p>{project.summary}</p>
         </div>
@@ -335,7 +453,7 @@ export function AboutPage() {
           <h2>
             {profile.aboutTitle[0]}
             <br />
-            <i>{profile.aboutTitle[1]}</i>
+            {profile.aboutTitle[1]}
           </h2>
           {profile.biography.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>

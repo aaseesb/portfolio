@@ -1,13 +1,25 @@
 // Everything the site says lives in this file. Edit here, nowhere else.
 export const asset = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\//, "")}`;
 
+// Every image in src/assets/logos/, keyed by file name without its extension:
+// `src/assets/logos/xsolla.png` becomes `logos.xsolla`. Vite bundles each one
+// and gives back its URL, so a missing file is just `undefined`, never a 404.
+const logos = Object.fromEntries(
+  Object.entries(
+    import.meta.glob<string>("../assets/logos/*.{svg,png,webp,jpg,jpeg}", {
+      eager: true,
+      import: "default",
+    }),
+  ).map(([path, url]) => [path.split("/").pop()!.replace(/\.\w+$/, ""), url]),
+);
+
 export const profile = {
   name: "Aasees Badesha",
-  initials: "AB.",
+  initials: "AB",
   eyebrow: "Software engineer · Montreal, Toronto",
   descriptor:
-    "I build software that sees and moves: computer vision, robotics, and the full-stack tools around them.",
-  aboutTitle: ["Robots, books,", "and Lulu."],
+    "I build software that sees and moves: computer vision, robotics, and full-stack.",
+  aboutTitle: ["Robots, books,", "and Lulu"],
   biography: [
     "I’m Aasees, a Software Engineering student at McGill. I like problems where code has to deal with the real world: a camera that has to find a chessboard under bad lighting, or an arm that has to put a piece down exactly where it should go.",
     "Right now I’m an AI Software Engineer intern at Xsolla, building the platform that runs their 100-person AI internship program, and I’m directing this year’s McGill Women in Computer Science hackathon.",
@@ -15,7 +27,7 @@ export const profile = {
   ],
   // Paths are relative to public/. Leave undefined to show the placeholder frame.
   portrait: undefined as string | undefined,
-  rabbit: "images/bunny-stand.jpg" as string | undefined,
+  rabbit: "images/bunny-study.jpg" as string | undefined,
   github: "https://github.com/aaseesb",
   linkedin: "https://linkedin.com/in/aasees-badesha",
   email: "aaseesbadesha13@gmail.com",
@@ -27,10 +39,18 @@ export interface Experience {
   id: string;
   role: string;
   organization: string;
+  // The logo image: a file in src/assets/logos/ (see `logos` above), or any
+  // `import myLogo from "../assets/....png"`. Without one, the tile shows the
+  // organization's initials.
+  logo?: string;
+  // For a role done for several clients: each gets its own logo in the
+  // "Worked with" strip, all pointing at this one role.
+  clients?: { name: string; logo?: string }[];
   start: string;
   end?: string;
   dates: string;
   type: string;
+  // Education and Leadership entries get their own headed timelines.
   section?: "Leadership" | "Education";
   bullets: string[];
 }
@@ -39,6 +59,7 @@ export interface Experience {
 export const experiences: Experience[] = [
   {
     id: "xsolla",
+    logo: logos.xsolla,
     role: "AI Software Engineer",
     organization: "Xsolla",
     start: "2026-08-01",
@@ -55,6 +76,7 @@ export const experiences: Experience[] = [
   },
   {
     id: "wics",
+    logo: logos.mcwics,
     role: "Hackathon Director",
     organization: "McGill Women in Computer Science",
     start: "2026-09-01",
@@ -68,6 +90,7 @@ export const experiences: Experience[] = [
   },
   {
     id: "desautels",
+    logo: logos.desautels,
     role: "Web Systems Assistant",
     organization: "McGill Desautels Faculty of Management",
     start: "2026-05-01",
@@ -82,6 +105,10 @@ export const experiences: Experience[] = [
     id: "freelance",
     role: "Full-Stack Engineer",
     organization: "Freelance",
+    clients: [
+      { name: "Books Galore", logo: logos["books-galore"] },
+      { name: "Save the Shea Tree", logo: logos["shea-tree"] },
+    ],
     start: "2025-05-01",
     end: "2026-08-01",
     dates: "May 2025 — Aug 2026",
@@ -93,17 +120,19 @@ export const experiences: Experience[] = [
   },
   {
     id: "mcgill",
-    role: "Software Engineering",
+    logo: logos.mcgill,
+    role: "B.Eng. Software Engineering",
     organization: "McGill University",
     start: "2024-08-01",
     end: "2029-04-01",
     dates: "2024 — 2029",
-    type: "B.Eng.",
+    type: "Education",
     section: "Education",
     bullets: ["GPA 3.77 / 4.0", "Wadad Stamboulie Entrance Award"],
   },
   {
     id: "brampton",
+    logo: logos.brampton,
     role: "STEM Instructor",
     organization: "City of Brampton",
     start: "2023-09-01",

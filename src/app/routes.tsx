@@ -8,7 +8,6 @@ import {
   useLocation,
   useRouteError,
 } from "react-router";
-import { ArrowRight, Mail } from "lucide-react";
 import { profile, projects } from "../data/portfolio";
 import {
   Home,
@@ -18,7 +17,7 @@ import {
   LinksPage,
   AboutPage,
 } from "../pages/Pages";
-import { NotFound } from "../components/Shared";
+import { NotFound, SocialLinks } from "../components/Shared";
 
 const navigation = [
   ["Experience", "/experience"],
@@ -68,9 +67,7 @@ function Layout() {
         <span>
           © {new Date().getFullYear()} {profile.name}
         </span>
-        <Link to="/links" className="button button-outline footer-contact">
-          <Mail size={14} /> Contact & links <ArrowRight size={14} />
-        </Link>
+        <SocialLinks />
       </footer>
       <ScrollRestoration />
     </div>
