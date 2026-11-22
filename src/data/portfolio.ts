@@ -194,6 +194,25 @@ export const projects: Project[] = [
     ],
   },
   {
+    slug: "expressive-lamp",
+    title: "Expressive Lamp",
+    category: "Robotics",
+    summary: "A desk lamp robot that notices when you look at it.",
+    tags: ["Python", "MediaPipe", "MuJoCo"],
+    role: "Software & computer vision",
+    source: "https://github.com/aaseesb/LeLamp-SW-CV-Hiring-Challenge",
+    sections: [
+      {
+        title: "What it does",
+        body: "MediaPipe tracks your face and gaze to work out whether you’re paying attention, and a behaviour manager decides how the lamp should react, simulated in MuJoCo on an open-source lamp model.",
+      },
+      {
+        title: "Where it stands",
+        body: "Perception and behaviour work end to end. Memory and conversation are in progress.",
+      },
+    ],
+  },
+  {
     slug: "books-galore",
     title: "Books Galore",
     category: "Client work",
@@ -239,6 +258,32 @@ export const projects: Project[] = [
       {
         title: "Where it stands",
         body: "Live on a temporary deployment while the domain and remaining pages are finished.",
+      },
+    ],
+  },
+  {
+    slug: "nana",
+    title: "Nana",
+    category: "Machine learning",
+    summary: "Screening EEG recordings for signs of Alzheimer’s.",
+    tags: ["Python", "XGBoost", "scikit-learn", "Flask", "React"],
+    year: "2026",
+    role: "PharmaHacks 2026 · model training",
+    image: "images/nana.jpg",
+    source: "https://github.com/jennysaad/Nana",
+    demo: "https://devpost.com/software/nana-cxato3",
+    sections: [
+      {
+        title: "The idea",
+        body: "Upload a patient’s EEG recording and Nana predicts whether it looks like Alzheimer’s or a healthy control, built in a team of four.",
+      },
+      {
+        title: "The model",
+        body: "I worked on training and evaluation: 30-second windows from 19 electrodes become 380 features (band powers and coherence between channels). We compared CatBoost, Random Forest, XGBoost and LightGBM, and XGBoost won.",
+      },
+      {
+        title: "Keeping it honest",
+        body: "Splits are grouped by subject so no person appears in both training and validation, and each subject’s windows are combined by majority vote.",
       },
     ],
   },
@@ -305,6 +350,66 @@ export const projects: Project[] = [
       {
         title: "Try it",
         body: "The trained agent is playable in the browser, so you can see how well it learned.",
+      },
+    ],
+  },
+  {
+    slug: "bookscout",
+    title: "BookScout",
+    category: "Web app",
+    summary: "Type a title, get everything about the book.",
+    tags: ["Python", "Flask", "JavaScript"],
+    year: "2025",
+    role: "Built with Zawar",
+    image: "images/bookscout.jpg",
+    clips: [{ label: "Demo", src: "images/bookscout.mp4", poster: "images/bookscout.jpg" }],
+    source: "https://github.com/ZawarG/BookScout",
+    sections: [
+      {
+        title: "What it does",
+        body: "Combines Google Books (author, description, pages) with Open Library (genres, first publication year) and a cover API into one page. No exact match? It shows the five closest.",
+      },
+    ],
+  },
+  {
+    slug: "soundwave",
+    title: "SoundWave",
+    category: "Web app",
+    summary: "Search any song and play it right there.",
+    tags: ["Python", "Flask", "yt-dlp"],
+    role: "Personal project",
+    image: "images/soundwave.jpg",
+    clips: [{ label: "Demo", src: "images/soundwave.mp4", poster: "images/soundwave.jpg" }],
+    source: "https://github.com/aaseesb/SoundWave",
+    sections: [
+      {
+        title: "What it does",
+        body: "Searches the iTunes and Deezer APIs for songs, then streams playback through yt-dlp.",
+      },
+    ],
+  },
+  {
+    slug: "penguin-run",
+    title: "Penguin Run",
+    category: "Game",
+    summary: "A two-player puzzle platformer.",
+    tags: ["Java"],
+    role: "Grade 11 project",
+    image: "images/penguin-run.jpg",
+    clips: [{ label: "Gameplay", src: "images/penguin-run.mp4", poster: "images/penguin-run.jpg" }],
+    source: "https://github.com/aaseesb/Penguin-Run",
+    sections: [
+      {
+        title: "The game",
+        body: "Two players share one keyboard, one on the arrow keys and one on W/A/D, and both penguins have to reach the igloo while dodging spikes.",
+      },
+      {
+        title: "The puzzles",
+        body: "Push a button, or slide an ice block onto it, to lower the ice wall. A pink-only button boosts jump height. Fewer frames means a better score, saved to a leaderboard.",
+      },
+      {
+        title: "How it’s built",
+        body: "Plain Java Swing: a custom paint loop, gravity and jump physics, and rectangle collision checks.",
       },
     ],
   },
