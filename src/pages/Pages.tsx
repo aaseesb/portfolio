@@ -250,6 +250,16 @@ export function ProjectsPage() {
 function ProjectHero({ project }: { project: Project }) {
   const [active, setActive] = useState(0);
   const clips = project.clips ?? [];
+  if (project.youtube)
+    return (
+      <iframe
+        className="project-embed"
+        src={`https://www.youtube-nocookie.com/embed/${project.youtube}`}
+        title={`${project.title} demo video`}
+        allow="encrypted-media; picture-in-picture; fullscreen"
+        allowFullScreen
+      />
+    );
   if (!clips.length) return <ProjectVisual project={project} />;
   const clip = clips[active];
   return (

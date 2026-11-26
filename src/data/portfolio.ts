@@ -156,6 +156,7 @@ export interface Project {
   role: string;
   image?: string;
   clips?: { label: string; src: string; poster: string }[];
+  youtube?: string; // video id, shown in the hero instead of the image
   sections: { title: string; body: string }[];
   source?: string;
   demo?: string;
@@ -270,6 +271,7 @@ export const projects: Project[] = [
     year: "2026",
     role: "PharmaHacks 2026 · model training",
     image: "images/nana.jpg",
+    youtube: "tJms2QI5cpU",
     source: "https://github.com/jennysaad/Nana",
     demo: "https://devpost.com/software/nana-cxato3",
     sections: [

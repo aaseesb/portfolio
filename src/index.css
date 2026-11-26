@@ -8,15 +8,15 @@
 
 @layer base {
   :root {
-    color: #40382f;
-    background: #f8f5ef;
+    color: #3a1f2b;
+    background: #fbf4f0;
     font-family: var(--font-sans);
     font-synthesis: none;
-    --muted: #887d70;
-    --line: #ded7cb;
-    --accent: #a14f38;
-    --accent-hover: #833d2a;
-    --accent-soft: #f2e2d9;
+    --muted: #8a6a72;
+    --line: #ecd6cf;
+    --accent: #7c0e44;
+    --accent-hover: #5e0a33;
+    --accent-soft: #f2dace;
   }
   body {
     min-width: 320px;
@@ -45,8 +45,8 @@
     line-height: 1.8;
   }
   ::selection {
-    background: #edccbc;
-    color: #40382f;
+    background: #f2dace;
+    color: #3a1f2b;
   }
   :focus-visible {
     outline: 2px solid var(--accent);
@@ -147,7 +147,7 @@
 .tiny-line {
   width: 24px;
   height: 1px;
-  background: #cbbda8;
+  background: #d49a9a;
   display: inline-block;
   flex-shrink: 0;
 }
@@ -163,7 +163,7 @@
   width: fit-content;
   max-width: 100%;
   margin: 0 auto;
-  border-bottom: 1px solid #dcc3b5;
+  border-bottom: 1px solid #e5c3c3;
 }
 .home-nav a {
   padding: 12px 26px;
@@ -185,7 +185,7 @@
   max-width: none;
   white-space: nowrap;
   padding: 0 15px;
-  color: #827462;
+  color: #8a6a72;
   font-size: 12px;
   line-height: 1.9;
 }
@@ -247,14 +247,14 @@
   justify-content: center;
   gap: 12px;
   background: var(--accent);
-  color: #fffaf1;
+  color: #fffaf8;
   padding: 14px 20px;
   font-size: 11px;
   border: 1px solid var(--accent);
   border-radius: 6px;
   min-height: 44px;
   font-weight: 500;
-  box-shadow: 0 2px 0 #a14f3812;
+  box-shadow: 0 2px 0 #7c0e4412;
   white-space: nowrap;
 }
 .button:hover {
@@ -263,9 +263,9 @@
   transform: translateY(-1px);
 }
 .button-outline {
-  background: #fffaf5;
+  background: #fffaf8;
   color: var(--accent);
-  border-color: #c69b86;
+  border-color: #aa5e7a;
 }
 .button-outline:hover {
   background: var(--accent-soft);
@@ -294,7 +294,7 @@
 .timeline-date {
   padding-top: 7px;
   font-size: 12px;
-  color: #776954;
+  color: #8a6a72;
 }
 .timeline-date small {
   display: flex;
@@ -302,13 +302,13 @@
   gap: 7px;
   margin-top: 11px;
   font-size: 9px;
-  color: #8c8f74;
+  color: #aa5e7a;
 }
 .status-dot {
   width: 5px;
   height: 5px;
   border-radius: 100%;
-  background: #8c9176;
+  background: #aa5e7a;
 }
 .timeline-marker {
   position: relative;
@@ -333,12 +333,12 @@
   width: 9px;
   height: 9px;
   border-radius: 100%;
-  background: #f8f5ef;
-  border: 1px solid #b7a88f;
+  background: #fbf4f0;
+  border: 1px solid #d49a9a;
 }
 .timeline-marker.current:after {
-  background: #9c8c72;
-  box-shadow: 0 0 0 4px #e9e2d6;
+  background: #aa5e7a;
+  box-shadow: 0 0 0 4px #f2dace;
 }
 .timeline-content {
   padding: 0 0 58px 24px;
@@ -459,7 +459,7 @@
 }
 @keyframes pulse {
   50% {
-    box-shadow: 0 0 0 7px #e9e2d6;
+    box-shadow: 0 0 0 7px #f2dace;
   }
 }
 .timeline-content h2 {
@@ -550,7 +550,7 @@
   font-size: 8px;
   padding: 4px 8px;
   border: 1px solid var(--line);
-  color: #817462;
+  color: #8a6a72;
 }
 /* Projects with a screenshot fill the frame; the rest get a typeset card in
    one of the design's four tints. */
@@ -560,10 +560,10 @@
   height: 100%;
   object-fit: cover;
 }
-.visual-0 { background: #e8e1d5; }
-.visual-1 { background: #d4d7c9; }
-.visual-2 { background: #e5e9df; color: #63765b; }
-.visual-3 { background: #e8d9ca; }
+.visual-0 { background: #f2dace; }
+.visual-1 { background: #ebcfcf; }
+.visual-2 { background: #ecd5de; color: #7c0e44; }
+.visual-3 { background: #f6e6df; }
 .visual-label {
   font: italic 34px var(--font-serif);
   letter-spacing: -0.7px;
@@ -603,9 +603,15 @@
 /* Demo clips keep their own aspect ratio and pixel size: never cropped or upscaled. */
 .project-video {
   height: 410px; /* the clips' native height, so they never upscale */
-  background: #e8e1d5;
+  background: #f2dace;
   display: flex;
   justify-content: center;
+}
+.project-embed {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
 }
 .project-video video {
   display: block;
@@ -629,7 +635,7 @@
 }
 .muted {
   font-size: 10px;
-  color: #9a8e7b;
+  color: #8a6a72;
 }
 .detail-visual .project-visual {
   height: 460px;
@@ -649,9 +655,9 @@
   font-size: 10px;
 }
 .clip-tabs button[aria-pressed="true"] {
-  background: #4e4539;
-  color: #fffaf1;
-  border-color: #4e4539;
+  background: #7c0e44;
+  color: #fffaf8;
+  border-color: #7c0e44;
 }
 .case-study {
   display: grid;
@@ -701,7 +707,7 @@
   border-bottom: 1px solid var(--line);
 }
 .contact-row > svg {
-  color: #8f7e64;
+  color: #8a6a72;
 }
 .contact-row > div {
   flex: 1;
@@ -727,19 +733,19 @@
 .portrait-frame {
   width: 77%;
   transform: rotate(-3deg);
-  background: #fffcf6;
+  background: #fffaf8;
   padding: 12px 12px 0;
   box-shadow: 0 3px 15px #55422a0a;
 }
 .photo-slot {
   aspect-ratio: 4/5;
-  background: #e8e1d4;
+  background: #f2dace;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 20px;
-  color: #a5947b;
+  color: #8a6a72;
   overflow: hidden;
 }
 .photo-slot span {
@@ -757,7 +763,7 @@
 .photo-caption {
   display: block;
   font: italic 15px var(--font-serif);
-  color: #95836c;
+  color: #8a6a72;
   padding: 14px 4px;
 }
 .rabbit-frame {
@@ -766,15 +772,15 @@
   bottom: 0;
   width: 53%;
   transform: rotate(7deg);
-  background: #fffcf6;
+  background: #fffaf8;
   padding: 9px 9px 0;
   box-shadow: 0 3px 16px #55422a15;
 }
 .rabbit.photo-slot {
   aspect-ratio: 1;
-  background: #dfe3d6;
+  background: #ecd5de;
   gap: 12px;
-  color: #8d967c;
+  color: #aa5e7a;
 }
 .rabbit.photo-slot span {
   font-size: 16px;
@@ -827,7 +833,7 @@
   top: -80px;
   left: 20px;
   z-index: 20;
-  background: #40382f;
+  background: #7c0e44;
   color: #fff;
   padding: 15px;
   font-size: 12px;
@@ -1080,12 +1086,12 @@
 }
 .ttt-cell {
   aspect-ratio: 1;
-  background: #fffdf9;
+  background: #fffaf8;
   border: 1px solid var(--line);
   border-radius: 12px;
   font-family: var(--font-serif);
   font-size: 56px;
-  color: #40382f;
+  color: #3a1f2b;
   cursor: pointer;
 }
 .ttt-cell:not(:disabled):hover {
@@ -1113,8 +1119,8 @@
 .ttt-field input {
   font: inherit;
   font-size: 16px;
-  color: #40382f;
-  background: #fffdf9;
+  color: #3a1f2b;
+  background: #fffaf8;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 8px 10px;
